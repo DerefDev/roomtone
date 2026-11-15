@@ -73,10 +73,12 @@ fun KioskScreen(
                 }
             }
         }
-        // orologio sopra la colonna di testo
-        Clock(Modifier.align(Alignment.TopStart).padding(start = margin * 2 + side, top = margin / 2), (h.value * 0.06f).sp, TextMain.copy(alpha = 0.8f))
-        IconButton(onClick = onMenu, Modifier.align(Alignment.TopEnd).padding(8.dp).alpha(0.4f).size(56.dp)) {
-            Icon(painterResource(R.drawable.ic_menu), stringResource(R.string.cd_menu), tint = accent, modifier = Modifier.size(32.dp))
+        // orologio in alto a destra, accanto al pulsante del menu
+        Row(Modifier.align(Alignment.TopEnd).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Clock(Modifier, (h.value * 0.06f).sp, TextMain.copy(alpha = 0.8f))
+            IconButton(onClick = onMenu, Modifier.alpha(0.4f).size(56.dp)) {
+                Icon(painterResource(R.drawable.ic_menu), stringResource(R.string.cd_menu), tint = accent, modifier = Modifier.size(32.dp))
+            }
         }
         Row(Modifier.align(Alignment.BottomEnd).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!scrobbling) StatusBadge(stringResource(R.string.badge_scrobbling_off))

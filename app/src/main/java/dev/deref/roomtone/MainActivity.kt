@@ -84,8 +84,18 @@ class MainActivity : AppCompatActivity() {
         // con accesso concesso ma listener scollegato, chiedi esplicitamente il ricollegamento.
         if (accessGranted && !ShazamControl.listenerUp) {
             android.util.Log.d("Roomtone", "Listener scollegato: requestRebind")
-            android.service.notification.NotificationListenerService.requestRebind(
-                android.content.ComponentName(this, ShazamListener::class.java))
+            val cn = android.content.ComponentName(this, ShazamListener::class.java)
+            android.service.notification.NotificationListenerService.requestRebind(cn)
+            // Su EMUI requestRebind non sempre basta: se dopo 3 s è ancora scollegato,
+            // disabilita e riabilita il componente per forzare il ricollegamento.
+            lifecycleScope.launch {
+                kotlinx.coroutines.delay(3_000)
+                if (ShazamControl.listenerUp) return@launch
+                android.util.Log.d("Roomtone", "Listener ancora scollegato: toggle del componente")
+                val pm = packageManager
+                pm.setComponentEnabledSetting(cn, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.DONT_KILL_APP)
+                pm.setComponentEnabledSetting(cn, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP)
+            }
         }
     }
 

@@ -31,6 +31,7 @@ object ShazamControl {
     @Volatile private var pendingRestart = false
     private var autoStartPending = true // una volta per processo
     private var starting = false
+    private var lastStartAt = 0L
 
     fun isAuto(sbn: StatusBarNotification) = sbn.packageName == PKG && sbn.isOngoing &&
         Build.VERSION.SDK_INT >= 26 && sbn.notification.channelId == "auto_shazam_v2"
@@ -54,6 +55,12 @@ object ShazamControl {
     // Da chiamare solo con MainActivity visibile (Android 10: da background non si avviano activity).
     fun start(ctx: Context) {
         if (_autoOn.value || starting) return
+        // Senza listener lo stato di Shazam è ignoto: avviarlo "alla cieca" crea un ciclo di riaperture.
+        if (!listenerUp) { Log.d("Roomtone", "Auto Shazam: start saltato, listener scollegato"); return }
+        // Al massimo un tentativo al minuto, per sicurezza.
+        val now = System.currentTimeMillis()
+        if (now - lastStartAt < 60_000) { Log.d("Roomtone", "Auto Shazam: start saltato, troppo ravvicinato"); return }
+        lastStartAt = now
         val app = ctx.applicationContext
         Log.d("Roomtone", "Auto Shazam: start (visibile=$visible, overlay=${canStartFromBackground(app)})")
         try {
