@@ -1,6 +1,7 @@
 package dev.deref.roomtone
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager
@@ -21,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,14 +32,34 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private var accessGranted by mutableStateOf(false)
+    private var loginError by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        HistorySync.init(this)
+        if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
+        HistorySync.startIfStale()
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
-                Surface(Modifier.fillMaxSize()) { Screen(accessGranted) }
+                Surface(Modifier.fillMaxSize()) { Screen(accessGranted, loginError) }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleAuth(intent)
+    }
+
+    // roomtone://auth?token=… → sessione → sync. Il token non va mai loggato.
+    private fun handleAuth(i: Intent) {
+        val d = i.data ?: return
+        if (d.scheme != "roomtone" || d.host != "auth") return
+        i.data = null
+        val token = d.getQueryParameter("token") ?: return
+        lifecycleScope.launch {
+            try { HistorySync.login(token); loginError = null } catch (e: Exception) { loginError = e.message ?: "error" }
         }
     }
 
@@ -50,11 +74,13 @@ private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
 private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
 @Composable
-private fun Screen(accessGranted: Boolean) {
+private fun Screen(accessGranted: Boolean, loginError: String?) {
     val ctx = LocalContext.current
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
     val current by EventStore.currentTrack.collectAsStateWithLifecycle()
+    val user by HistorySync.user.collectAsStateWithLifecycle()
+    val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val shown = list.asReversed() // più recente in alto
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
 
@@ -80,12 +106,34 @@ private fun Screen(accessGranted: Boolean) {
             TextButton(onClick = { setLang("en") }) { Text("English") }
             TextButton(onClick = { setLang("it") }) { Text("Italiano") }
         }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            val u = user
+            if (u == null) {
+                Text(stringResource(R.string.lastfm_not_connected))
+                Button(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LastFmApi.authUrl()))) }) {
+                    Text(stringResource(R.string.lastfm_connect))
+                }
+            } else {
+                Column(Modifier.weight(1f, fill = false)) {
+                    Text(stringResource(R.string.lastfm_connected, u))
+                    val n = NumberFormat.getInstance().format(sync.total)
+                    Text(when {
+                        sync.running -> stringResource(R.string.history_syncing, n, sync.page, sync.pages)
+                        sync.complete -> stringResource(R.string.history_up_to_date, n)
+                        else -> stringResource(R.string.history_paused, n)
+                    }, fontSize = 12.sp)
+                }
+                Button(onClick = { HistorySync.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
+            }
+            (loginError ?: sync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
+        }
         HorizontalDivider()
         Text(current?.title ?: stringResource(R.string.listening), fontSize = 40.sp)
         Text(current?.artist ?: "", fontSize = 24.sp)
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f)) {
-            items(shown) { (r, ev) ->
+            items(shown) { (r, ev, meta) ->
+              Column {
                 Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(timeFmt.format(Date(r.start)))
                     Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
@@ -100,6 +148,12 @@ private fun Screen(accessGranted: Boolean) {
                     })
                     Text(stringResource(R.string.beats, r.beats))
                 }
+                meta?.let { m ->
+                    val src = stringResource(if (m.source == MetaSource.HISTORY) R.string.meta_from_history else R.string.meta_from_shazam)
+                    val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
+                    Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
+                }
+              }
             }
         }
     }

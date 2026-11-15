@@ -11,6 +11,7 @@ class NormalizeTest {
         assertEquals(k("Song"), k("Song - Remastered 2011"))
         assertEquals(k("Song"), k("Song (feat. X)"))
         assertEquals(k("Song"), k("Song (2009 Remaster)"))
+        assertEquals(k("Song"), k("Song - 2025 Remastered"))
         assertEquals(k("Song", "A"), k("Song", "A feat. B"))
         assertEquals(k("Città"), k("Citta"))
     }

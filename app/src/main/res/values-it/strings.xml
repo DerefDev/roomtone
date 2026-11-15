@@ -23,4 +23,15 @@
     <string name="reason_ambiguous_repeats">ripetizioni ambigue</string>
     <string name="language">Lingua:</string>
     <string name="lang_system">Sistema</string>
+    <string name="lastfm_connect">Connetti Last.fm</string>
+    <string name="lastfm_disconnect">Disconnetti</string>
+    <string name="lastfm_connected">Last.fm: connesso come %1$s</string>
+    <string name="lastfm_not_connected">Last.fm: non connesso</string>
+    <string name="history_syncing">Cronologia: %1$s scrobble · sincronizzo pagina %2$d/%3$d</string>
+    <string name="history_up_to_date">Cronologia: %1$s scrobble · aggiornata</string>
+    <string name="history_paused">Cronologia: %1$s scrobble · incompleta</string>
+    <string name="sync_error">Errore: %1$s</string>
+    <string name="meta_as">come: %1$s</string>
+    <string name="meta_from_history">dalla cronologia</string>
+    <string name="meta_from_shazam">da Shazam</string>
 </resources>

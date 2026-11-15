@@ -16,7 +16,7 @@ import java.net.URLEncoder
 // ponytail: errori di rete → null senza dettaglio; niente retry → WorkManager se serve
 object Durations {
     private const val DAY = 24 * 3_600_000L
-    private const val UA = "Roomtone/0.3 ( https://github.com/DerefDev/roomtone )"
+    private const val UA = "Roomtone/0.4 ( https://github.com/DerefDev/roomtone )"
 
     private var file: File? = null
     private val cache = HashMap<String, LongArray>() // chiave → [ms (-1 = non trovato), timestamp]

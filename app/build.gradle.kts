@@ -21,6 +21,7 @@ android {
         versionCode = 1
         versionName = "0.3"
         buildConfigField("String", "LASTFM_API_KEY", "\"${secrets.getProperty("LASTFM_API_KEY", "").trim()}\"")
+        buildConfigField("String", "LASTFM_API_SECRET", "\"${secrets.getProperty("LASTFM_API_SECRET", "").trim()}\"")
     }
     buildFeatures {
         compose = true

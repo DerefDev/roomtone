@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 // eval == null → durata in ricerca…
-data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null)
+data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val meta: ScrobbleMeta? = null)
 
 // ponytail: solo in memoria (+ jsonl scritto dal listener) → Room se serve persistenza
 // Tutte le chiamate al motore avvengono sul main thread (callback del listener + Handler main).
@@ -22,14 +22,15 @@ object EventStore {
     private val _currentTrack = MutableStateFlow<Track?>(null)
     val currentTrack: StateFlow<Track?> = _currentTrack
 
-    var onEvaluated: (Listen, Evaluation) -> Unit = { _, _ -> } // hook del listener per la scrittura su file
+    var onEvaluated: (Listen, Evaluation, ScrobbleMeta) -> Unit = { _, _, _ -> } // hook del listener per la scrittura su file
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val engine = ListeningEngine(if (Locale.getDefault().language == "it") " di " else " by ") { l ->
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
             val e = evaluate(l, Durations.duration(l.track))
-            _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e) else it } }
-            onEvaluated(l, e)
+            val m = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
+            _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m) else it } }
+            onEvaluated(l, e, m)
         }
     }
 

@@ -26,6 +26,7 @@ class ShazamListener : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         Durations.init(getExternalFilesDir(null))
+        HistorySync.init(this)
         EventStore.onEvaluated = ::saveListen // agganciato subito, non solo a listener connesso
     }
 
@@ -40,7 +41,7 @@ class ShazamListener : NotificationListenerService() {
         handler.removeCallbacks(ticker)
     }
 
-    private fun saveListen(l: Listen, e: Evaluation) {
+    private fun saveListen(l: Listen, e: Evaluation, m: ScrobbleMeta) {
         val line = JSONObject().apply {
             put("title", l.track.title); put("artist", l.track.artist)
             put("start", l.start); put("firstBeat", l.firstBeat); put("lastBeat", l.lastBeat)
@@ -48,6 +49,8 @@ class ShazamListener : NotificationListenerService() {
             put("durationMs", e.durationMs ?: JSONObject.NULL)
             put("status", e.status.name); put("reason", e.reason.name); put("plays", e.plays)
             put("timestamps", JSONArray(e.timestamps))
+            put("scrobbleArtist", m.artist); put("scrobbleTitle", m.title)
+            put("scrobbleAlbum", m.album ?: JSONObject.NULL); put("metaSource", m.source.name)
         }.toString()
         io.execute {
             try {
