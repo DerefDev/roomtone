@@ -78,6 +78,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Annulla</string>
     <string name="about_made_by">Creato da DerefDev</string>
+    <string name="about_license">Licenza: GPL-3.0-or-later (software libero)</string>
     <string name="about_source">Codice sorgente</string>
     <string name="about_issue">Segnala un problema</string>
     <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: iTunes Search API</string>

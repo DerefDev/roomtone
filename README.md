@@ -32,3 +32,12 @@ Palette) and Kotlin coroutines, Apache License 2.0.
 
 **Reference projects** (studied, no code copied) — [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler)
 (GPL-3.0) and [Finale](https://github.com/nrubin29/finale) (BSD-3-Clause).
+
+## License
+
+Roomtone is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. See [LICENSE](LICENSE).
+
+Copyright (C) 2026 DerefDev

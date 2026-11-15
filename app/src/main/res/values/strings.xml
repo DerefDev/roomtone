@@ -80,6 +80,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="about_made_by">Made by DerefDev</string>
+    <string name="about_license">License: GPL-3.0-or-later (free software)</string>
     <string name="about_source">Source code</string>
     <string name="about_issue">Report an issue</string>
     <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: iTunes Search API</string>

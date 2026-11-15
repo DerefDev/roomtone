@@ -191,6 +191,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
             item { Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft) }
             item { Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open) }
             item { Link(R.string.about_issue, "https://github.com/DerefDev/roomtone/issues", ::open) }
+            item { Link(R.string.about_license, "https://www.gnu.org/licenses/gpl-3.0.html", ::open) }
             item {
                 Column {
                     Text(stringResource(R.string.about_credits), fontSize = 12.sp, color = TextSoft)
