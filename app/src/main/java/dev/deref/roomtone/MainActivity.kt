@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (savedInstanceState == null) ShazamControl.armAutoStart() // nuova apertura, non rotazione
         Prefs.init(this)
         Connectivity.init(this)
         Artwork.init(cacheDir)
@@ -99,6 +100,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // App chiusa (Indietro dalla schermata principale o rimossa dalle recenti): spegni anche Auto Shazam
+    override fun onDestroy() {
+        if (isFinishing) { android.util.Log.d("Roomtone", "App chiusa: spengo Auto Shazam"); ShazamControl.stop() }
+        super.onDestroy()
+    }
+
     override fun onPause() {
         ShazamControl.visible = false
         super.onPause()
@@ -140,7 +147,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     }
     // uscita dallo standby (tap o back) → riaccende Shazam se era acceso
     fun leave() {
-        if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx)
+        if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx, user = true)
         standbyWasOn = false
         screen = Screen.KIOSK
     }
@@ -159,7 +166,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
-                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx) else ShazamControl.stop() },
+                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx, user = true) else ShazamControl.stop() },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
                         onStandby = {

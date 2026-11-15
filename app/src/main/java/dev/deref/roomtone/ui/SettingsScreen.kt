@@ -119,7 +119,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.shazam_status, stringResource(if (shazamOn) R.string.shazam_on else R.string.shazam_off)), Modifier.weight(1f, fill = false))
-                    if (!shazamOn) Button({ ShazamControl.start(ctx) }) { Text(stringResource(R.string.shazam_turn_on)) }
+                    if (!shazamOn) Button({ ShazamControl.start(ctx, user = true) }) { Text(stringResource(R.string.shazam_turn_on)) }
                 }
             }
             if (notInstalled) item { Text(stringResource(R.string.shazam_not_installed), fontSize = 12.sp, color = MaterialTheme.colorScheme.error) }

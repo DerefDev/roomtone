@@ -29,7 +29,10 @@ object ShazamControl {
     @Volatile var listenerUp = false
     @Volatile var wasOnBeforeScreenOff = false
     @Volatile private var pendingRestart = false
-    private var autoStartPending = true // una volta per processo
+    private var autoStartPending = true // una volta per apertura dell'app (vedi armAutoStart)
+
+    // Il processo sopravvive alla chiusura dell'app (il listener resta collegato): riarma a ogni apertura.
+    fun armAutoStart() { autoStartPending = true }
     private var starting = false
     private var lastStartAt = 0L
 
@@ -53,13 +56,14 @@ object ShazamControl {
     }
 
     // Da chiamare solo con MainActivity visibile (Android 10: da background non si avviano activity).
-    fun start(ctx: Context) {
+    // user = azione esplicita dell'utente (menu, uscita dallo standby): niente limite di frequenza
+    fun start(ctx: Context, user: Boolean = false) {
         if (_autoOn.value || starting) return
         // Senza listener lo stato di Shazam è ignoto: avviarlo "alla cieca" crea un ciclo di riaperture.
         if (!listenerUp) { Log.d("Roomtone", "Auto Shazam: start saltato, listener scollegato"); return }
-        // Al massimo un tentativo al minuto, per sicurezza.
+        // Avvii automatici: solo contro chiamate doppie ravvicinate (il ciclo vero è evitato da listenerUp).
         val now = System.currentTimeMillis()
-        if (now - lastStartAt < 60_000) { Log.d("Roomtone", "Auto Shazam: start saltato, troppo ravvicinato"); return }
+        if (!user && now - lastStartAt < 5_000) { Log.d("Roomtone", "Auto Shazam: start saltato, troppo ravvicinato"); return }
         lastStartAt = now
         val app = ctx.applicationContext
         Log.d("Roomtone", "Auto Shazam: start (visibile=$visible, overlay=${canStartFromBackground(app)})")
