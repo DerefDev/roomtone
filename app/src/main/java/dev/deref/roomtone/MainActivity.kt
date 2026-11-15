@@ -80,6 +80,13 @@ class MainActivity : AppCompatActivity() {
         ShazamControl.onScreenOn(this) // USER_PRESENT non sempre arriva (es. sblocco senza PIN): ricontrolla qui
         ShazamControl.consumeRestart(this)
         accessGranted = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+        // Dopo un aggiornamento o se EMUI chiude il processo, il sistema può non ricollegare il listener:
+        // con accesso concesso ma listener scollegato, chiedi esplicitamente il ricollegamento.
+        if (accessGranted && !ShazamControl.listenerUp) {
+            android.util.Log.d("Roomtone", "Listener scollegato: requestRebind")
+            android.service.notification.NotificationListenerService.requestRebind(
+                android.content.ComponentName(this, ShazamListener::class.java))
+        }
     }
 
     override fun onPause() {
@@ -102,7 +109,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menu by remember { mutableStateOf(false) }
-    var autoStandby by remember { mutableStateOf(false) } // standby entrato da solo → esce al nuovo brano
+    var autoStandby by remember { mutableStateOf(false) } // standby entrato da solo (per ora solo informativo)
 
     // copertina: parte quando i metadati sono pronti; la precedente resta finché arriva la nuova (transizione morbida)
     val n = np
@@ -115,13 +122,15 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     LaunchedEffect(idle, autoOn, mins, screen) {
         if (idle && autoOn && screen == Screen.KIOSK) {
             delay(mins * 60_000L)
-            autoStandby = true; menu = false; screen = Screen.STANDBY
+            // anche lo standby automatico spegne Shazam (privacy): si esce solo toccando lo schermo
+            autoStandby = true; menu = false
+            standbyWasOn = ShazamControl.autoOn.value; ShazamControl.stop()
+            screen = Screen.STANDBY
         }
     }
-    LaunchedEffect(n?.track) { if (n != null && screen == Screen.STANDBY && autoStandby) screen = Screen.KIOSK }
-    // uscita dallo standby manuale (tap o back) → riaccende Shazam se era acceso
+    // uscita dallo standby (tap o back) → riaccende Shazam se era acceso
     fun leave() {
-        if (screen == Screen.STANDBY && !autoStandby && standbyWasOn) ShazamControl.start(ctx)
+        if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx)
         standbyWasOn = false
         screen = Screen.KIOSK
     }
