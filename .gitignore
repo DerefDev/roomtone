@@ -1,0 +1,20 @@
+# Build
+build/
+.gradle/
+.kotlin/
+*.apk
+*.aab
+
+# Locale / segreti (mai nel repository)
+local.properties
+secrets.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
