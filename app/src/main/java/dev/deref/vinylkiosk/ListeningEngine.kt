@@ -19,6 +19,7 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
     private var pending: Pend? = null
     private var lastText: String? = null
     private var lastBeatTime = -1L
+    private var away = 0 // battiti consecutivi diversi dal brano corrente
 
     val currentTrack: Track? get() = current?.track
 
@@ -45,20 +46,23 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
         val t = resolve(text)
         val cur = current
         if (cur != null && t == cur.track) {
-            pending = null // interruzione di 1 battito (sample/neutro) ignorata
+            // fino a MAX_AWAY battiti di altro (sample, passaggi piani) non spezzano il tratto
+            pending = null
+            away = 0
             cur.last = time
             cur.beats++
             return
         }
+        away++
         val p = pending
         val np = if (p != null && p.track == t) p.also { it.count++; it.last = time } else Pend(t, time, time, 1)
         pending = np
-        if (np.count >= 2) {
-            close()
-            if (np.track != null) {
-                current = Cur(np.track, np.first, np.last, np.count)
-                pending = null
-            } // neutro: pending resta
+        // un altro brano per 2 battiti di fila, o troppi battiti lontani dal brano corrente → chiudi
+        if ((np.track != null && np.count >= 2) || away > MAX_AWAY) close()
+        if (np.track != null && np.count >= 2) {
+            current = Cur(np.track, np.first, np.last, np.count)
+            pending = null
+            away = 0
         }
     }
 
@@ -71,6 +75,13 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
     private fun close() {
         val c = current ?: return
         current = null
-        if (c.beats >= 2) onListen(Listen(c.track, c.first, c.last, c.beats))
+        away = 0
+        val l = Listen(c.track, c.first, c.last, c.beats)
+        if (l.playedMs >= MIN_PLAYED_MS) onListen(l) // Last.fm: niente scrobble sotto i 30 s
+    }
+
+    private companion object {
+        const val MAX_AWAY = 2 // ~25 s di silenzio/sample tollerati dentro un brano
+        const val MIN_PLAYED_MS = 30_000L
     }
 }
