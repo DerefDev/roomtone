@@ -51,4 +51,21 @@ class ListeningEngineTest {
         )
         assertEquals(exp, got.map { it.track.title to it.beats })
     }
+
+    @Test
+    fun schermoSubitoAlPrimoBattito() {
+        val e = ListeningEngine { }
+        e.onBeat("Track A di Artist A", 0)
+        assertEquals(Track("Track A", "Artist A"), e.displayTrack) // mostrato subito
+        assertEquals(null, e.currentTrack) // ma non ancora un ascolto
+        e.onBeat("Track A di Artist A", 12_000)
+        assertEquals(Track("Track A", "Artist A"), e.currentTrack)
+        e.onBeat("Track B di Artist B", 24_000) // sample: schermo cambia, ascolto no
+        assertEquals("Track B", e.displayTrack?.title)
+        assertEquals("Track A", e.currentTrack?.title)
+        e.onBeat("Track A di Artist A", 36_000)
+        assertEquals("Track A", e.displayTrack?.title)
+        repeat(3) { e.onBeat("5 canzoni trovate", 48_000L + it * 12_000) } // silenzio → chiuso
+        assertEquals(null, e.displayTrack)
+    }
 }

@@ -22,7 +22,7 @@ object EventStore {
     fun setConnected(v: Boolean) { _connected.value = v }
     fun clear() { _listens.value = emptyList() }
 
-    fun match(title: String, artist: String, now: Long) = engine.onMatch(title, artist, now)
-    fun beat(text: String, now: Long) { engine.onBeat(text, now); _currentTrack.value = engine.currentTrack }
-    fun tick(now: Long) { engine.tick(now); _currentTrack.value = engine.currentTrack }
+    fun match(title: String, artist: String, now: Long) { engine.onMatch(title, artist, now); _currentTrack.value = engine.displayTrack }
+    fun beat(text: String, now: Long) { engine.onBeat(text, now); _currentTrack.value = engine.displayTrack }
+    fun tick(now: Long) { engine.tick(now); _currentTrack.value = engine.displayTrack }
 }

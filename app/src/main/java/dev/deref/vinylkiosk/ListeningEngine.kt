@@ -23,8 +23,15 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
 
     val currentTrack: Track? get() = current?.track
 
+    // Brano da mostrare a schermo: subito al primo battito, senza i filtri del salvataggio.
+    // ponytail: un sample di 1 battito compare per ~12 s, accettato per non ritardare lo schermo
+    var displayTrack: Track? = null
+        private set
+
     fun onMatch(title: String, artist: String, time: Long) {
-        known["$title di $artist"] = Track(title, artist)
+        val t = Track(title, artist)
+        known["$title di $artist"] = t
+        displayTrack = t
     }
 
     private val neutral = Regex("""^\d+ canzon[ei] trovat[ae]$""")
@@ -44,6 +51,7 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
         lastText = text
         lastBeatTime = time
         val t = resolve(text)
+        if (t != null) displayTrack = t else if (current == null) displayTrack = null
         val cur = current
         if (cur != null && t == cur.track) {
             // fino a MAX_AWAY battiti di altro (sample, passaggi piani) non spezzano il tratto
@@ -75,6 +83,7 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
     private fun close() {
         val c = current ?: return
         current = null
+        if (displayTrack == c.track) displayTrack = null
         away = 0
         val l = Listen(c.track, c.first, c.last, c.beats)
         if (l.playedMs >= MIN_PLAYED_MS) onListen(l) // Last.fm: niente scrobble sotto i 30 s
