@@ -1,4 +1,4 @@
-package dev.deref.vinylkiosk
+package dev.deref.roomtone
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -67,5 +67,15 @@ class ListeningEngineTest {
         assertEquals("Track A", e.displayTrack?.title)
         repeat(3) { e.onBeat("5 canzoni trovate", 48_000L + it * 12_000) } // silenzio → chiuso
         assertEquals(null, e.displayTrack)
+    }
+
+    @Test
+    fun separatoreInglese() {
+        val out = mutableListOf<Listen>()
+        val e = ListeningEngine(separator = " by ") { out += it }
+        repeat(2) { e.onBeat("Track A by Artist A", it * 20_000L) } // ≥ 30 s di ascolto
+        repeat(3) { e.onBeat("3 songs found", 32_000L + it * 12_000) }
+        e.finish()
+        assertEquals(listOf(Track("Track A", "Artist A")), out.map { it.track })
     }
 }

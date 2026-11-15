@@ -1,4 +1,4 @@
-package dev.deref.vinylkiosk
+package dev.deref.roomtone
 
 import android.app.Notification
 import android.os.Build
@@ -46,7 +46,7 @@ class ShazamListener : NotificationListenerService() {
             put("start", l.start); put("firstBeat", l.firstBeat); put("lastBeat", l.lastBeat)
             put("beats", l.beats); put("playedMs", l.playedMs)
             put("durationMs", e.durationMs ?: JSONObject.NULL)
-            put("status", e.status.name); put("reason", e.reason); put("plays", e.plays)
+            put("status", e.status.name); put("reason", e.reason.name); put("plays", e.plays)
             put("timestamps", JSONArray(e.timestamps))
         }.toString()
         io.execute {

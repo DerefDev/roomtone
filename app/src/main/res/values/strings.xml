@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Roomtone</string>
+    <string name="notif_access">Notification access: %1$s</string>
+    <string name="access_ok">OK</string>
+    <string name="access_missing">NOT granted</string>
+    <string name="listener_status">Listener: %1$s</string>
+    <string name="listener_connected">connected</string>
+    <string name="listener_disconnected">not connected</string>
+    <string name="log_path">Log: %1$s</string>
+    <string name="grant_access">Grant notification access</string>
+    <string name="clear">Clear</string>
+    <string name="listening">Listening…</string>
+    <string name="track_duration">track %1$s</string>
+    <string name="duration_searching">looking up duration…</string>
+    <string name="status_valid">✓ valid ×%1$d</string>
+    <string name="status_draft">draft: %1$s</string>
+    <string name="status_discarded">discarded: %1$s</string>
+    <string name="beats">%1$d beats</string>
+    <string name="reason_ok">ok</string>
+    <string name="reason_unknown_duration">unknown duration</string>
+    <string name="reason_track_under_30s">track under 30 s</string>
+    <string name="reason_less_than_half">less than half the track</string>
+    <string name="reason_ambiguous_repeats">ambiguous repeats</string>
+    <string name="language">Language:</string>
+    <string name="lang_system">System</string>
+</resources>

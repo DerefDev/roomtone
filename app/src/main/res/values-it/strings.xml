@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notif_access">Accesso notifiche: %1$s</string>
+    <string name="access_ok">OK</string>
+    <string name="access_missing">NON concesso</string>
+    <string name="listener_status">Listener: %1$s</string>
+    <string name="listener_connected">connesso</string>
+    <string name="listener_disconnected">non connesso</string>
+    <string name="log_path">Log: %1$s</string>
+    <string name="grant_access">Concedi accesso notifiche</string>
+    <string name="clear">Svuota</string>
+    <string name="listening">In ascolto…</string>
+    <string name="track_duration">brano %1$s</string>
+    <string name="duration_searching">durata in ricerca…</string>
+    <string name="status_valid">✓ valido ×%1$d</string>
+    <string name="status_draft">bozza: %1$s</string>
+    <string name="status_discarded">scartato: %1$s</string>
+    <string name="beats">%1$d battiti</string>
+    <string name="reason_ok">ok</string>
+    <string name="reason_unknown_duration">durata sconosciuta</string>
+    <string name="reason_track_under_30s">brano sotto 30 s</string>
+    <string name="reason_less_than_half">meno di metà brano</string>
+    <string name="reason_ambiguous_repeats">ripetizioni ambigue</string>
+    <string name="language">Lingua:</string>
+    <string name="lang_system">Sistema</string>
+</resources>

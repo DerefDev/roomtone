@@ -1,4 +1,4 @@
-package dev.deref.vinylkiosk
+package dev.deref.roomtone
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 // eval == null → durata in ricerca…
 data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null)
@@ -23,7 +24,7 @@ object EventStore {
 
     var onEvaluated: (Listen, Evaluation) -> Unit = { _, _ -> } // hook del listener per la scrittura su file
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val engine = ListeningEngine { l ->
+    private val engine = ListeningEngine(if (Locale.getDefault().language == "it") " di " else " by ") { l ->
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
             val e = evaluate(l, Durations.duration(l.track))

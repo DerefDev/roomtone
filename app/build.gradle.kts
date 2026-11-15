@@ -11,11 +11,11 @@ val secrets = Properties().apply {
 }
 
 android {
-    namespace = "dev.deref.vinylkiosk"
+    namespace = "dev.deref.roomtone"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "dev.deref.vinylkiosk"
+        applicationId = "dev.deref.roomtone"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -31,6 +31,7 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.compose.ui)

@@ -1,4 +1,4 @@
-package dev.deref.vinylkiosk
+package dev.deref.roomtone
 
 // Kotlin puro (niente android.*) → testabile su JVM.
 data class Track(val title: String, val artist: String)
@@ -8,7 +8,7 @@ data class Listen(val track: Track, val firstBeat: Long, val lastBeat: Long, val
     val playedMs get() = lastBeat - firstBeat + 12_000
 }
 
-class ListeningEngine(private val onListen: (Listen) -> Unit) {
+class ListeningEngine(private val separator: String = " di ", private val onListen: (Listen) -> Unit) {
 
     private class Cur(val track: Track, val key: String, val first: Long, var last: Long, var beats: Int)
     // track == null → battito neutro
@@ -30,19 +30,20 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
 
     fun onMatch(title: String, artist: String, time: Long) {
         val t = Track(title, artist)
-        known["$title di $artist"] = t
+        known["$title$separator$artist"] = t
         displayTrack = t
     }
 
-    private val neutral = Regex("""^\d+ canzon[ei] trovat[ae]$""")
+    // ponytail: inglese non ancora verificato su dispositivo
+    private val neutral = Regex("""^\d+ (?:canzon[ei] trovat[ae]|songs? found)$""")
 
     // null = neutro
     private fun resolve(text: String): Track? {
-        if (neutral.matches(text) || text.startsWith("Shazam riconosce")) return null
+        if (neutral.matches(text) || text.startsWith("Shazam riconosce") || text.startsWith("Shazam is")) return null
         known[text]?.let { return it }
-        // ponytail: titoli con " di " gestiti dalla mappa dei match → fallback euristico
-        val i = text.lastIndexOf(" di ")
-        return if (i < 0) null else Track(text.substring(0, i), text.substring(i + 4))
+        // ponytail: titoli con il separatore gestiti dalla mappa dei match → fallback euristico
+        val i = text.lastIndexOf(separator)
+        return if (i < 0) null else Track(text.substring(0, i), text.substring(i + separator.length))
     }
 
     fun onBeat(text: String, time: Long) {
