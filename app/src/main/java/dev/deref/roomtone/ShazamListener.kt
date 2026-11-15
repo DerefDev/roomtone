@@ -1,7 +1,13 @@
 package dev.deref.roomtone
 
 import android.app.Notification
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
+import androidx.core.content.ContextCompat
 import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
@@ -23,6 +29,19 @@ class ShazamListener : NotificationListenerService() {
         }
     }
 
+    // privacy: schermo spento → Auto Shazam spento; riacceso → riavvio (se attivo da pref) dall'activity visibile
+    private var screenRx: BroadcastReceiver? = null
+    private val rx = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, i: Intent) {
+            when (i.action) {
+                Intent.ACTION_SCREEN_OFF -> ShazamControl.onScreenOff()
+                Intent.ACTION_USER_PRESENT -> ShazamControl.onScreenOn(applicationContext)
+                // SCREEN_ON con blocco schermo attivo: si aspetta USER_PRESENT
+                Intent.ACTION_SCREEN_ON -> if (!(getSystemService(KEYGUARD_SERVICE) as KeyguardManager).isKeyguardLocked) ShazamControl.onScreenOn(applicationContext)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Durations.init(getExternalFilesDir(null))
@@ -33,12 +52,23 @@ class ShazamListener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         EventStore.setConnected(true)
+        try { ShazamControl.recompute(activeNotifications) } catch (_: SecurityException) { }
+        ShazamControl.listenerUp = true
+        if (screenRx == null) {
+            screenRx = rx
+            ContextCompat.registerReceiver(this, rx, IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON); addAction(Intent.ACTION_USER_PRESENT)
+            }, ContextCompat.RECEIVER_NOT_EXPORTED)
+        }
+        ShazamControl.maybeAutoStart(applicationContext)
         handler.removeCallbacks(ticker)
         handler.postDelayed(ticker, 15_000)
     }
 
     override fun onListenerDisconnected() {
         EventStore.setConnected(false)
+        ShazamControl.listenerUp = false
+        unregisterScreenRx()
         handler.removeCallbacks(ticker)
     }
 
@@ -64,7 +94,14 @@ class ShazamListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) = handle(sbn, "posted")
     override fun onNotificationRemoved(sbn: StatusBarNotification) = handle(sbn, "removed")
 
+    private fun unregisterScreenRx() {
+        if (screenRx == null) return
+        screenRx = null
+        try { unregisterReceiver(rx) } catch (_: IllegalArgumentException) { }
+    }
+
     override fun onDestroy() {
+        unregisterScreenRx()
         handler.removeCallbacks(ticker)
         io.shutdown()
         super.onDestroy()
@@ -72,6 +109,7 @@ class ShazamListener : NotificationListenerService() {
 
     private fun handle(sbn: StatusBarNotification, event: String) {
         if (sbn.packageName != "com.shazam.android") return
+        if (event == "posted") ShazamControl.onPosted(sbn) else ShazamControl.onRemoved(sbn)
         val n = sbn.notification
         val now = System.currentTimeMillis()
         val line = toJson(sbn, n, event, now).toString()

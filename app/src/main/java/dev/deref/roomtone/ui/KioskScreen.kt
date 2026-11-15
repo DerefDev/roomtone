@@ -32,7 +32,7 @@ import java.util.Date
 // next: brano successivo (da tracklist Discogs, non ancora disponibile → sempre null)
 @Composable
 fun KioskScreen(
-    np: NowPlaying?, cover: Bitmap?, scrobbling: Boolean, online: Boolean, drafts: Int, next: String?,
+    np: NowPlaying?, cover: Bitmap?, scrobbling: Boolean, online: Boolean, drafts: Int, next: String?, shazamOn: Boolean,
     onMenu: () -> Unit, onDrafts: () -> Unit,
 ) {
     val accent = LocalAccent.current
@@ -80,6 +80,7 @@ fun KioskScreen(
         }
         Row(Modifier.align(Alignment.BottomEnd).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!scrobbling) StatusBadge(stringResource(R.string.badge_scrobbling_off))
+            if (!shazamOn) StatusBadge(stringResource(R.string.badge_shazam_off))
             if (!online) StatusBadge(stringResource(R.string.badge_offline))
             if (drafts > 0) StatusBadge(stringResource(R.string.badge_review, drafts), onDrafts)
         }

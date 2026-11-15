@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -74,7 +75,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        ShazamControl.visible = true
+        ShazamControl.maybeAutoStart(this)
+        ShazamControl.onScreenOn(this) // USER_PRESENT non sempre arriva (es. sblocco senza PIN): ricontrolla qui
+        ShazamControl.consumeRestart(this)
         accessGranted = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+    }
+
+    override fun onPause() {
+        ShazamControl.visible = false
+        super.onPause()
     }
 }
 
@@ -86,6 +96,9 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     val online by Connectivity.online.collectAsStateWithLifecycle()
     val autoOn by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
+    val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
+    var standbyWasOn by remember { mutableStateOf(false) } // Auto Shazam acceso prima dello standby manuale
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menu by remember { mutableStateOf(false) }
@@ -106,24 +119,35 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
         }
     }
     LaunchedEffect(n?.track) { if (n != null && screen == Screen.STANDBY && autoStandby) screen = Screen.KIOSK }
-    BackHandler(screen != Screen.KIOSK) { screen = Screen.KIOSK }
+    // uscita dallo standby manuale (tap o back) → riaccende Shazam se era acceso
+    fun leave() {
+        if (screen == Screen.STANDBY && !autoStandby && standbyWasOn) ShazamControl.start(ctx)
+        standbyWasOn = false
+        screen = Screen.KIOSK
+    }
+    BackHandler(screen != Screen.KIOSK) { leave() }
 
     RoomtoneTheme(cover) {
-        if (screen == Screen.STANDBY) StandbyScreen { screen = Screen.KIOSK }
+        if (screen == Screen.STANDBY) StandbyScreen { leave() }
         else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
                 Screen.SETTINGS -> SettingsScreen(accessGranted, loginError) { screen = Screen.KIOSK }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, null, // next: Discogs
+                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, null, shazamOn, // next: Discogs
                         onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
+                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx) else ShazamControl.stop() },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
-                        onStandby = { menu = false; autoStandby = false; screen = Screen.STANDBY },
+                        onStandby = {
+                            menu = false; autoStandby = false
+                            standbyWasOn = shazamOn; ShazamControl.stop()
+                            screen = Screen.STANDBY
+                        },
                     )
                 }
             }

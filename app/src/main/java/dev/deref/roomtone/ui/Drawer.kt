@@ -29,6 +29,7 @@ import dev.deref.roomtone.R
 @Composable
 fun Drawer(
     open: Boolean, onClose: () -> Unit, scrobbling: Boolean, onScrobbling: (Boolean) -> Unit,
+    shazamOn: Boolean, onShazam: (Boolean) -> Unit,
     onSettings: () -> Unit, onScrobble: () -> Unit, onStandby: () -> Unit,
 ) {
     val accent = LocalAccent.current
@@ -50,12 +51,8 @@ fun Drawer(
                 Item(R.drawable.ic_scrobble, stringResource(R.string.menu_scrobble), onScrobble)
                 Item(R.drawable.ic_power, stringResource(R.string.menu_standby), onStandby)
                 HorizontalDivider(Modifier.padding(vertical = 8.dp), color = accent.copy(alpha = 0.3f))
-                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.menu_scrobbling), Modifier.weight(1f), fontSize = 18.sp)
-                    Switch(scrobbling, onScrobbling, colors = SwitchDefaults.colors(
-                        checkedTrackColor = accent, checkedThumbColor = Color.Black, checkedBorderColor = accent,
-                    ))
-                }
+                SwitchRow(stringResource(R.string.menu_shazam), shazamOn, onShazam)
+                SwitchRow(stringResource(R.string.menu_scrobbling), scrobbling, onScrobbling)
             }
         }
     }
@@ -67,5 +64,16 @@ private fun Item(icon: Int, label: String, onClick: () -> Unit) {
         Icon(painterResource(icon), null, tint = LocalAccent.current)
         Spacer(Modifier.width(16.dp))
         Text(label, fontSize = 18.sp)
+    }
+}
+
+@Composable
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val accent = LocalAccent.current
+    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.weight(1f), fontSize = 18.sp)
+        Switch(checked, onChange, colors = SwitchDefaults.colors(
+            checkedTrackColor = accent, checkedThumbColor = Color.Black, checkedBorderColor = accent,
+        ))
     }
 }

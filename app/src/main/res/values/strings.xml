@@ -61,6 +61,8 @@
     <string name="sec_language">Language</string>
     <string name="sec_permissions">Permissions</string>
     <string name="battery_opt">Battery optimization</string>
+    <string name="overlay_perm">Display over other apps</string>
+    <string name="overlay_hint">Needed to turn on Auto Shazam and come back to Roomtone automatically.</string>
     <string name="huawei_note">On Huawei (EMUI) also allow Roomtone to start automatically: Settings → Battery → App launch → Roomtone → manage manually.</string>
     <string name="sec_standby">Standby</string>
     <string name="standby_auto">Automatic standby</string>
@@ -85,4 +87,15 @@
     <string name="credit_mb">MusicBrainz</string>
     <string name="credit_itunes">iTunes</string>
     <string name="credit_shazam">Recognition: Shazam (via notifications)</string>
+    <string name="menu_shazam">Auto Shazam</string>
+    <string name="badge_shazam_off">Shazam off</string>
+    <string name="sec_shazam">Shazam</string>
+    <string name="shazam_status">Auto Shazam: %1$s</string>
+    <string name="shazam_on">on</string>
+    <string name="shazam_off">off</string>
+    <string name="shazam_turn_on">Turn on now</string>
+    <string name="shazam_not_installed">Shazam not installed</string>
+    <string name="shazam_start_with">Start Auto Shazam with Roomtone</string>
+    <string name="shazam_restart">Turn it back on when the screen turns on</string>
+    <string name="shazam_privacy">Auto Shazam is always turned off when the screen turns off.</string>
 </resources>

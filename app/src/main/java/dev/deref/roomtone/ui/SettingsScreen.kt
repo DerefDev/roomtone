@@ -62,6 +62,10 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
     val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
+    val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
+    val notInstalled by ShazamControl.notInstalled.collectAsStateWithLifecycle()
+    val startWith by Prefs.autoStartShazam.collectAsStateWithLifecycle()
+    val restartOn by Prefs.restartShazamOnScreenOn.collectAsStateWithLifecycle()
     var customDlg by remember { mutableStateOf(false) }
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
     fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
@@ -107,7 +111,31 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
                 }
             }
             item { Button({ open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { Text(stringResource(R.string.battery_opt)) } }
+            // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
+            item { Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) } }
+            item { Text(stringResource(R.string.overlay_hint), style = MaterialTheme.typography.bodySmall, color = TextMain.copy(alpha = 0.6f)) }
             item { Text(stringResource(R.string.huawei_note), fontSize = 12.sp, color = TextSoft) }
+            item { Section(R.string.sec_shazam) }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.shazam_status, stringResource(if (shazamOn) R.string.shazam_on else R.string.shazam_off)), Modifier.weight(1f, fill = false))
+                    if (!shazamOn) Button({ ShazamControl.start(ctx) }) { Text(stringResource(R.string.shazam_turn_on)) }
+                }
+            }
+            if (notInstalled) item { Text(stringResource(R.string.shazam_not_installed), fontSize = 12.sp, color = MaterialTheme.colorScheme.error) }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.shazam_start_with), Modifier.weight(1f, fill = false))
+                    Switch(startWith, Prefs::setAutoStartShazam)
+                }
+            }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.shazam_restart), Modifier.weight(1f, fill = false))
+                    Switch(restartOn, Prefs::setRestartShazamOnScreenOn)
+                }
+            }
+            item { Text(stringResource(R.string.shazam_privacy), fontSize = 12.sp, color = TextSoft) }
             item { Section(R.string.sec_standby) }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
