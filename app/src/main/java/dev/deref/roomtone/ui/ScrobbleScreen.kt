@@ -39,7 +39,7 @@ fun ScrobbleScreen(tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
         }
         val status = if (tab == 0) Status.VALID else Status.DRAFT
         val rows = list.asReversed().filter { it.eval?.status == status } // più recente in alto
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (tab == 0) item { Text(stringResource(R.string.sent_note), color = TextSoft, fontSize = 13.sp) } // ponytail: lista in memoria
             if (rows.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
             if (tab == 0) items(rows) { SentRow(it) } else items(rows, key = { it.listen.start }) { DraftCard(it) }

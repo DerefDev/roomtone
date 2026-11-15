@@ -72,4 +72,17 @@
     <string name="standby_today">Tracks today: %1$d</string>
     <string name="standby_review">To review: %1$d</string>
     <string name="standby_hint">Tap anywhere to exit</string>
+    <string name="custom">Custom</string>
+    <string name="custom_min">Custom: %1$d min</string>
+    <string name="custom_title">Standby after (1-240 min)</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="about_made_by">Made by DerefDev</string>
+    <string name="about_source">Source code</string>
+    <string name="about_issue">Report an issue</string>
+    <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: iTunes Search API</string>
+    <string name="credit_lastfm">Last.fm</string>
+    <string name="credit_mb">MusicBrainz</string>
+    <string name="credit_itunes">iTunes</string>
+    <string name="credit_shazam">Recognition: Shazam (via notifications)</string>
 </resources>

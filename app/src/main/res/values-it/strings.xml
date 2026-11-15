@@ -70,4 +70,17 @@
     <string name="standby_today">Brani di oggi: %1$d</string>
     <string name="standby_review">Da rivedere: %1$d</string>
     <string name="standby_hint">Tocca ovunque per uscire</string>
+    <string name="custom">Personalizzato</string>
+    <string name="custom_min">Personalizzato: %1$d min</string>
+    <string name="custom_title">Standby dopo (1-240 min)</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Annulla</string>
+    <string name="about_made_by">Creato da DerefDev</string>
+    <string name="about_source">Codice sorgente</string>
+    <string name="about_issue">Segnala un problema</string>
+    <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: iTunes Search API</string>
+    <string name="credit_lastfm">Last.fm</string>
+    <string name="credit_mb">MusicBrainz</string>
+    <string name="credit_itunes">iTunes</string>
+    <string name="credit_shazam">Riconoscimento: Shazam (tramite notifiche)</string>
 </resources>

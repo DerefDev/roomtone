@@ -32,7 +32,7 @@ fun StandbyScreen(onExit: () -> Unit) {
     // luminosità ridotta, ripristinata all'uscita
     DisposableEffect(Unit) {
         val w = ctx.activity()?.window
-        w?.attributes = w?.attributes?.apply { screenBrightness = 0.05f }
+        w?.attributes = w?.attributes?.apply { screenBrightness = 0.25f }
         onDispose { w?.attributes = w?.attributes?.apply { screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE } }
     }
     val list by EventStore.listens.collectAsStateWithLifecycle()

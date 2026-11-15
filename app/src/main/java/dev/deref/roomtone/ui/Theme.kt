@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-val DefaultAccent = Color(0xFFE0A040)
+val DefaultAccent = Color(0xFFEDE6D6)
 val DefaultBg = Color(0xFF121212)
 val TextMain = Color(0xFFEEEEEE) // bianco caldo
 val TextSoft = TextMain.copy(alpha = 0.65f)

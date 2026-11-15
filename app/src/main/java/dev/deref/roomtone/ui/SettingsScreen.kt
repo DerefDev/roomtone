@@ -12,6 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private val presets = listOf(5, 10, 15, 30)
 private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
 
@@ -34,6 +38,22 @@ private fun setLang(tag: String) = AppCompatDelegate.setApplicationLocales(Local
 private fun Section(res: Int) = Text(stringResource(res), color = LocalAccent.current, fontSize = 14.sp, modifier = Modifier.padding(top = 12.dp))
 
 @Composable
+private fun Link(res: Int, url: String, open: (Intent) -> Unit) =
+    Text(stringResource(res), color = LocalAccent.current, fontSize = 14.sp, modifier = Modifier.clickable { open(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.padding(vertical = 4.dp))
+
+// Dialogo minuti personalizzati (1..240); OK attivo solo se valido
+@Composable
+private fun CustomMinDialog(cur: Int, onDismiss: () -> Unit) {
+    var t by remember { mutableStateOf(cur.toString()) }
+    val v = t.toIntOrNull()?.takeIf { it in 1..240 }
+    AlertDialog(onDismiss,
+        title = { Text(stringResource(R.string.custom_title)) },
+        text = { OutlinedTextField(t, { t = it.filter(Char::isDigit).take(3) }, singleLine = true, isError = v == null, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)) },
+        confirmButton = { TextButton({ Prefs.setStandbyMin(v!!); onDismiss() }, enabled = v != null) { Text(stringResource(R.string.ok)) } },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } })
+}
+
+@Composable
 fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Unit) {
     val ctx = LocalContext.current
     val list by EventStore.listens.collectAsStateWithLifecycle()
@@ -42,11 +62,13 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
     val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
+    var customDlg by remember { mutableStateOf(false) }
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
     fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
 
+    if (customDlg) CustomMinDialog(mins, { customDlg = false })
     Page(stringResource(R.string.settings_title), onBack) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item { Section(R.string.sec_lastfm) }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -96,9 +118,11 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.standby_after))
-                    listOf(5, 10, 15, 30).forEach { m ->
+                    presets.forEach { m ->
                         FilterChip(mins == m, { Prefs.setStandbyMin(m) }, { Text(stringResource(R.string.minutes, m)) }, enabled = auto)
                     }
+                    val custom = mins !in presets
+                    FilterChip(custom, { customDlg = true }, { Text(if (custom) stringResource(R.string.custom_min, mins) else stringResource(R.string.custom)) }, enabled = auto)
                 }
             }
             item { Section(R.string.sec_diag) }
@@ -136,6 +160,20 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
             }
             item { Section(R.string.sec_about) }
             item { Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME)) }
+            item { Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft) }
+            item { Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open) }
+            item { Link(R.string.about_issue, "https://github.com/DerefDev/roomtone/issues", ::open) }
+            item {
+                Column {
+                    Text(stringResource(R.string.about_credits), fontSize = 12.sp, color = TextSoft)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Link(R.string.credit_lastfm, "https://www.last.fm", ::open)
+                        Link(R.string.credit_mb, "https://musicbrainz.org", ::open)
+                        Link(R.string.credit_itunes, "https://www.apple.com/itunes/", ::open)
+                    }
+                    Text(stringResource(R.string.credit_shazam), fontSize = 12.sp, color = TextSoft)
+                }
+            }
         }
     }
 }
