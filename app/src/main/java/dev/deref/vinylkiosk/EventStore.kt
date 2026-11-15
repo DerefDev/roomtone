@@ -3,32 +3,26 @@ package dev.deref.vinylkiosk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-data class Recognition(
-    val title: String,
-    val artist: String,
-    val firstSeen: Long,
-    val lastSeen: Long,
-    val updates: Int,
-    val notiKey: String,
-)
-
-// ponytail: solo in memoria, si perde al riavvio → Room/file se serve persistenza
+// ponytail: solo in memoria (+ jsonl scritto dal listener) → Room se serve persistenza
+// Tutte le chiamate al motore avvengono sul main thread (callback del listener + Handler main).
 object EventStore {
-    val recognitions = MutableStateFlow<List<Recognition>>(emptyList()) // più recente in fondo
     private val _connected = MutableStateFlow(false)
     val connected: StateFlow<Boolean> = _connected
+    private val _listens = MutableStateFlow<List<Listen>>(emptyList()) // più recente in fondo
+    val listens: StateFlow<List<Listen>> = _listens
+    private val _currentTrack = MutableStateFlow<Track?>(null)
+    val currentTrack: StateFlow<Track?> = _currentTrack
+
+    var onListen: (Listen) -> Unit = {} // hook del listener per la scrittura su file
+    private val engine = ListeningEngine { l ->
+        _listens.value = _listens.value + l
+        onListen(l)
+    }
 
     fun setConnected(v: Boolean) { _connected.value = v }
-    fun clear() { recognitions.value = emptyList() }
+    fun clear() { _listens.value = emptyList() }
 
-    // ponytail: dedup banale (ultimo elemento, stessa key+titolo+artista) → logica a durate poi
-    fun add(title: String, artist: String, key: String, now: Long) {
-        val list = recognitions.value
-        val last = list.lastOrNull()
-        recognitions.value = if (last != null && last.notiKey == key && last.title == title && last.artist == artist) {
-            list.dropLast(1) + last.copy(lastSeen = now, updates = last.updates + 1)
-        } else {
-            list + Recognition(title, artist, now, now, 0, key)
-        }
-    }
+    fun match(title: String, artist: String, now: Long) = engine.onMatch(title, artist, now)
+    fun beat(text: String, now: Long) { engine.onBeat(text, now); _currentTrack.value = engine.currentTrack }
+    fun tick(now: Long) { engine.tick(now); _currentTrack.value = engine.currentTrack }
 }

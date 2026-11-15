@@ -46,8 +46,9 @@ private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 @Composable
 private fun Screen(accessGranted: Boolean) {
     val ctx = LocalContext.current
-    val list by EventStore.recognitions.collectAsStateWithLifecycle()
+    val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
+    val current by EventStore.currentTrack.collectAsStateWithLifecycle()
     val shown = list.asReversed() // più recente in alto
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
 
@@ -61,19 +62,20 @@ private fun Screen(accessGranted: Boolean) {
             Button(onClick = { ctx.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
                 Text("Concedi accesso notifiche")
             }
-            Button(onClick = { EventStore.clear() }) { Text("Svuota lista") }
+            Button(onClick = { EventStore.clear() }) { Text("Svuota") }
         }
         HorizontalDivider()
-        val last = shown.firstOrNull()
-        Text(last?.title ?: "In ascolto…", fontSize = 40.sp)
-        Text(last?.artist ?: "", fontSize = 24.sp)
+        Text(current?.title ?: "In ascolto…", fontSize = 40.sp)
+        Text(current?.artist ?: "", fontSize = 24.sp)
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f)) {
             items(shown) { r ->
                 Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(timeFmt.format(Date(r.firstSeen)))
-                    Text("${r.title} – ${r.artist}", Modifier.weight(1f))
-                    if (r.updates > 0) Text("×${r.updates} aggiornamenti")
+                    Text(timeFmt.format(Date(r.start)))
+                    Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
+                    val sec = r.playedMs / 1000
+                    Text("%d:%02d".format(sec / 60, sec % 60))
+                    Text("${r.beats} battiti")
                 }
             }
         }
