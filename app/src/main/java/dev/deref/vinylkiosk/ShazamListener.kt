@@ -25,7 +25,8 @@ class ShazamListener : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-        EventStore.onListen = ::saveListen // agganciato subito, non solo a listener connesso
+        Durations.init(getExternalFilesDir(null))
+        EventStore.onEvaluated = ::saveListen // agganciato subito, non solo a listener connesso
     }
 
     override fun onListenerConnected() {
@@ -39,11 +40,14 @@ class ShazamListener : NotificationListenerService() {
         handler.removeCallbacks(ticker)
     }
 
-    private fun saveListen(l: Listen) {
+    private fun saveListen(l: Listen, e: Evaluation) {
         val line = JSONObject().apply {
             put("title", l.track.title); put("artist", l.track.artist)
             put("start", l.start); put("firstBeat", l.firstBeat); put("lastBeat", l.lastBeat)
             put("beats", l.beats); put("playedMs", l.playedMs)
+            put("durationMs", e.durationMs ?: JSONObject.NULL)
+            put("status", e.status.name); put("reason", e.reason); put("plays", e.plays)
+            put("timestamps", JSONArray(e.timestamps))
         }.toString()
         io.execute {
             try {

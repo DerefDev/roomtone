@@ -41,6 +41,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
+
 private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
 @Composable
@@ -69,12 +71,19 @@ private fun Screen(accessGranted: Boolean) {
         Text(current?.artist ?: "", fontSize = 24.sp)
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f)) {
-            items(shown) { r ->
+            items(shown) { (r, ev) ->
                 Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(timeFmt.format(Date(r.start)))
                     Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
                     val sec = r.playedMs / 1000
                     Text("%d:%02d".format(sec / 60, sec % 60))
+                    Text(ev?.durationMs?.let { "brano ${mmss(it)}" } ?: "")
+                    Text(when (ev?.status) {
+                        null -> "durata in ricerca…"
+                        Status.VALID -> "✓ valido ×${ev.plays}"
+                        Status.DRAFT -> "bozza: ${ev.reason}"
+                        Status.DISCARDED -> "scartato: ${ev.reason}"
+                    })
                     Text("${r.beats} battiti")
                 }
             }

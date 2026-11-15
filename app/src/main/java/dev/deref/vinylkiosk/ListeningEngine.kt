@@ -10,9 +10,9 @@ data class Listen(val track: Track, val firstBeat: Long, val lastBeat: Long, val
 
 class ListeningEngine(private val onListen: (Listen) -> Unit) {
 
-    private class Cur(val track: Track, val first: Long, var last: Long, var beats: Int)
+    private class Cur(val track: Track, val key: String, val first: Long, var last: Long, var beats: Int)
     // track == null → battito neutro
-    private class Pend(val track: Track?, val first: Long, var last: Long, var count: Int)
+    private class Pend(val track: Track?, val key: String?, val first: Long, var last: Long, var count: Int)
 
     private val known = HashMap<String, Track>()
     private var current: Cur? = null
@@ -52,8 +52,9 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
         lastBeatTime = time
         val t = resolve(text)
         if (t != null) displayTrack = t else if (current == null) displayTrack = null
+        val key = t?.let(::normKey) // uguaglianza su chiave normalizzata
         val cur = current
-        if (cur != null && t == cur.track) {
+        if (cur != null && key == cur.key) {
             // fino a MAX_AWAY battiti di altro (sample, passaggi piani) non spezzano il tratto
             pending = null
             away = 0
@@ -63,12 +64,12 @@ class ListeningEngine(private val onListen: (Listen) -> Unit) {
         }
         away++
         val p = pending
-        val np = if (p != null && p.track == t) p.also { it.count++; it.last = time } else Pend(t, time, time, 1)
+        val np = if (p != null && p.key == key) p.also { it.count++; it.last = time } else Pend(t, key, time, time, 1)
         pending = np
         // un altro brano per 2 battiti di fila, o troppi battiti lontani dal brano corrente → chiudi
         if ((np.track != null && np.count >= 2) || away > MAX_AWAY) close()
         if (np.track != null && np.count >= 2) {
-            current = Cur(np.track, np.first, np.last, np.count)
+            current = Cur(np.track, np.key!!, np.first, np.last, np.count)
             pending = null
             away = 0
         }

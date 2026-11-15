@@ -1,0 +1,21 @@
+package dev.deref.vinylkiosk
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Test
+
+class NormalizeTest {
+    private fun k(t: String, a: String = "A") = normKey(Track(t, a))
+
+    @Test fun uguali() {
+        assertEquals(k("Song"), k("Song - Remastered 2011"))
+        assertEquals(k("Song"), k("Song (feat. X)"))
+        assertEquals(k("Song"), k("Song (2009 Remaster)"))
+        assertEquals(k("Song", "A"), k("Song", "A feat. B"))
+        assertEquals(k("Città"), k("Citta"))
+    }
+    @Test fun diversi() {
+        assertNotEquals(k("Song"), k("Song (Rmx)"))
+        assertNotEquals(k("Song"), k("Song - Live"))
+    }
+}
