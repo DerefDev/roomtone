@@ -1,33 +1,32 @@
 package dev.deref.roomtone
 
 import android.content.Intent
-import android.net.Uri
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.provider.Settings
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import dev.deref.roomtone.ui.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+enum class Screen { KIOSK, SCROBBLE, SETTINGS, STANDBY }
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,15 +34,25 @@ class MainActivity : AppCompatActivity() {
     private var loginError by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        Prefs.init(this)
+        Connectivity.init(this)
+        Artwork.init(cacheDir)
         HistorySync.init(this)
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()
-        setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
-                Surface(Modifier.fillMaxSize()) { Screen(accessGranted, loginError) }
-            }
+        setContent { Root(accessGranted, loginError) }
+    }
+
+    // modalità immersiva: barre nascoste, swipe per mostrarle temporaneamente
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus) return
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.systemBars())
         }
     }
 
@@ -69,103 +78,55 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
-
-private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-
 @Composable
-private fun Screen(accessGranted: Boolean, loginError: String?) {
-    val ctx = LocalContext.current
+private fun Root(accessGranted: Boolean, loginError: String?) {
+    val np by EventStore.nowPlaying.collectAsStateWithLifecycle()
     val list by EventStore.listens.collectAsStateWithLifecycle()
-    val connected by EventStore.connected.collectAsStateWithLifecycle()
-    val current by EventStore.currentTrack.collectAsStateWithLifecycle()
-    val user by HistorySync.user.collectAsStateWithLifecycle()
-    val sync by HistorySync.progress.collectAsStateWithLifecycle()
-    val shown = list.asReversed() // più recente in alto
-    val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
+    val scrobbling by Prefs.scrobbling.collectAsStateWithLifecycle()
+    val online by Connectivity.online.collectAsStateWithLifecycle()
+    val autoOn by Prefs.standbyAuto.collectAsStateWithLifecycle()
+    val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
+    var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    var menu by remember { mutableStateOf(false) }
+    var autoStandby by remember { mutableStateOf(false) } // standby entrato da solo → esce al nuovo brano
 
-    val yes = if (accessGranted) R.string.access_ok else R.string.access_missing
-    val conn = if (connected) R.string.listener_connected else R.string.listener_disconnected
+    // copertina: parte quando i metadati sono pronti; la precedente resta finché arriva la nuova (transizione morbida)
+    val n = np
+    val cover by produceState<Bitmap?>(null, n?.track, n?.meta?.album, n?.meta != null) {
+        if (n == null) value = null
+        else if (n.meta != null) value = Artwork.load(n.track.artist, n.track.title, n.meta.album)
+    }
 
-    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.notif_access, stringResource(yes)))
-                Text(stringResource(R.string.listener_status, stringResource(conn)))
-                Text(stringResource(R.string.log_path, logPath), fontSize = 11.sp)
-            }
-            Button(onClick = { ctx.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
-                Text(stringResource(R.string.grant_access))
-            }
-            Button(onClick = { EventStore.clear() }) { Text(stringResource(R.string.clear)) }
+    val idle = n == null
+    LaunchedEffect(idle, autoOn, mins, screen) {
+        if (idle && autoOn && screen == Screen.KIOSK) {
+            delay(mins * 60_000L)
+            autoStandby = true; menu = false; screen = Screen.STANDBY
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.language))
-            // tag vuoto = lingua di sistema
-            TextButton(onClick = { setLang("") }) { Text(stringResource(R.string.lang_system)) }
-            TextButton(onClick = { setLang("en") }) { Text("English") }
-            TextButton(onClick = { setLang("it") }) { Text("Italiano") }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            val u = user
-            if (u == null) {
-                Text(stringResource(R.string.lastfm_not_connected))
-                Button(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(LastFmApi.authUrl()))) }) {
-                    Text(stringResource(R.string.lastfm_connect))
+    }
+    LaunchedEffect(n?.track) { if (n != null && screen == Screen.STANDBY && autoStandby) screen = Screen.KIOSK }
+    BackHandler(screen != Screen.KIOSK) { screen = Screen.KIOSK }
+
+    RoomtoneTheme(cover) {
+        if (screen == Screen.STANDBY) StandbyScreen { screen = Screen.KIOSK }
+        else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            when (screen) {
+                Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
+                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError) { screen = Screen.KIOSK }
+                else -> {
+                    KioskScreen(
+                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, null, // next: Discogs
+                        onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
+                    )
+                    Drawer(
+                        menu, { menu = false }, scrobbling, Prefs::setScrobbling,
+                        onSettings = { menu = false; screen = Screen.SETTINGS },
+                        onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
+                        onStandby = { menu = false; autoStandby = false; screen = Screen.STANDBY },
+                    )
                 }
-            } else {
-                Column(Modifier.weight(1f, fill = false)) {
-                    Text(stringResource(R.string.lastfm_connected, u))
-                    val n = NumberFormat.getInstance().format(sync.total)
-                    Text(when {
-                        sync.running -> stringResource(R.string.history_syncing, n, sync.page, sync.pages)
-                        sync.complete -> stringResource(R.string.history_up_to_date, n)
-                        else -> stringResource(R.string.history_paused, n)
-                    }, fontSize = 12.sp)
-                }
-                Button(onClick = { HistorySync.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
-            }
-            (loginError ?: sync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
-        }
-        HorizontalDivider()
-        Text(current?.title ?: stringResource(R.string.listening), fontSize = 40.sp)
-        Text(current?.artist ?: "", fontSize = 24.sp)
-        HorizontalDivider()
-        LazyColumn(Modifier.weight(1f)) {
-            items(shown) { (r, ev, meta) ->
-              Column {
-                Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(timeFmt.format(Date(r.start)))
-                    Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
-                    val sec = r.playedMs / 1000
-                    Text("%d:%02d".format(sec / 60, sec % 60))
-                    Text(ev?.durationMs?.let { stringResource(R.string.track_duration, mmss(it)) } ?: "")
-                    Text(when (ev?.status) {
-                        null -> stringResource(R.string.duration_searching)
-                        Status.VALID -> stringResource(R.string.status_valid, ev.plays)
-                        Status.DRAFT -> stringResource(R.string.status_draft, stringResource(ev.reason.res))
-                        Status.DISCARDED -> stringResource(R.string.status_discarded, stringResource(ev.reason.res))
-                    })
-                    Text(stringResource(R.string.beats, r.beats))
-                }
-                meta?.let { m ->
-                    val src = stringResource(if (m.source == MetaSource.HISTORY) R.string.meta_from_history else R.string.meta_from_shazam)
-                    val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
-                    Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
-                }
-              }
             }
         }
     }
-}
-
-private fun setLang(tag: String) =
-    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
-
-private val Reason.res get() = when (this) {
-    Reason.OK -> R.string.reason_ok
-    Reason.UNKNOWN_DURATION -> R.string.reason_unknown_duration
-    Reason.TRACK_UNDER_30S -> R.string.reason_track_under_30s
-    Reason.LESS_THAN_HALF -> R.string.reason_less_than_half
-    Reason.AMBIGUOUS_REPEATS -> R.string.reason_ambiguous_repeats
 }

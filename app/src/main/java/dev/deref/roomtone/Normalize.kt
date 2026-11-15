@@ -12,7 +12,7 @@ private val suffix = Regex("\\s-\\s[^-]*\\b(?:remaster(?:ed)?|deluxe|mono|stereo
 private val featCut = Regex("\\s(?:feat|ft|featuring)\\b.*$")
 private val artistSep = Regex("&|\\band\\b|,")
 
-private fun base(s: String) = accents.replace(Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD), "")
+internal fun base(s: String) = accents.replace(Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD), "")
 
 private fun clean(s: String) = spaces.replace(punct.replace(s, " "), " ").trim()
 

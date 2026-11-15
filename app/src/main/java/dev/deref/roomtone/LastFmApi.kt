@@ -11,7 +11,7 @@ data class HistoryScrobble(val artist: String, val title: String, val album: Str
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
 object LastFmApi {
-    private const val UA = "Roomtone/0.4 ( https://github.com/DerefDev/roomtone )"
+    private const val UA = "Roomtone/0.5 ( https://github.com/DerefDev/roomtone )"
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
