@@ -27,4 +27,13 @@ class NormalizeTest {
         assertEquals("Track Title", stripFeat("Track Title (feat. Guest One)"))
         assertEquals("Song", stripFeat("Song"))
     }
+
+    @Test fun artistiASchermo() {
+        val t = Track("Track Title (feat. Guest One)", "Artist One & Artist Two")
+        assertEquals("Track Title", displayTitle(t))
+        assertEquals("Artist One, Artist Two feat. Guest One", displayArtist(t))
+        assertEquals("Solo Artist feat. Guest Two, Guest Three", displayArtist(Track("Song 2024 (feat. Guest Two & Guest Three)", "Solo Artist")))
+        assertEquals("DJ Alpha, Beta, Gamma, Delta", displayArtist(Track("Song", "DJ Alpha, Beta, Gamma & Delta")))
+        assertEquals("Dance Track [New Edit]", displayTitle(Track("Dance Track (feat. Guest Four & Guest Five) [New Edit]", "Producer One")))
+    }
 }

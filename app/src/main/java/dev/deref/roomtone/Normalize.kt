@@ -35,3 +35,14 @@ fun firstArtist(artist: String) = base(firstArtistRaw(artist)).trim()
 
 // "Song (feat. X)" → "Song"
 fun stripFeat(title: String) = featTitle.replace(title, "").trim()
+
+private val featGuests = Regex("[(\\[]\\s*(?:feat|ft|featuring)\\b\\.?\\s*([^)\\]]+)[)\\]]", RegexOption.IGNORE_CASE)
+
+// Solo a schermo: "Song (feat. X & Y)" di "A, B & C" → "Song" / "A, B, C feat. X, Y"
+// ponytail: " & " → ", " anche nei nomi di gruppo ("North & South" → "North, South")
+fun displayTitle(t: Track) = stripFeat(t.title)
+fun displayArtist(t: Track): String {
+    val a = t.artist.replace(" & ", ", ")
+    val f = featGuests.find(t.title)?.groupValues?.get(1)?.trim()?.replace(" & ", ", ")
+    return if (f.isNullOrEmpty()) a else "$a feat. $f"
+}

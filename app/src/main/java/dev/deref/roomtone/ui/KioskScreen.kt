@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.deref.roomtone.NowPlaying
+import dev.deref.roomtone.displayArtist
+import dev.deref.roomtone.displayTitle
 import dev.deref.roomtone.R
 import java.util.Date
 
@@ -45,12 +47,12 @@ fun KioskScreen(
             Spacer(Modifier.width(margin))
             Column(Modifier.weight(1f)) {
                 Text(
-                    np?.track?.title ?: stringResource(R.string.listening),
+                    np?.track?.let(::displayTitle) ?: stringResource(R.string.listening),
                     color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     style = TextStyle(fontSize = (h.value * 0.1f).sp, lineHeight = (h.value * 0.115f).sp),
                 )
                 np?.let {
-                    Text(it.track.artist, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(displayArtist(it.track), color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
                 np?.next?.let {
