@@ -147,4 +147,10 @@
     <string name="cr_d_pano">Scrobbler for Android</string>
     <string name="cr_finale">Finale</string>
     <string name="cr_d_finale">Last.fm client</string>
+    <string name="lyrics_unavailable">Oops, looks like the lyrics aren\'t available right now</string>
+    <string name="lyrics_scan">Scan for the lyrics on Genius</string>
+    <string name="credit_genius">Genius</string>
+    <string name="cr_d_genius">Song lyrics</string>
+    <string name="credit_zxing">ZXing</string>
+    <string name="cr_d_zxing">QR code generation (Apache 2.0)</string>
 </resources>

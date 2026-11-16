@@ -2,7 +2,22 @@ package dev.deref.roomtone.ui
 
 import android.graphics.Bitmap
 import android.text.format.DateFormat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
+import dev.deref.roomtone.Lyrics
+import dev.deref.roomtone.LyricsState
+import dev.deref.roomtone.Track
+import kotlin.math.abs
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,7 +58,7 @@ fun KioskScreen(
         val margin = h * 0.07f
         val side = minOf(h - margin * 2, maxWidth * 0.45f)
         Row(Modifier.fillMaxSize().padding(margin), verticalAlignment = Alignment.CenterVertically) {
-            Cover(cover, np != null, Modifier.size(side))
+            Cover(cover, np?.track, Modifier.size(side))
             Spacer(Modifier.width(margin))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -82,15 +97,55 @@ fun KioskScreen(
 }
 
 @Composable
-private fun Cover(bmp: Bitmap?, playing: Boolean, modifier: Modifier) {
+private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
     val accent = LocalAccent.current
     val shape = RoundedCornerShape(10.dp)
     // ponytail: niente shadow colorata (su Android < 9 diventa una fascia piena) → bordo tenue dell'accento
-    val m = modifier.clip(shape).border(1.dp, accent.copy(alpha = 0.25f), shape)
-    if (bmp != null && playing) Image(bmp.asImageBitmap(), null, m, contentScale = ContentScale.Crop)
-    else Box(m.background(Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-        Icon(painterResource(R.drawable.ic_music), null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.fillMaxSize(0.4f))
+    val m = Modifier.fillMaxSize().clip(shape).border(1.dp, accent.copy(alpha = 0.25f), shape)
+    var flipped by remember(track) { mutableStateOf(false) }
+    val rot by animateFloatAsState(if (flipped) 180f else 0f, tween(600), label = "flip")
+    val threshold = with(LocalDensity.current) { 48.dp.toPx() }
+    val density = LocalDensity.current.density
+    // al primo retro visibile per il brano parte la ricerca; resta il risultato finché non cambia brano
+    val lyrics by produceState<LyricsState>(LyricsState.Loading, track, flipped) {
+        if (track != null && flipped && value == LyricsState.Loading) value = Lyrics.url(track)?.let { LyricsState.Found(it) } ?: LyricsState.None
     }
+    Box(
+        modifier.pointerInput(track) {
+            if (track == null) return@pointerInput
+            var dx = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { dx = 0f },
+                onDragEnd = { if (abs(dx) > threshold) flipped = !flipped },
+                onDragCancel = { dx = 0f },
+            ) { _, d -> dx += d }
+        }.graphicsLayer { rotationY = rot; cameraDistance = 12f * density },
+    ) {
+        if (rot <= 90f) {
+            if (bmp != null && track != null) Image(bmp.asImageBitmap(), null, m, contentScale = ContentScale.Crop)
+            else Box(m.background(Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                Icon(painterResource(R.drawable.ic_music), null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.fillMaxSize(0.4f))
+            }
+        } else Box(m.graphicsLayer { rotationY = 180f }.background(Color(0xFF121212)), contentAlignment = Alignment.Center) {
+            when (val l = lyrics) {
+                LyricsState.Loading -> CircularProgressIndicator(color = accent)
+                is LyricsState.Found -> Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    val qr = remember(l.url) { qrBitmap(l.url) }
+                    Image(qr.asImageBitmap(), null, Modifier.fillMaxSize(0.7f).aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(Color.White).padding(6.dp), filterQuality = FilterQuality.None)
+                    Spacer(Modifier.height(8.dp))
+                    Text(stringResource(R.string.lyrics_scan), color = TextSoft, fontSize = 11.sp, textAlign = TextAlign.Center)
+                }
+                LyricsState.None -> Text(stringResource(R.string.lyrics_unavailable), color = TextSoft, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+            }
+        }
+    }
+}
+
+// QR nero su trasparente→bianco; margin 1 modulo
+private fun qrBitmap(url: String): Bitmap {
+    val m = QRCodeWriter().encode(url, BarcodeFormat.QR_CODE, 0, 0, mapOf(EncodeHintType.MARGIN to 1))
+    val px = IntArray(m.width * m.height) { if (m[it % m.width, it / m.width]) android.graphics.Color.BLACK else android.graphics.Color.WHITE }
+    return Bitmap.createBitmap(px, m.width, m.height, Bitmap.Config.ARGB_8888)
 }
 
 @Composable

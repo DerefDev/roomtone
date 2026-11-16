@@ -145,4 +145,10 @@
     <string name="cr_d_pano">Scrobbler per Android</string>
     <string name="cr_finale">Finale</string>
     <string name="cr_d_finale">Client per Last.fm</string>
+    <string name="lyrics_unavailable">Ops, sembra che il testo non sia disponibile al momento</string>
+    <string name="lyrics_scan">Inquadra per il testo su Genius</string>
+    <string name="credit_genius">Genius</string>
+    <string name="cr_d_genius">Testi dei brani</string>
+    <string name="credit_zxing">ZXing</string>
+    <string name="cr_d_zxing">Generazione dei QR code (licenza Apache 2.0)</string>
 </resources>

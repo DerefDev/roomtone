@@ -28,6 +28,7 @@ private val groups = listOf(
         Credit(R.string.credit_mb, R.string.cr_d_mb, "https://musicbrainz.org"),
         Credit(R.string.credit_discogs, R.string.cr_d_discogs, DISCOGS),
         Credit(R.string.credit_deezer, R.string.cr_d_deezer, DEEZER),
+        Credit(R.string.credit_genius, R.string.cr_d_genius, "https://genius.com"),
     ),
     R.string.cr_group_covers to listOf(
         Credit(R.string.credit_caa, R.string.cr_d_caa, "https://coverartarchive.org"),
@@ -44,6 +45,7 @@ private val groups = listOf(
         Credit(R.string.cr_icons, R.string.cr_d_icons, "https://github.com/google/material-design-icons"),
         Credit(R.string.cr_jetpack, R.string.cr_d_jetpack, "https://developer.android.com/jetpack"),
         Credit(R.string.cr_coroutines, R.string.cr_d_coroutines, "https://github.com/Kotlin/kotlinx.coroutines"),
+        Credit(R.string.credit_zxing, R.string.cr_d_zxing, "https://github.com/zxing/zxing"),
     ),
 )
 

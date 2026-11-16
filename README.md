@@ -26,6 +26,7 @@ Status: early development, v0.6.1 (on `staging`).
   colors from the cover; manual and automatic standby that stops Shazam.
 - **Scrobble review** — listens that need a check stay as drafts you can fix,
   confirm or discard.
+- **Lyrics** — swipe the cover to flip it and scan a QR code to the lyrics on Genius.
 - **Accounts** — Last.fm and Discogs login; English and Italian interface.
 
 Coming next: persistent offline scrobble queue (v0.7), Discogs as a matching
@@ -41,7 +42,7 @@ Apache License 2.0 (`arrow_back`, `fast_forward`, `menu`, `music_note`,
 `app/src/main/res/drawable/`.
 
 **Libraries** — Android Jetpack (Compose, AppCompat, Core, Lifecycle, Activity,
-Palette) and Kotlin coroutines, Apache License 2.0.
+Palette), Kotlin coroutines and ZXing (QR codes), Apache License 2.0.
 
 **Data sources**
 - [Last.fm API](https://www.last.fm/api) — scrobbling, track info, listening history.
@@ -53,6 +54,7 @@ Palette) and Kotlin coroutines, Apache License 2.0.
 - [Cover Art Archive](https://coverartarchive.org) — artwork for MusicBrainz releases.
 - [Deezer API](https://developers.deezer.com) — track durations, albums, tracklists
   and artwork.
+- [Genius API](https://docs.genius.com) — lyrics links shown as a QR code.
 - [iTunes Search API](https://performance-partners.apple.com/search-api) — artwork.
   Artwork from all sources remains the property of its rights holders.
 - [Shazam](https://www.shazam.com) — recognition, read from its notifications;
