@@ -86,6 +86,7 @@
     <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: iTunes Search API</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
+    <string name="credit_caa">Cover Art Archive</string>
     <string name="credit_itunes">iTunes</string>
     <string name="credit_shazam">Recognition: Shazam (via notifications)</string>
     <string name="menu_shazam">Auto Shazam</string>

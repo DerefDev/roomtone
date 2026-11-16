@@ -1,7 +1,6 @@
 package dev.deref.roomtone
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -16,13 +15,10 @@ import java.net.URLEncoder
 // ponytail: errori di rete → null senza dettaglio; niente retry → WorkManager se serve
 object Durations {
     private const val DAY = 24 * 3_600_000L
-    private const val UA = "Roomtone/0.5 ( https://github.com/DerefDev/roomtone )"
 
     private var file: File? = null
     private val cache = HashMap<String, LongArray>() // chiave → [ms (-1 = non trovato), timestamp]
     private val cacheLock = Mutex()
-    private val mbLock = Mutex()
-    private var lastMb = 0L
 
     fun init(dir: File?) { // idempotente
         if (file != null || dir == null) return
@@ -60,7 +56,7 @@ object Durations {
     private fun get(url: String): String? = try {
         (URL(url).openConnection() as HttpURLConnection).run {
             connectTimeout = 10_000; readTimeout = 10_000
-            setRequestProperty("User-Agent", UA)
+            setRequestProperty("User-Agent", MusicBrainz.UA)
             try { if (responseCode == 200) inputStream.bufferedReader().readText() else null } finally { disconnect() }
         }
     } catch (_: Exception) { null }
@@ -74,8 +70,6 @@ object Durations {
             JSONObject(body).optJSONObject("track")?.optString("duration")?.toLongOrNull() ?: 0L
         } catch (_: Exception) { null }
     }
-
-    private fun esc(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"")
 
     private val featTitle = Regex("\\s*[(\\[][^)\\]]*\\b(?:feat|ft|featuring)\\b[^)\\]]*[)\\]]", RegexOption.IGNORE_CASE)
     private val otherArtists = Regex("\\s*(?:&|,|\\bfeat\\b|\\bft\\.|\\bfeaturing\\b).*$", RegexOption.IGNORE_CASE)
@@ -92,21 +86,13 @@ object Durations {
     }
 
     // 0 = non trovata, null = errore
-    private suspend fun mbQuery(title: String, artist: String): Long? = mbLock.withLock {
-        // 1 richiesta/secondo
-        val wait = lastMb + 1_100 - System.currentTimeMillis()
-        if (wait > 0) delay(wait)
-        val q = "recording:\"${esc(title)}\" AND artist:\"${esc(artist)}\""
-        val body = get("https://musicbrainz.org/ws/2/recording?query=${enc(q)}&fmt=json&limit=5")
-        lastMb = System.currentTimeMillis()
-        if (body == null) return@withLock null
-        try {
-            val a = JSONObject(body).getJSONArray("recordings")
-            for (i in 0 until a.length()) {
-                val r = a.getJSONObject(i)
-                if (r.optInt("score") >= 90 && !r.isNull("length") && r.optLong("length") > 0) return@withLock r.getLong("length")
-            }
-            0L
-        } catch (_: Exception) { null }
+    private suspend fun mbQuery(title: String, artist: String): Long? {
+        val o = MusicBrainz.search("recording", "recording:\"${MusicBrainz.esc(title)}\" AND artist:\"${MusicBrainz.esc(artist)}\"") ?: return null
+        val a = o.optJSONArray("recordings") ?: return null
+        for (i in 0 until a.length()) {
+            val r = a.getJSONObject(i)
+            if (r.optInt("score") >= 90 && !r.isNull("length") && r.optLong("length") > 0) return r.getLong("length")
+        }
+        return 0L
     }
 }

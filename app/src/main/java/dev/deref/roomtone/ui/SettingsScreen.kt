@@ -198,6 +198,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Link(R.string.credit_lastfm, "https://www.last.fm", ::open)
                         Link(R.string.credit_mb, "https://musicbrainz.org", ::open)
+                        Link(R.string.credit_caa, "https://coverartarchive.org", ::open)
                         Link(R.string.credit_itunes, "https://www.apple.com/itunes/", ::open)
                     }
                     Text(stringResource(R.string.credit_shazam), fontSize = 12.sp, color = TextSoft)

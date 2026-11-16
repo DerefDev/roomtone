@@ -84,6 +84,7 @@
     <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: iTunes Search API</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
+    <string name="credit_caa">Cover Art Archive</string>
     <string name="credit_itunes">iTunes</string>
     <string name="credit_shazam">Riconoscimento: Shazam (tramite notifiche)</string>
     <string name="menu_shazam">Auto Shazam</string>
