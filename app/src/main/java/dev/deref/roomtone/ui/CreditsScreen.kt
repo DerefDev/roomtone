@@ -36,6 +36,10 @@ private val groups = listOf(
         Credit(R.string.credit_deezer, R.string.cr_d_art, DEEZER),
         Credit(R.string.credit_itunes, R.string.cr_d_art, "https://www.apple.com/itunes/"),
     ),
+    R.string.cr_group_refs to listOf(
+        Credit(R.string.cr_pano, R.string.cr_d_pano, "https://github.com/kawaiiDango/pano-scrobbler"),
+        Credit(R.string.cr_finale, R.string.cr_d_finale, "https://github.com/nrubin29/finale"),
+    ),
     R.string.cr_group_libs to listOf(
         Credit(R.string.cr_icons, R.string.cr_d_icons, "https://github.com/google/material-design-icons"),
         Credit(R.string.cr_jetpack, R.string.cr_d_jetpack, "https://developer.android.com/jetpack"),

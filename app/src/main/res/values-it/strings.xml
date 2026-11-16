@@ -139,4 +139,9 @@
     <string name="cr_d_jetpack">Compose, AppCompat, Core, Lifecycle, Activity, Palette (licenza Apache 2.0)</string>
     <string name="cr_coroutines">Kotlin coroutines</string>
     <string name="cr_d_coroutines">Codice asincrono (licenza Apache 2.0)</string>
+    <string name="cr_group_refs">Progetti di riferimento</string>
+    <string name="cr_pano">Pano Scrobbler</string>
+    <string name="cr_d_pano">Scrobbler Android (GPL-3.0): studiato per la lettura delle notifiche, nessun codice copiato</string>
+    <string name="cr_finale">Finale</string>
+    <string name="cr_d_finale">Client Last.fm (BSD-3-Clause): studiato come riferimento, nessun codice copiato</string>
 </resources>
