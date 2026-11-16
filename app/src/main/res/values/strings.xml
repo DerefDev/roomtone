@@ -153,4 +153,5 @@
     <string name="cr_d_genius">Song lyrics</string>
     <string name="credit_zxing">ZXing</string>
     <string name="cr_d_zxing">QR code generation (Apache 2.0)</string>
+    <string name="lyrics_hint">⇆ Swipe for the lyrics</string>
 </resources>

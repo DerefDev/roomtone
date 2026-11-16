@@ -151,4 +151,5 @@
     <string name="cr_d_genius">Testi dei brani</string>
     <string name="credit_zxing">ZXing</string>
     <string name="cr_d_zxing">Generazione dei QR code (licenza Apache 2.0)</string>
+    <string name="lyrics_hint">⇆ Scorri per il testo</string>
 </resources>

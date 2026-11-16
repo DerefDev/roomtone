@@ -56,9 +56,15 @@ fun KioskScreen(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val h = maxHeight
         val margin = h * 0.07f
-        val side = minOf(h - margin * 2, maxWidth * 0.45f)
+        val hint = 28.dp // spazio per "scorri per il testo" sotto la copertina
+        val side = minOf(h - margin * 2 - hint, maxWidth * 0.45f)
         Row(Modifier.fillMaxSize().padding(margin), verticalAlignment = Alignment.CenterVertically) {
-            Cover(cover, np?.track, Modifier.size(side))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Cover(cover, np?.track, Modifier.size(side))
+                Box(Modifier.height(hint), contentAlignment = Alignment.BottomCenter) {
+                    if (np != null) Text(stringResource(R.string.lyrics_hint), color = TextSoft.copy(alpha = 0.6f), fontSize = 12.sp)
+                }
+            }
             Spacer(Modifier.width(margin))
             Column(Modifier.weight(1f)) {
                 Text(
