@@ -19,7 +19,7 @@ data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val
 // album = disco risolto (albumDone = ricerca conclusa, anche senza esito).
 data class NowPlaying(
     val track: Track, val startedAt: Long, val durationMs: Long? = null, val meta: ScrobbleMeta? = null,
-    val album: AlbumRef? = null, val albumDone: Boolean = false, val next: String? = null,
+    val album: AlbumRef? = null, val albumDone: Boolean = false, val next: String? = null, val groups: Set<String> = emptySet(),
 )
 
 // Album da scrobblare: modalità "owned" e disco posseduto → quello reale; altrimenti cronologia, poi album risolto.
@@ -97,6 +97,8 @@ object EventStore {
         _nowPlaying.value = np
         scope.launch {
             fun same(c: NowPlaying?) = c != null && c.track == t && c.startedAt == np.startedAt
+            val amp = ampParts(t)
+            if (amp.isNotEmpty()) { val g = Artists.resolve(amp); _nowPlaying.update { if (same(it)) it!!.copy(groups = g) else it } }
             val m = scrobbleMeta(t, HistorySync.index.lookup(t))
             _nowPlaying.update { if (same(it)) it!!.copy(meta = m) else it }
             val ref = Albums.resolve(t, m.album)

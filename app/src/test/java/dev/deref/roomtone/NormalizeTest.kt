@@ -34,6 +34,11 @@ class NormalizeTest {
         assertEquals("Artist One, Artist Two feat. Guest One", displayArtist(t))
         assertEquals("Solo Artist feat. Guest Two, Guest Three", displayArtist(Track("Song 2024 (feat. Guest Two & Guest Three)", "Solo Artist")))
         assertEquals("DJ Alpha, Beta, Gamma, Delta", displayArtist(Track("Song", "DJ Alpha, Beta, Gamma & Delta")))
+        assertEquals("North & South", displayArtist(Track("Song", "North & South")) { it == "North & South" })
+        assertEquals("North, South", displayArtist(Track("Song", "North & South")))
+        assertEquals("Lead Singer & the Band", displayArtist(Track("Song", "Lead Singer & the Band")))
+        assertEquals("X feat. North & South, A, B", displayArtist(Track("S (feat. North & South, A & B)", "X")) { it == "North & South" })
+        assertEquals(listOf("Artist One & Artist Two", "Guest Two & Guest Three"), ampParts(Track("S (feat. Guest Two & Guest Three)", "Artist One & Artist Two")))
         assertEquals("Dance Track [New Edit]", displayTitle(Track("Dance Track (feat. Guest Four & Guest Five) [New Edit]", "Producer One")))
     }
 }

@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         Connectivity.init(this)
         Artwork.init(cacheDir, filesDir)
         Albums.init(cacheDir)
+        Artists.init(cacheDir)
         HistorySync.init(this)
         DiscogsCollection.init(this)
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato

@@ -52,7 +52,7 @@ fun KioskScreen(
                     style = TextStyle(fontSize = (h.value * 0.1f).sp, lineHeight = (h.value * 0.115f).sp),
                 )
                 np?.let {
-                    Text(displayArtist(it.track), color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(displayArtist(it.track) { n -> n in it.groups }, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
                 np?.next?.let {

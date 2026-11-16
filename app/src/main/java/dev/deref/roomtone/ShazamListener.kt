@@ -49,6 +49,7 @@ class ShazamListener : NotificationListenerService() {
         HistorySync.init(this)
         DiscogsCollection.init(this)
         Albums.init(cacheDir)
+        Artists.init(cacheDir)
         EventStore.onEvaluated = { l, e, m -> saveListen(l, e, m, "listen") }
         EventStore.onEdited = { l, e, m -> saveListen(l, e, m, "edit") } // riga di modifica: "start" identifica l'ascolto // agganciato subito, non solo a listener connesso
     }
