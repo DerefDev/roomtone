@@ -112,9 +112,11 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
     val rot by animateFloatAsState(if (flipped) 180f else 0f, tween(600), label = "flip")
     val threshold = with(LocalDensity.current) { 48.dp.toPx() }
     val density = LocalDensity.current.density
-    // al primo retro visibile per il brano parte la ricerca; resta il risultato finché non cambia brano
+    // produceState non azzera lo stato al cambio delle chiavi: si riparte da Loading a ogni brano/giro
+    // (Lyrics ha la cache, quindi rigirare la copertina non rifà la ricerca)
     val lyrics by produceState<LyricsState>(LyricsState.Loading, track, flipped) {
-        if (track != null && flipped && value == LyricsState.Loading) value = Lyrics.url(track)?.let { LyricsState.Found(it) } ?: LyricsState.None
+        value = LyricsState.Loading
+        if (track != null && flipped) value = Lyrics.url(track)?.let { LyricsState.Found(it) } ?: LyricsState.None
     }
     Box(
         modifier.pointerInput(track) {
