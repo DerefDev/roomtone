@@ -39,18 +39,17 @@ fun stripFeat(title: String) = featTitle.replace(title, "").trim()
 private val featGuests = Regex("[(\\[]\\s*(?:feat|ft|featuring)\\b\\.?\\s*([^)\\]]+)[)\\]]", RegexOption.IGNORE_CASE)
 
 // Solo a schermo: "Song (feat. X & Y)" di "A, B & C" → "Song" / "A, B, C feat. X, Y"
-// ponytail: gruppo = regex " & the/his/her " o isGroup (MusicBrainz, vedi Artists) → altri nomi di gruppo ("North & South") si spezzano finché non risolti
-private val bandLike = Regex(" & (the|his|her) ", RegexOption.IGNORE_CASE)
+// ponytail: gruppo = isGroup (Discogs/MusicBrainz, vedi Artists) → finché non risolto il nome si spezza
 private fun guests(t: Track) = featGuests.find(t.title)?.groupValues?.get(1)?.trim().orEmpty()
 private fun parts(s: String) = s.split(", ").filter { " & " in it }
 
 fun displayTitle(t: Track) = stripFeat(t.title)
 
 // Parti con " & " (artisti + ospiti) da verificare come nomi di gruppo
-fun ampParts(t: Track): List<String> = (parts(t.artist) + parts(guests(t))).filter { !bandLike.containsMatchIn(it) }.distinct()
+fun ampParts(t: Track): List<String> = (parts(t.artist) + parts(guests(t))).distinct()
 
 fun displayArtist(t: Track, isGroup: (String) -> Boolean = { false }): String {
-    fun fix(s: String) = s.split(", ").joinToString(", ") { if (" & " in it && !isGroup(it) && !bandLike.containsMatchIn(it)) it.replace(" & ", ", ") else it }
+    fun fix(s: String) = s.split(", ").joinToString(", ") { if (" & " in it && !isGroup(it)) it.replace(" & ", ", ") else it }
     val a = fix(t.artist)
     val f = fix(guests(t))
     return if (f.isEmpty()) a else "$a feat. $f"
