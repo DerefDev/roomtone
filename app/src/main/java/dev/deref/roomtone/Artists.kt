@@ -6,7 +6,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-// Nome con " & " = gruppo o più artisti? Cache (memoria + artist_groups.json) → MusicBrainz.
+// Nome con " & " = gruppo o più artisti? Cache (memoria + file) → Discogs → MusicBrainz (solo se Discogs in errore).
+// Discogs ha i duo/gruppi (North & South) ma non le collaborazioni (Artist One & Artist Two); iTunes sì → scartato.
 // "sì" per sempre, "no" per 30 giorni.
 // ponytail: errore di rete → non in cache e trattato come non gruppo; niente retry
 object Artists {
@@ -18,7 +19,7 @@ object Artists {
 
     fun init(dir: File?) { // idempotente
         if (file != null || dir == null) return
-        file = File(dir, "artist_groups.json")
+        file = File(dir, "artist_groups_v2.json") // v2: prima solo MusicBrainz
         try {
             val o = JSONObject(file!!.readText())
             o.keys().forEach { k -> o.getJSONArray(k).let { cache[k] = longArrayOf(it.getLong(0), it.getLong(1)) } }
@@ -40,6 +41,12 @@ object Artists {
     }
 
     private suspend fun lookup(n: String, key: String): Boolean {
+        if (BuildConfig.DISCOGS_CONSUMER_KEY.isNotEmpty()) try {
+            val r = DiscogsApi.get("/database/search", mapOf("type" to "artist", "q" to n, "per_page" to "10")).optJSONArray("results")
+            val g = (0 until (r?.length() ?: 0)).any { base(cleanDiscogsArtist(r!!.getJSONObject(it).optString("title"))).trim() == key }
+            store(key, g)
+            return g
+        } catch (_: Exception) { /* rete/HTTP → MusicBrainz */ }
         val a = MusicBrainz.search("artist", "artist:\"${MusicBrainz.esc(n)}\"")?.optJSONArray("artists") ?: return false
         val g = (0 until a.length()).map { a.getJSONObject(it) }.any { r ->
             r.optInt("score") >= 95 && (base(r.optString("name")).trim() == key ||
