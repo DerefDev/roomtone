@@ -27,7 +27,7 @@ import dev.deref.roomtone.ui.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class Screen { KIOSK, SCROBBLE, SETTINGS, COVERS, STANDBY }
+enum class Screen { KIOSK, SCROBBLE, SETTINGS, COVERS, CREDITS, STANDBY }
 
 class MainActivity : AppCompatActivity() {
 
@@ -163,7 +163,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     fun leave() {
         if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx, user = true)
         standbyWasOn = false
-        screen = if (screen == Screen.COVERS) Screen.SETTINGS else Screen.KIOSK
+        screen = if (screen == Screen.COVERS || screen == Screen.CREDITS) Screen.SETTINGS else Screen.KIOSK
     }
     BackHandler(screen != Screen.KIOSK) { leave() }
 
@@ -172,23 +172,23 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
         else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
-                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }) { screen = Screen.KIOSK }
+                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
                 Screen.COVERS -> CoversScreen { screen = Screen.SETTINGS }
+                Screen.CREDITS -> CreditsScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, null, shazamOn, // next: Discogs
+                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn,
                         onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
-                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx, user = true) else ShazamControl.stop() },
+                        listening = shazamOn,
+                        onListening = {
+                            if (it) ShazamControl.start(ctx, user = true)
+                            else { menu = false; autoStandby = false; standbyWasOn = true; ShazamControl.stop(); screen = Screen.STANDBY } // spento = standby
+                        },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
-                        onStandby = {
-                            menu = false; autoStandby = false
-                            standbyWasOn = shazamOn; ShazamControl.stop()
-                            screen = Screen.STANDBY
-                        },
                     )
                 }
             }

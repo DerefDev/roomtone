@@ -11,7 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-// Durata brano: cache (memoria + durations.json) → Last.fm → MusicBrainz.
+// Durata brano: disco posseduto (Discogs) → cache (memoria + durations.json) → Last.fm → Deezer → MusicBrainz (ultima: 1 req/s).
 // ponytail: errori di rete → null senza dettaglio; niente retry → WorkManager se serve
 object Durations {
     private const val DAY = 24 * 3_600_000L
@@ -31,13 +31,21 @@ object Durations {
 
     suspend fun duration(t: Track): Long? = withContext(Dispatchers.IO) {
         val key = normKey(t)
+        val tk = normKey(Track(t.title, ""))
+        DiscogsCollection.owned(t)?.tracks?.firstOrNull { normKey(Track(it.title, "")) == tk && (it.durationMs ?: 0) > 0 }?.durationMs?.let { return@withContext it }
         cacheLock.withLock { cache[key] }?.let { (ms, ts) ->
             if (ms > 0) return@withContext ms
             if (System.currentTimeMillis() - ts < DAY) return@withContext null // non trovato di recente
         }
         var ms = 0L
         if (BuildConfig.LASTFM_API_KEY.isNotEmpty()) ms = lastFm(t) ?: 0L // errore → prova MusicBrainz
-        if (ms <= 0) ms = musicBrainz(t) ?: return@withContext null // errore/503 → niente cache
+        val dz = if (ms <= 0) deezer(t) else 0L
+        if (dz != null && dz > 0) ms = dz
+        if (ms <= 0) {
+            val mb = musicBrainz(t)
+            if (mb != null && mb > 0) ms = mb
+            else if (dz == null || mb == null) return@withContext null // errore/503 → niente cache
+        }
         store(key, if (ms > 0) ms else -1)
         ms.takeIf { it > 0 }
     }
@@ -68,6 +76,19 @@ object Durations {
         val body = get(u) ?: return null
         return try {
             JSONObject(body).optJSONObject("track")?.optString("duration")?.toLongOrNull() ?: 0L
+        } catch (_: Exception) { null }
+    }
+
+    // 0 = non trovata, null = errore
+    private fun deezer(t: Track): Long? {
+        val body = get("https://api.deezer.com/search?q=" + enc("${firstArtistRaw(t.artist)} ${stripFeat(t.title)}")) ?: return null
+        return try {
+            val a = JSONObject(body).optJSONArray("data") ?: return 0L
+            val fk = firstArtist(t.artist); val tk = normKey(Track(t.title, ""))
+            val ok = (0 until a.length()).map { a.getJSONObject(it) }.filter {
+                base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && normKey(Track(it.optString("title"), "")) == tk && it.optLong("duration") > 0
+            }
+            ((ok.firstOrNull { it.optJSONObject("album")?.optString("type") == "album" } ?: ok.firstOrNull())?.optLong("duration") ?: 0L) * 1000
         } catch (_: Exception) { null }
     }
 

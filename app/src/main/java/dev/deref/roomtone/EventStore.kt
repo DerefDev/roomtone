@@ -19,7 +19,7 @@ data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val
 // album = disco risolto (albumDone = ricerca conclusa, anche senza esito).
 data class NowPlaying(
     val track: Track, val startedAt: Long, val durationMs: Long? = null, val meta: ScrobbleMeta? = null,
-    val album: AlbumRef? = null, val albumDone: Boolean = false,
+    val album: AlbumRef? = null, val albumDone: Boolean = false, val next: String? = null,
 )
 
 // Album da scrobblare: modalità "owned" e disco posseduto → quello reale; altrimenti cronologia, poi album risolto.
@@ -101,6 +101,8 @@ object EventStore {
             _nowPlaying.update { if (same(it)) it!!.copy(meta = m) else it }
             val ref = Albums.resolve(t, m.album)
             _nowPlaying.update { if (same(it)) it!!.copy(meta = withAlbum(m, ref), album = ref, albumDone = true) else it }
+            val nx = Tracklists.next(t, ref)
+            _nowPlaying.update { if (same(it)) it!!.copy(next = nx) else it }
             val d = Durations.duration(t)
             _nowPlaying.update { if (same(it)) it!!.copy(durationMs = d) else it }
         }

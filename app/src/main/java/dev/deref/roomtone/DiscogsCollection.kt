@@ -15,7 +15,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-data class OwnedTrack(val title: String, val artist: String?, val durationMs: Long?)
+data class OwnedTrack(val title: String, val artist: String?, val durationMs: Long?, val position: String? = null)
 data class OwnedRelease(
     val id: Long, val masterId: Long?, val title: String, val artist: String, val year: Int,
     val formats: List<String>, val tracks: List<OwnedTrack>, val coverImage: String?,
@@ -88,6 +88,8 @@ object DiscogsCollection {
     // Release posseduta che contiene il brano: prima con l'artista completo, poi col solo primo artista
     fun owned(t: Track): OwnedRelease? = index[normKey(t)] ?: index[normKey(Track(t.title, firstArtistRaw(t.artist)))]
 
+    fun byId(id: Long): OwnedRelease? = _releases.value.firstOrNull { it.id == id }
+
     private fun setAll(list: List<OwnedRelease>) {
         val m = HashMap<String, OwnedRelease>()
         for (r in list) for (t in r.tracks) { // più release per chiave → prima corrispondenza
@@ -104,7 +106,7 @@ object DiscogsCollection {
             o.getLong("id"), o.optLong("masterId").takeIf { it > 0 }, o.getString("title"), o.getString("artist"), o.optInt("year"),
             o.getJSONArray("formats").let { f -> (0 until f.length()).map(f::getString) },
             o.getJSONArray("tracks").let { ts -> (0 until ts.length()).map { ts.getJSONObject(it) }.map { t ->
-                OwnedTrack(t.getString("title"), t.optString("artist").takeIf { it.isNotEmpty() }, t.optLong("durationMs").takeIf { it > 0 })
+                OwnedTrack(t.getString("title"), t.optString("artist").takeIf { it.isNotEmpty() }, t.optLong("durationMs").takeIf { it > 0 }, t.optString("position").takeIf { it.isNotEmpty() })
             } },
             o.optString("coverImage").takeIf { it.isNotEmpty() },
         )
@@ -116,7 +118,7 @@ object DiscogsCollection {
             a.put(JSONObject().put("id", r.id).put("masterId", r.masterId ?: 0).put("title", r.title).put("artist", r.artist)
                 .put("year", r.year).put("formats", JSONArray(r.formats)).put("coverImage", r.coverImage ?: "")
                 .put("tracks", JSONArray().also { ts -> r.tracks.forEach { t ->
-                    ts.put(JSONObject().put("title", t.title).put("artist", t.artist ?: "").put("durationMs", t.durationMs ?: 0))
+                    ts.put(JSONObject().put("title", t.title).put("artist", t.artist ?: "").put("durationMs", t.durationMs ?: 0).put("position", t.position ?: ""))
                 } }))
         }
         try {
@@ -150,9 +152,11 @@ object DiscogsCollection {
                 page++
             }
             // 2) rimosse dalla collezione → via dalla cache (e copertine, anche scelte dall'utente)
-            val cached = _releases.value.associateBy { it.id }
+            // cache precedente alla v0.6.1 senza posizioni (A1, B1…) → dettagli riscaricati una volta
+            val cached = _releases.value.filter { r -> r.tracks.any { it.position != null } }.associateBy { it.id }
             val kept = cached.values.filter { it.id in basics }
-            cached.keys.filter { it !in basics }.forEach { Artwork.deleteOwned(it) }
+            _releases.value.map { it.id }.filter { it !in basics }.forEach { Artwork.deleteOwned(it) }
+            // ponytail: release senza posizioni anche su Discogs → riscaricate a ogni sync (rare)
             // 3) dettagli delle nuove
             val fresh = basics.keys.filter { it !in cached }
             val list = ArrayList(kept)
@@ -191,6 +195,7 @@ object DiscogsCollection {
                 t.optString("title"),
                 xa?.let { a -> (0 until a.length()).joinToString(" & ") { cleanDiscogsArtist(a.getJSONObject(it).optString("name")) } }?.takeIf { it.isNotEmpty() },
                 duration(t.optString("duration")),
+                t.optString("position").takeIf { it.isNotEmpty() },
             )
         }
         return OwnedRelease(id, b.optLong("master_id").takeIf { it > 0 }, b.optString("title"), artist, b.optInt("year"), formats, tracks,

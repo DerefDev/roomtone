@@ -37,7 +37,6 @@
     <string name="meta_from_shazam">from Shazam</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_scrobble">Scrobble</string>
-    <string name="menu_standby">Standby</string>
     <string name="menu_scrobbling">Scrobbling</string>
     <string name="badge_scrobbling_off">Scrobbling off</string>
     <string name="badge_offline">Offline</string>
@@ -83,13 +82,11 @@
     <string name="about_license">License: GPL-3.0-or-later (free software)</string>
     <string name="about_source">Source code</string>
     <string name="about_issue">Report an issue</string>
-    <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: Cover Art Archive · Discogs · Deezer · iTunes</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
     <string name="credit_caa">Cover Art Archive</string>
     <string name="credit_itunes">iTunes</string>
-    <string name="credit_shazam">Recognition: Shazam (via notifications)</string>
-    <string name="menu_shazam">Auto Shazam</string>
+    <string name="credit_shazam">Shazam</string>
     <string name="badge_shazam_off">Shazam off</string>
     <string name="sec_shazam">Shazam</string>
     <string name="shazam_status">Auto Shazam: %1$s</string>
@@ -120,4 +117,28 @@
     <string name="covers_loading">Looking for covers…</string>
     <string name="credit_discogs">Discogs</string>
     <string name="credit_deezer">Deezer</string>
+    <string name="menu_listening">Listening</string>
+    <string name="menu_listening_hint">Off = standby</string>
+    <string name="sec_account">Accounts</string>
+    <string name="sec_general">General</string>
+    <string name="settings_credits">Credits</string>
+    <string name="credits_title">Credits</string>
+    <string name="cr_group_recognition">Recognition</string>
+    <string name="cr_group_data">Track data</string>
+    <string name="cr_group_covers">Covers</string>
+    <string name="cr_group_libs">Icons and libraries</string>
+    <string name="cr_d_shazam">Identifies the playing music, read from its notifications</string>
+    <string name="cr_d_lastfm">Scrobbling, track info and listening history</string>
+    <string name="cr_d_mb">Track durations and album data</string>
+    <string name="cr_d_discogs">Your record collection and release details</string>
+    <string name="cr_d_deezer">Track durations, albums and tracklists</string>
+    <string name="cr_d_caa">Album art for MusicBrainz releases</string>
+    <string name="cr_d_art_discogs">Covers of the records in your collection</string>
+    <string name="cr_d_art">Album art</string>
+    <string name="cr_icons">Material Icons</string>
+    <string name="cr_d_icons">Icons by Google, Apache License 2.0</string>
+    <string name="cr_jetpack">Android Jetpack</string>
+    <string name="cr_d_jetpack">Compose, AppCompat, Core, Lifecycle, Activity, Palette (Apache License 2.0)</string>
+    <string name="cr_coroutines">Kotlin coroutines</string>
+    <string name="cr_d_coroutines">Asynchronous code (Apache License 2.0)</string>
 </resources>

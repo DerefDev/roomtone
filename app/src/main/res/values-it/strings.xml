@@ -36,7 +36,6 @@
     <string name="meta_from_shazam">da Shazam</string>
     <string name="menu_settings">Impostazioni</string>
     <string name="menu_scrobble">Scrobble</string>
-    <string name="menu_standby">Standby</string>
     <string name="menu_scrobbling">Scrobbling</string>
     <string name="badge_scrobbling_off">Scrobbling disattivato</string>
     <string name="badge_offline">Offline</string>
@@ -81,13 +80,11 @@
     <string name="about_license">Licenza: GPL-3.0-or-later (software libero)</string>
     <string name="about_source">Codice sorgente</string>
     <string name="about_issue">Segnala un problema</string>
-    <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: Cover Art Archive · Discogs · Deezer · iTunes</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
     <string name="credit_caa">Cover Art Archive</string>
     <string name="credit_itunes">iTunes</string>
-    <string name="credit_shazam">Riconoscimento: Shazam (tramite notifiche)</string>
-    <string name="menu_shazam">Auto Shazam</string>
+    <string name="credit_shazam">Shazam</string>
     <string name="badge_shazam_off">Shazam spento</string>
     <string name="sec_shazam">Shazam</string>
     <string name="shazam_status">Auto Shazam: %1$s</string>
@@ -118,4 +115,28 @@
     <string name="covers_loading">Cerco le copertine…</string>
     <string name="credit_discogs">Discogs</string>
     <string name="credit_deezer">Deezer</string>
+    <string name="menu_listening">In ascolto</string>
+    <string name="menu_listening_hint">Spento = standby</string>
+    <string name="sec_account">Account</string>
+    <string name="sec_general">Generale</string>
+    <string name="settings_credits">Crediti</string>
+    <string name="credits_title">Crediti</string>
+    <string name="cr_group_recognition">Riconoscimento</string>
+    <string name="cr_group_data">Dati dei brani</string>
+    <string name="cr_group_covers">Copertine</string>
+    <string name="cr_group_libs">Icone e librerie</string>
+    <string name="cr_d_shazam">Riconosce la musica in riproduzione, letta dalle sue notifiche</string>
+    <string name="cr_d_lastfm">Scrobbling, info sui brani e cronologia ascolti</string>
+    <string name="cr_d_mb">Durate dei brani e dati degli album</string>
+    <string name="cr_d_discogs">La tua collezione di dischi e i dettagli delle uscite</string>
+    <string name="cr_d_deezer">Durate, album e tracklist dei brani</string>
+    <string name="cr_d_caa">Copertine delle uscite MusicBrainz</string>
+    <string name="cr_d_art_discogs">Copertine dei dischi della tua collezione</string>
+    <string name="cr_d_art">Copertine degli album</string>
+    <string name="cr_icons">Material Icons</string>
+    <string name="cr_d_icons">Icone di Google, licenza Apache 2.0</string>
+    <string name="cr_jetpack">Android Jetpack</string>
+    <string name="cr_d_jetpack">Compose, AppCompat, Core, Lifecycle, Activity, Palette (licenza Apache 2.0)</string>
+    <string name="cr_coroutines">Kotlin coroutines</string>
+    <string name="cr_d_coroutines">Codice asincrono (licenza Apache 2.0)</string>
 </resources>

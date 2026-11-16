@@ -29,10 +29,10 @@ import dev.deref.roomtone.NowPlaying
 import dev.deref.roomtone.R
 import java.util.Date
 
-// next: brano successivo (da tracklist Discogs, non ancora disponibile → sempre null)
+// np.next: brano successivo previsto dalla tracklist (indicativo)
 @Composable
 fun KioskScreen(
-    np: NowPlaying?, cover: Bitmap?, scrobbling: Boolean, online: Boolean, drafts: Int, next: String?, shazamOn: Boolean,
+    np: NowPlaying?, cover: Bitmap?, scrobbling: Boolean, online: Boolean, drafts: Int, shazamOn: Boolean,
     onMenu: () -> Unit, onDrafts: () -> Unit,
 ) {
     val accent = LocalAccent.current
@@ -52,18 +52,8 @@ fun KioskScreen(
                 np?.let {
                     Text(it.track.artist, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    val d = it.durationMs
-                    if (d != null && d > 0) { // durata ignota → barra nascosta
-                        Spacer(Modifier.height(h * 0.04f))
-                        val now by rememberNow(1000)
-                        LinearProgressIndicator(
-                            progress = { ((now - it.startedAt).toFloat() / d).coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth(0.9f).height(4.dp),
-                            color = accent, trackColor = accent.copy(alpha = 0.2f), gapSize = 0.dp, drawStopIndicator = {},
-                        )
-                    }
                 }
-                next?.let {
+                np?.next?.let {
                     Spacer(Modifier.height(h * 0.03f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(painterResource(R.drawable.ic_fast_forward), null, tint = accent, modifier = Modifier.size(20.dp))
