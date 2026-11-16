@@ -182,13 +182,14 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
-                        listening = shazamOn,
-                        onListening = {
-                            if (it) ShazamControl.start(ctx, user = true)
-                            else { menu = false; autoStandby = false; standbyWasOn = true; ShazamControl.stop(); screen = Screen.STANDBY } // spento = standby
-                        },
+                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx, user = true) else ShazamControl.stop() },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
+                        onStandby = {
+                            menu = false; autoStandby = false
+                            standbyWasOn = shazamOn; ShazamControl.stop() // all'uscita riacceso solo se era acceso
+                            screen = Screen.STANDBY
+                        },
                     )
                 }
             }

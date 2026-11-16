@@ -117,8 +117,8 @@
     <string name="covers_loading">Looking for covers…</string>
     <string name="credit_discogs">Discogs</string>
     <string name="credit_deezer">Deezer</string>
-    <string name="menu_listening">Listening</string>
-    <string name="menu_listening_hint">Off = standby</string>
+    <string name="menu_shazam">Auto Shazam</string>
+    <string name="menu_standby">Standby</string>
     <string name="sec_account">Accounts</string>
     <string name="sec_general">General</string>
     <string name="settings_credits">Credits</string>

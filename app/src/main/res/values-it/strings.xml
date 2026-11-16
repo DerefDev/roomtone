@@ -115,8 +115,8 @@
     <string name="covers_loading">Cerco le copertine…</string>
     <string name="credit_discogs">Discogs</string>
     <string name="credit_deezer">Deezer</string>
-    <string name="menu_listening">In ascolto</string>
-    <string name="menu_listening_hint">Spento = standby</string>
+    <string name="menu_shazam">Auto Shazam</string>
+    <string name="menu_standby">Standby</string>
     <string name="sec_account">Account</string>
     <string name="sec_general">Generale</string>
     <string name="settings_credits">Crediti</string>
