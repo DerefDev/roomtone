@@ -248,6 +248,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                 Area(R.string.sec_about) {
                     Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
                     Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft)
+                    Link(R.string.about_site, "https://derefdev.github.io/roomtone/", ::open)
                     Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open)
                     Link(R.string.about_issue, "https://github.com/DerefDev/roomtone/issues", ::open)
                     Link(R.string.about_license, "https://www.gnu.org/licenses/gpl-3.0.html", ::open)

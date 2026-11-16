@@ -81,6 +81,7 @@
     <string name="about_made_by">Made by DerefDev</string>
     <string name="about_license">License: GPL-3.0-or-later (free software)</string>
     <string name="about_source">Source code</string>
+    <string name="about_site">Website</string>
     <string name="about_issue">Report an issue</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
@@ -143,7 +144,7 @@
     <string name="cr_d_coroutines">Asynchronous code (Apache License 2.0)</string>
     <string name="cr_group_refs">Reference projects</string>
     <string name="cr_pano">Pano Scrobbler</string>
-    <string name="cr_d_pano">Android scrobbler (GPL-3.0): studied for reading notifications, no code copied</string>
+    <string name="cr_d_pano">Scrobbler for Android</string>
     <string name="cr_finale">Finale</string>
-    <string name="cr_d_finale">Last.fm client (BSD-3-Clause): studied as a reference, no code copied</string>
+    <string name="cr_d_finale">Last.fm client</string>
 </resources>

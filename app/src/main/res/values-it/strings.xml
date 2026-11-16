@@ -79,6 +79,7 @@
     <string name="about_made_by">Creato da DerefDev</string>
     <string name="about_license">Licenza: GPL-3.0-or-later (software libero)</string>
     <string name="about_source">Codice sorgente</string>
+    <string name="about_site">Sito web</string>
     <string name="about_issue">Segnala un problema</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
@@ -141,7 +142,7 @@
     <string name="cr_d_coroutines">Codice asincrono (licenza Apache 2.0)</string>
     <string name="cr_group_refs">Progetti di riferimento</string>
     <string name="cr_pano">Pano Scrobbler</string>
-    <string name="cr_d_pano">Scrobbler Android (GPL-3.0): studiato per la lettura delle notifiche, nessun codice copiato</string>
+    <string name="cr_d_pano">Scrobbler per Android</string>
     <string name="cr_finale">Finale</string>
-    <string name="cr_d_finale">Client Last.fm (BSD-3-Clause): studiato come riferimento, nessun codice copiato</string>
+    <string name="cr_d_finale">Client per Last.fm</string>
 </resources>
