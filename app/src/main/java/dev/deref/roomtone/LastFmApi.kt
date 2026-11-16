@@ -3,15 +3,17 @@ package dev.deref.roomtone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
 data class HistoryScrobble(val artist: String, val title: String, val album: String?, val uts: Long)
+data class LastFmAlbum(val title: String, val image: String?)
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
 object LastFmApi {
-    private const val UA = "Roomtone/0.5 ( https://github.com/DerefDev/roomtone )"
+    private const val UA = "Roomtone/0.6 ( https://github.com/DerefDev/roomtone )"
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
@@ -68,4 +70,29 @@ object LastFmApi {
         }
         return out to pages
     }
+
+    private const val PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f" // segnaposto grigio di Last.fm
+    private val sizeSeg = Regex("/i/u/[^/]+/")
+
+    // immagine più grande dell'array "image" (scarta segnaposto/vuote) → originale (~1400 px)
+    private fun bigImage(a: org.json.JSONArray?): String? {
+        for (i in (a?.length() ?: 0) - 1 downTo 0) {
+            val u = a!!.getJSONObject(i).optString("#text")
+            if (u.isNotEmpty() && PLACEHOLDER !in u) return sizeSeg.replace(u, "/i/u/_/")
+        }
+        return null
+    }
+
+    // Album del brano (+ copertina). null = Last.fm non lo conosce; IOException = rete (il chiamante non cachea il "no")
+    suspend fun trackAlbum(artist: String, title: String): LastFmAlbum? = try {
+        val p = mapOf("method" to "track.getInfo", "api_key" to BuildConfig.LASTFM_API_KEY, "artist" to artist, "track" to title, "autocorrect" to "1")
+        val al = call(p).optJSONObject("track")?.optJSONObject("album")
+        al?.optString("title")?.takeIf { it.isNotEmpty() }?.let { LastFmAlbum(it, bigImage(al.optJSONArray("image"))) }
+    } catch (e: IOException) { throw e } catch (_: Exception) { null }
+
+    // Copertina dell'album. null = nessuna; IOException = rete
+    suspend fun albumImage(artist: String, album: String): String? = try {
+        val p = mapOf("method" to "album.getInfo", "api_key" to BuildConfig.LASTFM_API_KEY, "artist" to artist, "album" to album, "autocorrect" to "1")
+        bigImage(call(p).optJSONObject("album")?.optJSONArray("image"))
+    } catch (e: IOException) { throw e } catch (_: Exception) { null }
 }

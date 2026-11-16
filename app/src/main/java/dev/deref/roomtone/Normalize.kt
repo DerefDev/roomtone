@@ -23,3 +23,15 @@ fun normKey(t: Track): String {
     val artist = clean(artistSep.replace(featCut.replace(base(t.artist), ""), " "))
     return "$artist|$title"
 }
+
+private val featTitle = Regex("\\s*[(\\[][^)\\]]*\\b(?:feat|ft|featuring)\\b[^)\\]]*[)\\]]", RegexOption.IGNORE_CASE)
+private val firstSep = Regex("&|,|;|\\band\\b|\\bfeat\\b|\\bft\\b|\\bfeaturing\\b", RegexOption.IGNORE_CASE)
+
+// Primo artista con maiuscole originali (per query verso API): "Artist One & Artist Two" → "Artist One"
+fun firstArtistRaw(artist: String) = firstSep.split(artist).first().trim()
+
+// Primo artista in forma base() (minuscolo, senza accenti): "Artist One & Artist Two" → "artist one"
+fun firstArtist(artist: String) = base(firstArtistRaw(artist)).trim()
+
+// "Song (feat. X)" → "Song"
+fun stripFeat(title: String) = featTitle.replace(title, "").trim()

@@ -20,6 +20,9 @@ object Prefs {
     private val _restartShazamOnScreenOn = MutableStateFlow(true)
     val restartShazamOnScreenOn: StateFlow<Boolean> = _restartShazamOnScreenOn
 
+    private val _albumMode = MutableStateFlow("history") // "history" = coerente con la cronologia, "owned" = disco reale
+    val albumMode: StateFlow<String> = _albumMode
+
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::sp.isInitialized) return
         sp = ctx.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -28,11 +31,13 @@ object Prefs {
         _standbyMin.value = sp.getInt("standby_min", 10)
         _autoStartShazam.value = sp.getBoolean("autoStartShazam", true)
         _restartShazamOnScreenOn.value = sp.getBoolean("restartShazamOnScreenOn", true)
+        _albumMode.value = sp.getString("albumMode", "history")?.takeIf { it == "owned" } ?: "history"
     }
 
     fun setScrobbling(v: Boolean) { _scrobbling.value = v; sp.edit().putBoolean("scrobbling", v).apply() }
     fun setStandbyAuto(v: Boolean) { _standbyAuto.value = v; sp.edit().putBoolean("standby_auto", v).apply() }
     fun setAutoStartShazam(v: Boolean) { _autoStartShazam.value = v; sp.edit().putBoolean("autoStartShazam", v).apply() }
     fun setRestartShazamOnScreenOn(v: Boolean) { _restartShazamOnScreenOn.value = v; sp.edit().putBoolean("restartShazamOnScreenOn", v).apply() }
+    fun setAlbumMode(v: String) { _albumMode.value = v; sp.edit().putString("albumMode", v).apply() }
     fun setStandbyMin(v: Int) { _standbyMin.value = v; sp.edit().putInt("standby_min", v).apply() }
 }

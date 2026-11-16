@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
@@ -46,6 +47,8 @@ class ShazamListener : NotificationListenerService() {
         super.onCreate()
         Durations.init(getExternalFilesDir(null))
         HistorySync.init(this)
+        DiscogsCollection.init(this)
+        Albums.init(cacheDir)
         EventStore.onEvaluated = { l, e, m -> saveListen(l, e, m, "listen") }
         EventStore.onEdited = { l, e, m -> saveListen(l, e, m, "edit") } // riga di modifica: "start" identifica l'ascolto // agganciato subito, non solo a listener connesso
     }
@@ -83,6 +86,7 @@ class ShazamListener : NotificationListenerService() {
             put("timestamps", JSONArray(e.timestamps))
             put("scrobbleArtist", m.artist); put("scrobbleTitle", m.title)
             put("scrobbleAlbum", m.album ?: JSONObject.NULL); put("metaSource", m.source.name)
+            put("albumSource", m.albumSource?.name ?: JSONObject.NULL)
         }.toString()
         io.execute {
             try {
@@ -127,10 +131,13 @@ class ShazamListener : NotificationListenerService() {
             channel == "notification_shazam_match_v1" && sbn.tag == "NOTIFICATION_SHAZAM_RESULTS" -> {
                 val title = n.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
                 val artist = n.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-                if (!title.isNullOrBlank() && !artist.isNullOrBlank()) EventStore.match(title, artist, now)
+                if (!title.isNullOrBlank() && !artist.isNullOrBlank()) EventStore.match(title, artist, now, largeIcon(n))
             }
         }
     }
+
+    // Icona grande della notifica (copertina Shazam); null se assente/illeggibile
+    private fun largeIcon(n: Notification) = try { n.getLargeIcon()?.loadDrawable(this)?.toBitmap() } catch (_: Exception) { null }
 
     private fun toJson(sbn: StatusBarNotification, n: Notification, event: String, now: Long) = JSONObject().apply {
         put("event", event)

@@ -22,6 +22,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.deref.roomtone.*
 import dev.deref.roomtone.R
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,7 +55,7 @@ private fun CustomMinDialog(cur: Int, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Unit) {
+fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> Unit, onBack: () -> Unit) {
     val ctx = LocalContext.current
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
@@ -66,6 +67,11 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
     val notInstalled by ShazamControl.notInstalled.collectAsStateWithLifecycle()
     val startWith by Prefs.autoStartShazam.collectAsStateWithLifecycle()
     val restartOn by Prefs.restartShazamOnScreenOn.collectAsStateWithLifecycle()
+    val dgUser by DiscogsCollection.user.collectAsStateWithLifecycle()
+    val dg by DiscogsCollection.progress.collectAsStateWithLifecycle()
+    val albumMode by Prefs.albumMode.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    var dgError by remember { mutableStateOf<String?>(null) }
     var customDlg by remember { mutableStateOf(false) }
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
     fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
@@ -95,6 +101,42 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
                     (loginError ?: sync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
                 }
             }
+            item { Section(R.string.sec_discogs) }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val u = dgUser
+                    if (u == null) {
+                        Text(stringResource(R.string.discogs_not_connected))
+                        Button({
+                            scope.launch {
+                                try { open(Intent(Intent.ACTION_VIEW, Uri.parse(DiscogsApi.authorizeUrl(DiscogsApi.requestToken())))); dgError = null }
+                                catch (e: Exception) { dgError = e.message ?: "error" }
+                            }
+                        }) { Text(stringResource(R.string.discogs_connect)) }
+                    } else {
+                        Column(Modifier.weight(1f, fill = false)) {
+                            Text(stringResource(R.string.discogs_connected, u))
+                            Text(when {
+                                dg.running && dg.coversTotal > 0 -> stringResource(R.string.discogs_covers, dg.coversDone, dg.coversTotal)
+                                dg.running && dg.detailsTotal > 0 -> stringResource(R.string.discogs_details, dg.detailsDone, dg.detailsTotal)
+                                dg.running -> stringResource(R.string.discogs_listing, dg.releases)
+                                else -> stringResource(R.string.discogs_up_to_date, dg.releases)
+                            }, fontSize = 12.sp)
+                        }
+                        Button({ DiscogsCollection.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
+                    }
+                    (dgError ?: dg.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
+                }
+            }
+            if (dgUser != null) item { Button(onCovers) { Text(stringResource(R.string.covers_button)) } }
+            item { Section(R.string.sec_album) }
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(albumMode == "history", { Prefs.setAlbumMode("history") }, { Text(stringResource(R.string.album_history)) })
+                    FilterChip(albumMode == "owned", { Prefs.setAlbumMode("owned") }, { Text(stringResource(R.string.album_owned)) })
+                }
+            }
+            item { Text(stringResource(R.string.album_hint), fontSize = 12.sp, color = TextSoft) }
             item { Section(R.string.sec_language) }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,6 +242,8 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onBack: () -> Un
                         Link(R.string.credit_mb, "https://musicbrainz.org", ::open)
                         Link(R.string.credit_caa, "https://coverartarchive.org", ::open)
                         Link(R.string.credit_itunes, "https://www.apple.com/itunes/", ::open)
+                        Link(R.string.credit_discogs, "https://www.discogs.com", ::open)
+                        Link(R.string.credit_deezer, "https://www.deezer.com", ::open)
                     }
                     Text(stringResource(R.string.credit_shazam), fontSize = 12.sp, color = TextSoft)
                 }

@@ -83,7 +83,7 @@
     <string name="about_license">License: GPL-3.0-or-later (free software)</string>
     <string name="about_source">Source code</string>
     <string name="about_issue">Report an issue</string>
-    <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: iTunes Search API</string>
+    <string name="about_credits">Track data: Last.fm · MusicBrainz · Artwork: Cover Art Archive · Discogs · Deezer · iTunes</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
     <string name="credit_caa">Cover Art Archive</string>
@@ -100,4 +100,24 @@
     <string name="shazam_start_with">Start Auto Shazam with Roomtone</string>
     <string name="shazam_restart">Turn it back on when the screen turns on</string>
     <string name="shazam_privacy">Auto Shazam is always turned off when the screen turns off.</string>
+    <string name="sec_discogs">Discogs</string>
+    <string name="discogs_connect">Connect Discogs</string>
+    <string name="discogs_not_connected">Discogs: not connected</string>
+    <string name="discogs_connected">Discogs: connected as %1$s</string>
+    <string name="discogs_listing">Reading collection… %1$d releases</string>
+    <string name="discogs_details">Release details: %1$d / %2$d</string>
+    <string name="discogs_covers">Covers: %1$d / %2$d</string>
+    <string name="discogs_up_to_date">%1$d releases in your collection</string>
+    <string name="sec_album">Album</string>
+    <string name="album_history">Consistent with history</string>
+    <string name="album_owned">Actual record</string>
+    <string name="album_hint">The album sent with each scrobble: the one in your Last.fm history (so tracks stay grouped), or the record you actually own in your Discogs collection. The screen always shows your record.</string>
+    <string name="covers_button">Record covers</string>
+    <string name="covers_title">Record covers</string>
+    <string name="covers_empty">No records yet</string>
+    <string name="covers_auto">Automatic</string>
+    <string name="covers_gallery">From gallery</string>
+    <string name="covers_loading">Looking for covers…</string>
+    <string name="credit_discogs">Discogs</string>
+    <string name="credit_deezer">Deezer</string>
 </resources>

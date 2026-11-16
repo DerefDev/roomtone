@@ -27,7 +27,7 @@ import dev.deref.roomtone.ui.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class Screen { KIOSK, SCROBBLE, SETTINGS, STANDBY }
+enum class Screen { KIOSK, SCROBBLE, SETTINGS, COVERS, STANDBY }
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,10 +41,13 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) ShazamControl.armAutoStart() // nuova apertura, non rotazione
         Prefs.init(this)
         Connectivity.init(this)
-        Artwork.init(cacheDir)
+        Artwork.init(cacheDir, filesDir)
+        Albums.init(cacheDir)
         HistorySync.init(this)
+        DiscogsCollection.init(this)
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()
+        DiscogsCollection.startIfStale()
         setContent { Root(accessGranted, loginError) }
     }
 
@@ -63,11 +66,20 @@ class MainActivity : AppCompatActivity() {
         handleAuth(intent)
     }
 
-    // roomtone://auth?token=… → sessione → sync. Il token non va mai loggato.
+    // roomtone://auth?token=… (Last.fm) e roomtone://discogs?oauth_token=…&oauth_verifier=… → sessione → sync.
+    // I token non vanno mai loggati.
     private fun handleAuth(i: Intent) {
         val d = i.data ?: return
-        if (d.scheme != "roomtone" || d.host != "auth") return
+        if (d.scheme != "roomtone" || (d.host != "auth" && d.host != "discogs")) return
         i.data = null
+        if (d.host == "discogs") {
+            val token = d.getQueryParameter("oauth_token") ?: return
+            val verifier = d.getQueryParameter("oauth_verifier") ?: return
+            lifecycleScope.launch {
+                try { DiscogsCollection.login(token, verifier); loginError = null } catch (e: Exception) { loginError = e.message ?: "error" }
+            }
+            return
+        }
         val token = d.getQueryParameter("token") ?: return
         lifecycleScope.launch {
             try { HistorySync.login(token); loginError = null } catch (e: Exception) { loginError = e.message ?: "error" }
@@ -128,12 +140,14 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     var menu by remember { mutableStateOf(false) }
     var autoStandby by remember { mutableStateOf(false) } // standby entrato da solo (per ora solo informativo)
 
-    // copertina: parte quando i metadati sono pronti; la precedente resta finché arriva la nuova (transizione morbida)
+    // copertina: al cambio brano subito l'icona Shazam (se c'è), poi la copertina vera appena l'album è risolto
     val n = np
-    val cover by produceState<Bitmap?>(null, n?.track, n?.meta?.album, n?.meta != null) {
-        if (n == null) value = null
-        else if (n.meta != null) value = Artwork.load(n.track.artist, n.track.title, n.meta.album)
+    val icon by EventStore.icon.collectAsStateWithLifecycle()
+    val loaded by produceState<Bitmap?>(null, n?.track, n?.album, n?.albumDone) {
+        value = null
+        if (n != null && n.albumDone) value = Artwork.load(n.album, n.track)
     }
+    val cover = loaded ?: icon
 
     val idle = n == null
     LaunchedEffect(idle, autoOn, mins, screen) {
@@ -149,7 +163,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     fun leave() {
         if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx, user = true)
         standbyWasOn = false
-        screen = Screen.KIOSK
+        screen = if (screen == Screen.COVERS) Screen.SETTINGS else Screen.KIOSK
     }
     BackHandler(screen != Screen.KIOSK) { leave() }
 
@@ -158,7 +172,8 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
         else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
-                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError) { screen = Screen.KIOSK }
+                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }) { screen = Screen.KIOSK }
+                Screen.COVERS -> CoversScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
                         n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, null, shazamOn, // next: Discogs

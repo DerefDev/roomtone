@@ -51,7 +51,7 @@ fun KioskScreen(
                 )
                 np?.let {
                     Text(it.track.artist, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    it.meta?.album?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     val d = it.durationMs
                     if (d != null && d > 0) { // durata ignota → barra nascosta
                         Spacer(Modifier.height(h * 0.04f))

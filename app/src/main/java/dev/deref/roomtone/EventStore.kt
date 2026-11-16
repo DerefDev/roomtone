@@ -1,5 +1,7 @@
 package dev.deref.roomtone
 
+import android.graphics.Bitmap
+import android.util.LruCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,7 +16,22 @@ data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val
 
 // Brano in corso: startedAt = istante in cui compare a schermo (≈ primo battito del tratto);
 // durationMs e meta si completano in seguito (meta subito, durata dopo la ricerca in rete).
-data class NowPlaying(val track: Track, val startedAt: Long, val durationMs: Long? = null, val meta: ScrobbleMeta? = null)
+// album = disco risolto (albumDone = ricerca conclusa, anche senza esito).
+data class NowPlaying(
+    val track: Track, val startedAt: Long, val durationMs: Long? = null, val meta: ScrobbleMeta? = null,
+    val album: AlbumRef? = null, val albumDone: Boolean = false,
+)
+
+// Album da scrobblare: modalità "owned" e disco posseduto → quello reale; altrimenti cronologia, poi album risolto.
+fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?): ScrobbleMeta {
+    val (a, src) = when {
+        Prefs.albumMode.value == "owned" && ref?.source == AlbumSource.OWNED -> ref.title to AlbumSource.OWNED
+        m.album != null -> m.album to AlbumSource.HISTORY
+        ref != null -> ref.title to ref.source
+        else -> null to null
+    }
+    return m.copy(album = a, albumSource = src)
+}
 
 // ponytail: solo in memoria (+ jsonl scritto dal listener) → Room se serve persistenza
 // Tutte le chiamate al motore avvengono sul main thread (callback del listener + Handler main).
@@ -35,7 +52,8 @@ object EventStore {
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
             val e = evaluate(l, Durations.duration(l.track))
-            val m = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
+            val m0 = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
+            val m = withAlbum(m0, Albums.resolve(l.track, m0.album))
             _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m) else it } }
             onEvaluated(l, e, m)
         }
@@ -56,13 +74,23 @@ object EventStore {
         onEdited(l, ne, nm)
     }
 
-    fun match(title: String, artist: String, now: Long) { engine.onMatch(title, artist, now); publish(now) }
+    // Icona Shazam (anteprima finché la copertina non arriva); la prima notifica del match ne è priva → mai sovrascrivere con null
+    private val icons = LruCache<Track, Bitmap>(8)
+    private val _icon = MutableStateFlow<Bitmap?>(null)
+    val icon: StateFlow<Bitmap?> = _icon
+    fun shazamIcon(t: Track): Bitmap? = icons.get(t)
+
+    fun match(title: String, artist: String, now: Long, icon: Bitmap? = null) {
+        if (icon != null) icons.put(Track(title, artist), icon)
+        engine.onMatch(title, artist, now); publish(now)
+    }
     fun beat(text: String, now: Long) { engine.onBeat(text, now); publish(now) }
     fun tick(now: Long) { engine.tick(now); publish(now) }
 
     private fun publish(now: Long) {
         val t = engine.displayTrack
         _currentTrack.value = t
+        _icon.value = t?.let(icons::get)
         if (t == null) { _nowPlaying.value = null; return }
         if (_nowPlaying.value?.track == t) return
         val np = NowPlaying(t, now)
@@ -71,6 +99,8 @@ object EventStore {
             fun same(c: NowPlaying?) = c != null && c.track == t && c.startedAt == np.startedAt
             val m = scrobbleMeta(t, HistorySync.index.lookup(t))
             _nowPlaying.update { if (same(it)) it!!.copy(meta = m) else it }
+            val ref = Albums.resolve(t, m.album)
+            _nowPlaying.update { if (same(it)) it!!.copy(meta = withAlbum(m, ref), album = ref, albumDone = true) else it }
             val d = Durations.duration(t)
             _nowPlaying.update { if (same(it)) it!!.copy(durationMs = d) else it }
         }

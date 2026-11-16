@@ -81,7 +81,7 @@
     <string name="about_license">Licenza: GPL-3.0-or-later (software libero)</string>
     <string name="about_source">Codice sorgente</string>
     <string name="about_issue">Segnala un problema</string>
-    <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: iTunes Search API</string>
+    <string name="about_credits">Dati brani: Last.fm · MusicBrainz · Copertine: Cover Art Archive · Discogs · Deezer · iTunes</string>
     <string name="credit_lastfm">Last.fm</string>
     <string name="credit_mb">MusicBrainz</string>
     <string name="credit_caa">Cover Art Archive</string>
@@ -98,4 +98,24 @@
     <string name="shazam_start_with">Avvia Auto Shazam con Roomtone</string>
     <string name="shazam_restart">Riaccendilo quando lo schermo si accende</string>
     <string name="shazam_privacy">Auto Shazam viene sempre spento quando lo schermo si spegne.</string>
+    <string name="sec_discogs">Discogs</string>
+    <string name="discogs_connect">Collega Discogs</string>
+    <string name="discogs_not_connected">Discogs: non collegato</string>
+    <string name="discogs_connected">Discogs: collegato come %1$s</string>
+    <string name="discogs_listing">Lettura collezione… %1$d dischi</string>
+    <string name="discogs_details">Dettagli dischi: %1$d / %2$d</string>
+    <string name="discogs_covers">Copertine: %1$d / %2$d</string>
+    <string name="discogs_up_to_date">%1$d dischi nella collezione</string>
+    <string name="sec_album">Album</string>
+    <string name="album_history">Coerente con la cronologia</string>
+    <string name="album_owned">Disco reale</string>
+    <string name="album_hint">L\'album inviato con ogni scrobble: quello della cronologia Last.fm (così i brani restano raggruppati) oppure il disco che possiedi nella collezione Discogs. Lo schermo mostra sempre il tuo disco.</string>
+    <string name="covers_button">Copertine dei dischi</string>
+    <string name="covers_title">Copertine dei dischi</string>
+    <string name="covers_empty">Ancora nessun disco</string>
+    <string name="covers_auto">Automatica</string>
+    <string name="covers_gallery">Dalla galleria</string>
+    <string name="covers_loading">Cerco le copertine…</string>
+    <string name="credit_discogs">Discogs</string>
+    <string name="credit_deezer">Deezer</string>
 </resources>

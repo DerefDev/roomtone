@@ -19,4 +19,12 @@ class NormalizeTest {
         assertNotEquals(k("Song"), k("Song (Rmx)"))
         assertNotEquals(k("Song"), k("Song - Live"))
     }
+
+    @Test fun primoArtistaEFeat() {
+        assertEquals("artist one", firstArtist("Artist One & Artist Two"))
+        assertEquals("artist one", firstArtist("Artist One feat. X"))
+        assertEquals("Artist One", firstArtistRaw("Artist One, Artist Three"))
+        assertEquals("Track Title", stripFeat("Track Title (feat. Guest One)"))
+        assertEquals("Song", stripFeat("Song"))
+    }
 }

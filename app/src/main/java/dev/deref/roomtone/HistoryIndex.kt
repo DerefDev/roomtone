@@ -6,7 +6,7 @@ data class HistoryMatch(val artist: String, val title: String, val album: String
 enum class MetaSource { HISTORY, SHAZAM }
 
 // Metadati da inviare (v0.5) per un ascolto.
-data class ScrobbleMeta(val artist: String, val title: String, val album: String?, val source: MetaSource)
+data class ScrobbleMeta(val artist: String, val title: String, val album: String?, val source: MetaSource, val albumSource: AlbumSource? = null)
 
 fun scrobbleMeta(t: Track, h: HistoryMatch?) =
     if (h != null) ScrobbleMeta(h.artist, h.title, h.album, MetaSource.HISTORY)

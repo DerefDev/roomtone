@@ -71,16 +71,13 @@ object Durations {
         } catch (_: Exception) { null }
     }
 
-    private val featTitle = Regex("\\s*[(\\[][^)\\]]*\\b(?:feat|ft|featuring)\\b[^)\\]]*[)\\]]", RegexOption.IGNORE_CASE)
-    private val otherArtists = Regex("\\s*(?:&|,|\\bfeat\\b|\\bft\\.|\\bfeaturing\\b).*$", RegexOption.IGNORE_CASE)
-
     // Shazam scrive "(feat. X)" nel titolo e più artisti uniti con "&": MusicBrainz spesso non li trova così.
     // Ripiego: titolo senza feat. e solo il primo artista.
     private suspend fun musicBrainz(t: Track): Long? {
         val first = mbQuery(t.title, t.artist) ?: return null
         if (first > 0) return first
-        val t2 = featTitle.replace(t.title, "").trim()
-        val a2 = otherArtists.replace(t.artist, "").trim()
+        val t2 = stripFeat(t.title)
+        val a2 = firstArtistRaw(t.artist)
         if (t2 == t.title && a2 == t.artist) return 0L
         return mbQuery(t2, a2)
     }
