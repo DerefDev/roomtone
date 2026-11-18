@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icona Roomtone (disegno originale, GPL-3.0-or-later): grammofono di profilo con manovella,
-     tutto nell'area sicura (cerchio r 33 attorno a 54,54) -->
+<!-- Icona Roomtone (disegno originale, GPL-3.0-or-later): grammofono di profilo con manovella e
+     campana aperta sopra il piatto; tutto nell'area sicura (cerchio r 33 attorno a 54,54) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <!-- piedini, cassa, cornice superiore -->
+    <!-- piedini, cassa, cornice superiore, pannello -->
     <path android:fillColor="#2A140E" android:pathData="M34,77h4v2.5h-4zM60,77h4v2.5h-4z" />
     <path android:fillColor="#3B1D14" android:pathData="M32,65h34v12h-34z" />
     <path android:fillColor="#5A2E1F" android:pathData="M30.5,62.5h37v3h-37z" />
@@ -15,16 +15,16 @@
     <!-- piatto e disco visti di taglio -->
     <path android:fillColor="#F6EAD8" android:pathData="M35,61h23v1.5h-23z" />
     <path android:fillColor="#1A1A1A" android:pathData="M36,59.6h21v1.4h-21z" />
-    <!-- colonnina, braccio e diaframma sul disco -->
+    <!-- colonnina sul retro, braccio e diaframma sul disco -->
     <path android:strokeColor="#F6EAD8" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M61,62.5V55M61,55.5L52,56.5" />
-    <path android:fillColor="#F6EAD8" android:pathData="M50.5,57.3m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0" />
-    <!-- collo e campana della tromba -->
-    <path android:strokeColor="#C98A1E" android:strokeWidth="3" android:strokeLineCap="round"
-        android:pathData="M61,55.5Q60.5,49 62,46" />
-    <path android:fillColor="#E0A23A" android:pathData="M60.8,44.9Q64,36 65.7,23.8L82.3,38.2Q72,42 63.2,47.1Z" />
-    <group android:rotation="41" android:pivotX="74" android:pivotY="31">
-        <path android:fillColor="#F2B544" android:pathData="M63,31a11,4.5 0 1,0 22,0a11,4.5 0 1,0 -22,0" />
-        <path android:fillColor="#9A6212" android:pathData="M65.5,31.3a8.5,3 0 1,0 17,0a8.5,3 0 1,0 -17,0" />
+        android:pathData="M62,62.5V56M62,56.5L52.5,57" />
+    <path android:fillColor="#F6EAD8" android:pathData="M51,57.5m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0" />
+    <!-- gomito, campana e bocca (aperta in alto a sinistra, sopra il piatto) -->
+    <path android:strokeColor="#C98A1E" android:strokeWidth="3.2" android:strokeLineCap="round"
+        android:pathData="M62,56.5Q62.5,48.5 58,46" />
+    <path android:fillColor="#E0A23A" android:pathData="M59.2,44.7Q52,38 49.6,22.3L32.4,41.7Q47,44 56.8,47.3Z" />
+    <group android:rotation="-48.4" android:pivotX="41" android:pivotY="32">
+        <path android:fillColor="#F2B544" android:pathData="M28,32a13,5.5 0 1,0 26,0a13,5.5 0 1,0 -26,0" />
+        <path android:fillColor="#9A6212" android:pathData="M31,32.4a10,3.8 0 1,0 20,0a10,3.8 0 1,0 -20,0" />
     </group>
 </vector>
