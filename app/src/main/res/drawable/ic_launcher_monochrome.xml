@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona Roomtone a tema (Android 13+): sola sagoma, il colore lo decide il sistema -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#000000" android:pathData="M30,68L35,64L63,64L63,74L58,78L30,78Z" />
+    <path android:fillColor="#000000" android:pathData="M33,64a13,3 0 1,0 26,0a13,3 0 1,0 -26,0" />
+    <path android:strokeColor="#000000" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M53,64L58,63L61,57L62,52" />
+    <path android:fillColor="#000000" android:pathData="M60.7,51.2Q62.5,42 61.7,26.8L82.3,39.2Q68,48 63.3,52.8Z" />
+    <group android:rotation="31" android:pivotX="72" android:pivotY="33">
+        <path android:fillColor="#000000" android:pathData="M60,33a12,5 0 1,0 24,0a12,5 0 1,0 -24,0" />
+    </group>
+</vector>

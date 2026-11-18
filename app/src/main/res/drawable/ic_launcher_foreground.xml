@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona Roomtone (disegno originale, GPL-3.0-or-later): grammofono nell'area sicura (cerchio r 33 attorno a 54,54) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- base: fronte, lato, piano -->
+    <path android:fillColor="#3B1D14" android:pathData="M30,68h28v10h-28z" />
+    <path android:fillColor="#2A140E" android:pathData="M58,68L63,64L63,74L58,78Z" />
+    <path android:fillColor="#5A2E1F" android:pathData="M30,68L35,64L63,64L58,68Z" />
+    <!-- piatto, disco, etichetta -->
+    <path android:fillColor="#F6EAD8" android:pathData="M33,66a13,3 0 1,0 26,0a13,3 0 1,0 -26,0" />
+    <path android:fillColor="#1A1A1A" android:pathData="M34.5,65.8a11.5,2.4 0 1,0 23,0a11.5,2.4 0 1,0 -23,0" />
+    <path android:fillColor="#F2B544" android:pathData="M43,65.8a3,0.7 0 1,0 6,0a3,0.7 0 1,0 -6,0" />
+    <!-- braccio -->
+    <path android:strokeColor="#F6EAD8" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M53,65L58,63L61,57L62,52" />
+    <!-- tromba: campana svasata + bocca vista di sbieco -->
+    <path android:fillColor="#E0A23A" android:pathData="M60.7,51.2Q62.5,42 61.7,26.8L82.3,39.2Q68,48 63.3,52.8Z" />
+    <group android:rotation="31" android:pivotX="72" android:pivotY="33">
+        <path android:fillColor="#F2B544" android:pathData="M60,33a12,5 0 1,0 24,0a12,5 0 1,0 -24,0" />
+        <path android:fillColor="#9A6212" android:pathData="M63,33.4a9,3.4 0 1,0 18,0a9,3.4 0 1,0 -18,0" />
+    </group>
+</vector>
