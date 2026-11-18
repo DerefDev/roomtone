@@ -1,5 +1,8 @@
 package dev.deref.roomtone
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
@@ -26,18 +29,19 @@ object Artists {
         } catch (_: Exception) { /* assente o corrotta → cache vuota */ }
     }
 
-    suspend fun resolve(names: List<String>): Set<String> {
-        val out = HashSet<String>()
-        for (n in names) {
-            val key = base(n).trim()
-            val hit = cacheLock.withLock { cache[key] }
-            val g = when {
-                hit != null && (hit[0] == 1L || System.currentTimeMillis() - hit[1] < TTL) -> hit[0] == 1L
-                else -> lookup(n, key)
+    suspend fun resolve(names: List<String>): Set<String> = coroutineScope {
+        val r = names.map { n ->
+            async {
+                val key = base(n).trim()
+                val hit = cacheLock.withLock { cache[key] }
+                when {
+                    hit != null && (hit[0] == 1L || System.currentTimeMillis() - hit[1] < TTL) -> hit[0] == 1L
+                    else -> lookup(n, key)
+                }
             }
-            if (g) out += n
-        }
-        return out
+        }.awaitAll()
+        persist()
+        names.filterIndexedTo(HashSet()) { i, _ -> r[i] }
     }
 
     private suspend fun lookup(n: String, key: String): Boolean {
@@ -56,8 +60,17 @@ object Artists {
         return g
     }
 
+    private var dirty = false
+
     private suspend fun store(key: String, g: Boolean) = cacheLock.withLock {
         cache[key] = longArrayOf(if (g) 1 else 0, System.currentTimeMillis())
+        dirty = true
+    }
+
+    // Una scrittura per batch, solo se cambiato
+    private suspend fun persist() = cacheLock.withLock {
+        if (!dirty) return@withLock
+        dirty = false
         try {
             val o = JSONObject()
             cache.forEach { (k, v) -> o.put(k, JSONArray().put(v[0]).put(v[1])) }

@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.deref.roomtone.NowPlaying
 import dev.deref.roomtone.displayArtist
-import dev.deref.roomtone.displayTitle
+import dev.deref.roomtone.stripFeat
 import dev.deref.roomtone.R
 import java.util.Date
 
@@ -68,12 +68,13 @@ fun KioskScreen(
             Spacer(Modifier.width(margin))
             Column(Modifier.weight(1f)) {
                 Text(
-                    np?.ownedTitle ?: np?.track?.let(::displayTitle) ?: stringResource(R.string.listening),
+                    np?.ownedTitle ?: np?.track?.let { t -> stripFeat(t.title) } ?: stringResource(R.string.listening),
                     color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     style = TextStyle(fontSize = (h.value * 0.1f).sp, lineHeight = (h.value * 0.115f).sp),
                 )
                 np?.let {
-                    Text(displayArtist(it.track) { n -> n in it.groups }, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val artist = remember(it.track, it.groups) { displayArtist(it.track) { n -> n in it.groups } }
+                    Text(artist, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
                 np?.next?.let {
@@ -110,14 +111,11 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
     val m = Modifier.fillMaxSize().clip(shape).border(1.dp, accent.copy(alpha = 0.25f), shape)
     var flipped by remember(track) { mutableStateOf(false) }
     val rot by animateFloatAsState(if (flipped) 180f else 0f, tween(600), label = "flip")
-    val threshold = with(LocalDensity.current) { 48.dp.toPx() }
-    val density = LocalDensity.current.density
-    // produceState non azzera lo stato al cambio delle chiavi: si riparte da Loading a ogni brano/giro
-    // (Lyrics ha la cache, quindi rigirare la copertina non rifà la ricerca)
-    val lyrics by produceState<LyricsState>(LyricsState.Loading, track, flipped) {
-        value = LyricsState.Loading
-        if (track != null && flipped) value = Lyrics.state(track)
-    }
+    val dens = LocalDensity.current
+    val threshold = with(dens) { 48.dp.toPx() }
+    val density = dens.density
+    var lyrics by remember(track) { mutableStateOf<LyricsState>(LyricsState.Loading) }
+    LaunchedEffect(track, flipped) { if (track != null && flipped && lyrics == LyricsState.Loading) lyrics = Lyrics.state(track) }
     Box(
         modifier.pointerInput(track) {
             if (track == null) return@pointerInput

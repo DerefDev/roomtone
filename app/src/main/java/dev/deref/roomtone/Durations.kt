@@ -7,8 +7,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
+import java.io.IOException
 import java.net.URLEncoder
 
 // Durata brano: disco posseduto (Discogs) → cache (memoria + durations.json) → Last.fm → Deezer → MusicBrainz (ultima: 1 req/s).
@@ -31,23 +30,23 @@ object Durations {
 
     suspend fun duration(t: Track): Long? = withContext(Dispatchers.IO) {
         val key = normKey(t)
-        val tk = normKey(Track(t.title, ""))
-        DiscogsCollection.owned(t)?.tracks?.firstOrNull { normKey(Track(it.title, "")) == tk && (it.durationMs ?: 0) > 0 }?.durationMs?.let { return@withContext it }
+        DiscogsCollection.ownedTrack(t)?.second?.durationMs?.takeIf { it > 0 }?.let { return@withContext it }
         cacheLock.withLock { cache[key] }?.let { (ms, ts) ->
             if (ms > 0) return@withContext ms
             if (System.currentTimeMillis() - ts < DAY) return@withContext null // non trovato di recente
         }
-        var ms = 0L
-        if (BuildConfig.LASTFM_API_KEY.isNotEmpty()) ms = lastFm(t) ?: 0L // errore → prova MusicBrainz
-        val dz = if (ms <= 0) deezer(t) else 0L
-        if (dz != null && dz > 0) ms = dz
-        if (ms <= 0) {
-            val mb = musicBrainz(t)
-            if (mb != null && mb > 0) ms = mb
-            else if (dz == null || mb == null) return@withContext null // errore/503 → niente cache
+        var failed = false
+        val sources = listOf<suspend (Track) -> Long?>(
+            { if (BuildConfig.LASTFM_API_KEY.isEmpty()) 0L else lastFm(it) }, { deezer(it) }, { musicBrainz(it) },
+        )
+        for (src in sources) {
+            val ms = src(t)
+            if (ms == null) failed = true
+            else if (ms > 0) { store(key, ms); return@withContext ms }
         }
-        store(key, if (ms > 0) ms else -1)
-        ms.takeIf { it > 0 }
+        if (failed) return@withContext null // errore/503 → niente cache
+        store(key, -1)
+        null
     }
 
     private suspend fun store(key: String, ms: Long) = cacheLock.withLock {
@@ -61,19 +60,11 @@ object Durations {
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
 
-    private fun get(url: String): String? = try {
-        (URL(url).openConnection() as HttpURLConnection).run {
-            connectTimeout = 10_000; readTimeout = 10_000
-            setRequestProperty("User-Agent", MusicBrainz.UA)
-            try { if (responseCode == 200) inputStream.bufferedReader().readText() else null } finally { disconnect() }
-        }
-    } catch (_: Exception) { null }
-
     // 0 = sconosciuta, null = errore
     private fun lastFm(t: Track): Long? {
         val u = "https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${enc(BuildConfig.LASTFM_API_KEY)}" +
             "&artist=${enc(t.artist)}&track=${enc(t.title)}&autocorrect=1&format=json"
-        val body = get(u) ?: return null
+        val body = try { httpGet(u)?.toString(Charsets.UTF_8) } catch (_: IOException) { null } ?: return null
         return try {
             JSONObject(body).optJSONObject("track")?.optString("duration")?.toLongOrNull() ?: 0L
         } catch (_: Exception) { null }
@@ -81,12 +72,13 @@ object Durations {
 
     // 0 = non trovata, null = errore
     private fun deezer(t: Track): Long? {
-        val body = get("https://api.deezer.com/search?q=" + enc("${firstArtistRaw(t.artist)} ${stripFeat(t.title)}")) ?: return null
+        val u = "https://api.deezer.com/search?q=" + enc("${firstArtistRaw(t.artist)} ${stripFeat(t.title)}")
+        val body = try { httpGet(u)?.toString(Charsets.UTF_8) } catch (_: IOException) { null } ?: return null
         return try {
             val a = JSONObject(body).optJSONArray("data") ?: return 0L
-            val fk = firstArtist(t.artist); val tk = normKey(Track(t.title, ""))
+            val fk = firstArtist(t.artist); val tk = titleKey(t.title)
             val ok = (0 until a.length()).map { a.getJSONObject(it) }.filter {
-                base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && normKey(Track(it.optString("title"), "")) == tk && it.optLong("duration") > 0
+                base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && titleKey(it.optString("title")) == tk && it.optLong("duration") > 0
             }
             ((ok.firstOrNull { it.optJSONObject("album")?.optString("type") == "album" } ?: ok.firstOrNull())?.optLong("duration") ?: 0L) * 1000
         } catch (_: Exception) { null }

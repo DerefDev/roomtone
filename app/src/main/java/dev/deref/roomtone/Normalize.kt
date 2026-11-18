@@ -12,6 +12,9 @@ private val suffix = Regex("\\s-\\s[^-]*\\b(?:remaster(?:ed)?|deluxe|mono|stereo
 private val featCut = Regex("\\s(?:feat|ft|featuring)\\b.*$")
 private val artistSep = Regex("&|\\band\\b|,")
 
+// Chiave di un solo titolo (senza artista)
+fun titleKey(s: String) = normKey(Track(s, ""))
+
 internal fun base(s: String) = accents.replace(Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD), "")
 
 private fun clean(s: String) = spaces.replace(punct.replace(s, " "), " ").trim()
@@ -36,21 +39,16 @@ fun firstArtist(artist: String) = base(firstArtistRaw(artist)).trim()
 // "Song (feat. X)" → "Song"
 fun stripFeat(title: String) = featTitle.replace(title, "").trim()
 
-private val featGuests = Regex("[(\\[]\\s*(?:feat|ft|featuring)\\b\\.?\\s*([^)\\]]+)[)\\]]", RegexOption.IGNORE_CASE)
-
 // Solo a schermo: "Song (feat. X & Y)" di "A, B & C" → "Song" / "A, B, C feat. X, Y"
 // ponytail: gruppo = isGroup (Discogs/MusicBrainz, vedi Artists) → finché non risolto il nome si spezza
-private fun guests(t: Track) = featGuests.find(t.title)?.groupValues?.get(1)?.trim().orEmpty()
 private fun parts(s: String) = s.split(", ").filter { " & " in it }
 
-fun displayTitle(t: Track) = stripFeat(t.title)
-
 // Parti con " & " (artisti + ospiti) da verificare come nomi di gruppo
-fun ampParts(t: Track): List<String> = (parts(t.artist) + parts(guests(t))).distinct()
+fun ampParts(t: Track): List<String> = (parts(t.artist) + parts(featGuests(t.title).orEmpty())).distinct()
 
 fun displayArtist(t: Track, isGroup: (String) -> Boolean = { false }): String {
     fun fix(s: String) = s.split(", ").joinToString(", ") { if (" & " in it && !isGroup(it)) it.replace(" & ", ", ") else it }
     val a = fix(t.artist)
-    val f = fix(guests(t))
+    val f = fix(featGuests(t.title).orEmpty())
     return if (f.isEmpty()) a else "$a feat. $f"
 }

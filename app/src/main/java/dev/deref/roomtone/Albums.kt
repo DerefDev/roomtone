@@ -20,15 +20,14 @@ data class AlbumRef(
 // Risultato di database/search (master o release)
 data class DiscogsHit(val masterId: Long?, val title: String, val year: Int, val formats: List<String>, val image: String?)
 
-private fun albumKey(s: String) = normKey(Track(s, "")) // titolo album normalizzato (deluxe/remaster ecc. tolti)
 
 // Scelta del master: 1) il suo titolo coincide con l'album di Last.fm; poi per formato:
 // Album non Compilation → altri non Compilation (EP) → Single → Compilation; a parità il più vecchio.
 fun pickMaster(results: List<DiscogsHit>, lastFmAlbum: String?): DiscogsHit? {
     fun age(h: DiscogsHit) = h.year.takeIf { it > 0 } ?: Int.MAX_VALUE
     if (lastFmAlbum != null) {
-        val k = albumKey(lastFmAlbum)
-        results.filter { albumKey(it.title) == k }.minByOrNull(::age)?.let { return it }
+        val k = titleKey(lastFmAlbum)
+        results.filter { titleKey(it.title) == k }.minByOrNull(::age)?.let { return it }
     }
     fun tier(h: DiscogsHit) = when {
         "Compilation" in h.formats -> 3
@@ -122,9 +121,9 @@ object Albums {
         val body = httpGet("https://api.deezer.com/search?q=${URLEncoder.encode("$first $title", "UTF-8")}")?.toString(Charsets.UTF_8) ?: return null
         val a = JSONObject(body).optJSONArray("data") ?: return null
         val fk = firstArtist(first)
-        val tk = albumKey(title)
+        val tk = titleKey(title)
         val ok = (0 until a.length()).map { a.getJSONObject(it) }.filter {
-            base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && albumKey(it.optString("title")) == tk &&
+            base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && titleKey(it.optString("title")) == tk &&
                 it.optJSONObject("album")?.optString("title").orEmpty().isNotEmpty()
         }
         val r = (ok.firstOrNull { it.getJSONObject("album").optString("type") == "album" } ?: ok.firstOrNull()) ?: return null

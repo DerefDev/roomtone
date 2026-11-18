@@ -5,6 +5,7 @@ import android.util.LruCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -26,10 +27,7 @@ data class NowPlaying(
 // Album da scrobblare: modalità "owned" e disco posseduto → quello reale; altrimenti cronologia, poi album risolto.
 fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
     if (Prefs.albumMode.value == "owned" && ref?.source == AlbumSource.OWNED) {
-        val rel = ref.releaseId?.let { DiscogsCollection.byId(it) } ?: DiscogsCollection.owned(t)
-        val key = normKey(Track(t.title, ""))
-        val tr = rel?.tracks?.firstOrNull { normKey(Track(it.title, "")) == key }
-        if (rel != null && tr != null) {
+        DiscogsCollection.ownedTrack(t, ref.releaseId)?.let { (rel, tr) ->
             val o = Prefs.editOptions.value
             return ScrobbleMeta(cleanArtist(tr.artist ?: rel.artist, o, tr.title), cleanTitle(tr.title, o), cleanAlbum(rel.title, o),
                 MetaSource.OWNED, AlbumSource.OWNED)
@@ -108,21 +106,24 @@ object EventStore {
         _nowPlaying.value = np
         scope.launch {
             fun same(c: NowPlaying?) = c != null && c.track == t && c.startedAt == np.startedAt
-            val amp = ampParts(t)
-            if (amp.isNotEmpty()) { val g = Artists.resolve(amp); _nowPlaying.update { if (same(it)) it!!.copy(groups = g) else it } }
-            val m = scrobbleMeta(t, HistorySync.index.lookup(t))
-            _nowPlaying.update { if (same(it)) it!!.copy(meta = m) else it }
-            val ref = Albums.resolve(t, m.album)
-            // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
-            val ot = if (ref?.source == AlbumSource.OWNED) {
-                val k = normKey(Track(t.title, ""))
-                (ref.releaseId?.let { DiscogsCollection.byId(it) } ?: DiscogsCollection.owned(t))?.tracks?.firstOrNull { normKey(Track(it.title, "")) == k }?.title
-            } else null
-            _nowPlaying.update { if (same(it)) it!!.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = ot) else it }
-            val nx = Tracklists.next(t, ref)
-            _nowPlaying.update { if (same(it)) it!!.copy(next = nx) else it }
-            val d = Durations.duration(t)
-            _nowPlaying.update { if (same(it)) it!!.copy(durationMs = d) else it }
+            fun upd(f: (NowPlaying) -> NowPlaying) = _nowPlaying.update { if (same(it)) f(it!!) else it }
+            coroutineScope {
+                launch {
+                    val amp = ampParts(t)
+                    if (amp.isNotEmpty()) { val g = Artists.resolve(amp); upd { it.copy(groups = g) } }
+                }
+                launch {
+                    val m = scrobbleMeta(t, HistorySync.index.lookup(t))
+                    upd { it.copy(meta = m) }
+                    val ref = Albums.resolve(t, m.album)
+                    // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
+                    val ot = if (ref?.source == AlbumSource.OWNED) DiscogsCollection.ownedTrack(t, ref.releaseId)?.second?.title else null
+                    upd { it.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = ot) }
+                    val nx = Tracklists.next(t, ref)
+                    upd { it.copy(next = nx) }
+                }
+                launch { val d = Durations.duration(t); upd { it.copy(durationMs = d) } }
+            }
         }
     }
 }

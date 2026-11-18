@@ -22,7 +22,6 @@
     <string name="reason_track_under_30s">track under 30 s</string>
     <string name="reason_less_than_half">less than half the track</string>
     <string name="reason_ambiguous_repeats">ambiguous repeats</string>
-    <string name="language">Language:</string>
     <string name="lang_system">System</string>
     <string name="lastfm_connect">Connect Last.fm</string>
     <string name="lastfm_disconnect">Disconnect</string>
@@ -56,7 +55,6 @@
     <string name="draft_repeats">Repeats: %1$d</string>
     <string name="scrobble_title">Scrobble</string>
     <string name="settings_title">Settings</string>
-    <string name="sec_lastfm">Last.fm</string>
     <string name="sec_language">Language</string>
     <string name="sec_permissions">Permissions</string>
     <string name="battery_opt">Battery optimization</string>
@@ -98,7 +96,6 @@
     <string name="shazam_start_with">Start Auto Shazam with Roomtone</string>
     <string name="shazam_restart">Turn it back on when the screen turns on</string>
     <string name="shazam_privacy">Auto Shazam is always turned off when the screen turns off.</string>
-    <string name="sec_discogs">Discogs</string>
     <string name="discogs_connect">Connect Discogs</string>
     <string name="discogs_not_connected">Discogs: not connected</string>
     <string name="discogs_connected">Discogs: connected as %1$s</string>
