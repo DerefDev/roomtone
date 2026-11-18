@@ -108,6 +108,17 @@
     <string name="album_history">Coerente con la cronologia</string>
     <string name="album_owned">Disco reale</string>
     <string name="album_hint">L\'album inviato con ogni scrobble: quello della cronologia Last.fm (così i brani restano raggruppati) oppure il disco che possiedi nella collezione Discogs. Lo schermo mostra sempre il tuo disco.</string>
+    <string name="meta_from_owned">dal tuo disco</string>
+    <string name="edit_title">Pulizia quando scrobbli il tuo disco</string>
+    <string name="edit_note">Lo schermo mostra sempre il titolo esatto del tuo disco.</string>
+    <string name="edit_remaster">Togli \'Remastered\'</string>
+    <string name="edit_versions">Togli versioni (Radio Edit, Mono…)</string>
+    <string name="edit_live">Togli \'Live\'</string>
+    <string name="edit_explicit">Togli \'Explicit\' / \'Clean\'</string>
+    <string name="edit_introOutro">Togli suffissi \'Intro\' / \'Outro\'</string>
+    <string name="edit_featToArtist">Sposta feat. nell\'artista</string>
+    <string name="edit_albumEditions">Togli \'Deluxe\', \'Expanded\'… dall\'album</string>
+    <string name="edit_mainArtistOnly">Solo artista principale</string>
     <string name="covers_button">Copertine dei dischi</string>
     <string name="covers_title">Copertine dei dischi</string>
     <string name="covers_empty">Ancora nessun disco</string>
@@ -147,6 +158,7 @@
     <string name="cr_d_finale">Client per Last.fm</string>
     <string name="lyrics_unavailable">Ops, sembra che il testo non sia disponibile al momento</string>
     <string name="lyrics_scan">Inquadra per il testo su Genius</string>
+    <string name="lyrics_instrumental">Questa traccia è strumentale</string>
     <string name="credit_genius">Genius</string>
     <string name="cr_d_genius">Testi dei brani</string>
     <string name="credit_zxing">ZXing</string>

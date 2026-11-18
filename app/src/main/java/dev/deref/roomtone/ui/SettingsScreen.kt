@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.deref.roomtone.*
+import androidx.compose.ui.text.font.FontWeight
 import dev.deref.roomtone.R
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -95,6 +96,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
     val dgUser by DiscogsCollection.user.collectAsStateWithLifecycle()
     val dg by DiscogsCollection.progress.collectAsStateWithLifecycle()
     val albumMode by Prefs.albumMode.collectAsStateWithLifecycle()
+    val edit by Prefs.editOptions.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var dgError by remember { mutableStateOf<String?>(null) }
     var customDlg by remember { mutableStateOf(false) }
@@ -194,6 +196,25 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                         FilterChip(albumMode == "owned", { Prefs.setAlbumMode("owned") }, { Text(stringResource(R.string.album_owned)) })
                     }
                     Text(stringResource(R.string.album_hint), fontSize = 12.sp, color = TextSoft)
+                    if (albumMode == "owned") {
+                        Text(stringResource(R.string.edit_title), fontWeight = FontWeight.Medium)
+                        listOf<Triple<Int, Boolean, (Boolean) -> EditOptions>>(
+                            Triple(R.string.edit_remaster, edit.remaster) { edit.copy(remaster = it) },
+                            Triple(R.string.edit_versions, edit.versions) { edit.copy(versions = it) },
+                            Triple(R.string.edit_live, edit.live) { edit.copy(live = it) },
+                            Triple(R.string.edit_explicit, edit.explicit) { edit.copy(explicit = it) },
+                            Triple(R.string.edit_introOutro, edit.introOutro) { edit.copy(introOutro = it) },
+                            Triple(R.string.edit_featToArtist, edit.featToArtist) { edit.copy(featToArtist = it) },
+                            Triple(R.string.edit_albumEditions, edit.albumEditions) { edit.copy(albumEditions = it) },
+                            Triple(R.string.edit_mainArtistOnly, edit.mainArtistOnly) { edit.copy(mainArtistOnly = it) },
+                        ).forEach { (label, on, set) ->
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(stringResource(label), Modifier.weight(1f))
+                                Switch(on, { Prefs.setEditOptions(set(it)) })
+                            }
+                        }
+                        Text(stringResource(R.string.edit_note), fontSize = 12.sp, color = TextSoft)
+                    }
                 }
             }
             item { Area(R.string.sec_general) { LangMenu() } }
@@ -238,7 +259,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                         Text(stringResource(R.string.beats, r.beats))
                     }
                     meta?.let { m ->
-                        val src = stringResource(if (m.source == MetaSource.HISTORY) R.string.meta_from_history else R.string.meta_from_shazam)
+                        val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; else -> R.string.meta_from_shazam })
                         val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
                         Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
                     }

@@ -3,7 +3,7 @@ package dev.deref.roomtone
 // Kotlin puro. Cronologia Last.fm aggregata per normKey → variante (artista, titolo) → album.
 data class HistoryMatch(val artist: String, val title: String, val album: String?, val plays: Int)
 
-enum class MetaSource { HISTORY, SHAZAM }
+enum class MetaSource { HISTORY, SHAZAM, OWNED }
 
 // Metadati da inviare (v0.5) per un ascolto.
 data class ScrobbleMeta(val artist: String, val title: String, val album: String?, val source: MetaSource, val albumSource: AlbumSource? = null)

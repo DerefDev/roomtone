@@ -110,6 +110,17 @@
     <string name="album_history">Consistent with history</string>
     <string name="album_owned">Actual record</string>
     <string name="album_hint">The album sent with each scrobble: the one in your Last.fm history (so tracks stay grouped), or the record you actually own in your Discogs collection. The screen always shows your record.</string>
+    <string name="meta_from_owned">from your record</string>
+    <string name="edit_title">Clean up when scrobbling your record</string>
+    <string name="edit_note">The screen always shows the title exactly as on your record.</string>
+    <string name="edit_remaster">Remove \'Remastered\'</string>
+    <string name="edit_versions">Remove versions (Radio Edit, Mono…)</string>
+    <string name="edit_live">Remove \'Live\'</string>
+    <string name="edit_explicit">Remove \'Explicit\' / \'Clean\'</string>
+    <string name="edit_introOutro">Remove \'Intro\' / \'Outro\' suffixes</string>
+    <string name="edit_featToArtist">Move feat. to the artist</string>
+    <string name="edit_albumEditions">Remove \'Deluxe\', \'Expanded\'… from the album</string>
+    <string name="edit_mainArtistOnly">Main artist only</string>
     <string name="covers_button">Record covers</string>
     <string name="covers_title">Record covers</string>
     <string name="covers_empty">No records yet</string>
@@ -149,6 +160,7 @@
     <string name="cr_d_finale">Last.fm client</string>
     <string name="lyrics_unavailable">Oops, looks like the lyrics aren\'t available right now</string>
     <string name="lyrics_scan">Scan for the lyrics on Genius</string>
+    <string name="lyrics_instrumental">This track is instrumental</string>
     <string name="credit_genius">Genius</string>
     <string name="cr_d_genius">Song lyrics</string>
     <string name="credit_zxing">ZXing</string>

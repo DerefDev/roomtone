@@ -68,7 +68,7 @@ fun KioskScreen(
             Spacer(Modifier.width(margin))
             Column(Modifier.weight(1f)) {
                 Text(
-                    np?.track?.let(::displayTitle) ?: stringResource(R.string.listening),
+                    np?.ownedTitle ?: np?.track?.let(::displayTitle) ?: stringResource(R.string.listening),
                     color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     style = TextStyle(fontSize = (h.value * 0.1f).sp, lineHeight = (h.value * 0.115f).sp),
                 )
@@ -116,7 +116,7 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
     // (Lyrics ha la cache, quindi rigirare la copertina non rifà la ricerca)
     val lyrics by produceState<LyricsState>(LyricsState.Loading, track, flipped) {
         value = LyricsState.Loading
-        if (track != null && flipped) value = Lyrics.url(track)?.let { LyricsState.Found(it) } ?: LyricsState.None
+        if (track != null && flipped) value = Lyrics.state(track)
     }
     Box(
         modifier.pointerInput(track) {
@@ -142,6 +142,11 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
                     Image(qr.asImageBitmap(), null, Modifier.fillMaxSize(0.7f).aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(Color.White).padding(6.dp), filterQuality = FilterQuality.None)
                     Spacer(Modifier.height(8.dp))
                     Text(stringResource(R.string.lyrics_scan), color = TextSoft, fontSize = 11.sp, textAlign = TextAlign.Center)
+                }
+                LyricsState.Instrumental -> Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Icon(painterResource(R.drawable.ic_music), null, tint = accent, modifier = Modifier.fillMaxSize(0.35f).aspectRatio(1f))
+                    Spacer(Modifier.height(8.dp))
+                    Text(stringResource(R.string.lyrics_instrumental), color = TextSoft, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp))
                 }
                 LyricsState.None -> Text(stringResource(R.string.lyrics_unavailable), color = TextSoft, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
             }

@@ -20,10 +20,21 @@ data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val
 data class NowPlaying(
     val track: Track, val startedAt: Long, val durationMs: Long? = null, val meta: ScrobbleMeta? = null,
     val album: AlbumRef? = null, val albumDone: Boolean = false, val next: String? = null, val groups: Set<String> = emptySet(),
+    val ownedTitle: String? = null, // titolo esatto sul disco posseduto
 )
 
 // Album da scrobblare: modalità "owned" e disco posseduto → quello reale; altrimenti cronologia, poi album risolto.
-fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?): ScrobbleMeta {
+fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
+    if (Prefs.albumMode.value == "owned" && ref?.source == AlbumSource.OWNED) {
+        val rel = ref.releaseId?.let { DiscogsCollection.byId(it) } ?: DiscogsCollection.owned(t)
+        val key = normKey(Track(t.title, ""))
+        val tr = rel?.tracks?.firstOrNull { normKey(Track(it.title, "")) == key }
+        if (rel != null && tr != null) {
+            val o = Prefs.editOptions.value
+            return ScrobbleMeta(cleanArtist(tr.artist ?: rel.artist, o, tr.title), cleanTitle(tr.title, o), cleanAlbum(rel.title, o),
+                MetaSource.OWNED, AlbumSource.OWNED)
+        }
+    }
     val (a, src) = when {
         Prefs.albumMode.value == "owned" && ref?.source == AlbumSource.OWNED -> ref.title to AlbumSource.OWNED
         m.album != null -> m.album to AlbumSource.HISTORY
@@ -53,7 +64,7 @@ object EventStore {
         scope.launch {
             val e = evaluate(l, Durations.duration(l.track))
             val m0 = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
-            val m = withAlbum(m0, Albums.resolve(l.track, m0.album))
+            val m = withAlbum(m0, Albums.resolve(l.track, m0.album), l.track)
             _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m) else it } }
             onEvaluated(l, e, m)
         }
@@ -102,7 +113,12 @@ object EventStore {
             val m = scrobbleMeta(t, HistorySync.index.lookup(t))
             _nowPlaying.update { if (same(it)) it!!.copy(meta = m) else it }
             val ref = Albums.resolve(t, m.album)
-            _nowPlaying.update { if (same(it)) it!!.copy(meta = withAlbum(m, ref), album = ref, albumDone = true) else it }
+            // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
+            val ot = if (ref?.source == AlbumSource.OWNED) {
+                val k = normKey(Track(t.title, ""))
+                (ref.releaseId?.let { DiscogsCollection.byId(it) } ?: DiscogsCollection.owned(t))?.tracks?.firstOrNull { normKey(Track(it.title, "")) == k }?.title
+            } else null
+            _nowPlaying.update { if (same(it)) it!!.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = ot) else it }
             val nx = Tracklists.next(t, ref)
             _nowPlaying.update { if (same(it)) it!!.copy(next = nx) else it }
             val d = Durations.duration(t)

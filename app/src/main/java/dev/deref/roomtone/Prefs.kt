@@ -23,6 +23,9 @@ object Prefs {
     private val _albumMode = MutableStateFlow("history") // "history" = coerente con la cronologia, "owned" = disco reale
     val albumMode: StateFlow<String> = _albumMode
 
+    private val _editOptions = MutableStateFlow(EditOptions())
+    val editOptions: StateFlow<EditOptions> = _editOptions
+
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::sp.isInitialized) return
         sp = ctx.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -32,6 +35,17 @@ object Prefs {
         _autoStartShazam.value = sp.getBoolean("autoStartShazam", true)
         _restartShazamOnScreenOn.value = sp.getBoolean("restartShazamOnScreenOn", true)
         _albumMode.value = sp.getString("albumMode", "history")?.takeIf { it == "owned" } ?: "history"
+        val d = EditOptions()
+        fun b(n: String, def: Boolean) = sp.getBoolean("edit_$n", def)
+        _editOptions.value = EditOptions(b("remaster", d.remaster), b("versions", d.versions), b("live", d.live), b("explicit", d.explicit),
+            b("introOutro", d.introOutro), b("featToArtist", d.featToArtist), b("albumEditions", d.albumEditions), b("mainArtistOnly", d.mainArtistOnly))
+    }
+
+    fun setEditOptions(o: EditOptions) {
+        _editOptions.value = o
+        sp.edit().putBoolean("edit_remaster", o.remaster).putBoolean("edit_versions", o.versions).putBoolean("edit_live", o.live)
+            .putBoolean("edit_explicit", o.explicit).putBoolean("edit_introOutro", o.introOutro).putBoolean("edit_featToArtist", o.featToArtist)
+            .putBoolean("edit_albumEditions", o.albumEditions).putBoolean("edit_mainArtistOnly", o.mainArtistOnly).apply()
     }
 
     fun setScrobbling(v: Boolean) { _scrobbling.value = v; sp.edit().putBoolean("scrobbling", v).apply() }
