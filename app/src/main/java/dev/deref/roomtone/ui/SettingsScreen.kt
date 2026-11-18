@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +37,9 @@ private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
 
 // tag vuoto = lingua di sistema
+// Lingue con una cartella values-xx (inglese = values). Nuova lingua: cartella + tag qui.
+private val LANGS = listOf("en", "it")
+
 private fun setLang(tag: String) = AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
 
 // Area = card arrotondata con titolo in accent
@@ -53,7 +57,9 @@ private fun Area(title: Int, content: @Composable ColumnScope.() -> Unit) =
 private fun LangMenu() {
     var open by remember { mutableStateOf(false) }
     val cur = AppCompatDelegate.getApplicationLocales().let { if (it.isEmpty) "" else it[0]!!.language }
-    val opts = listOf("" to stringResource(R.string.lang_system), "en" to "English", "it" to "Italiano")
+    val opts = listOf("" to stringResource(R.string.lang_system)) + LANGS.map { t ->
+        t to Locale.forLanguageTag(t).let { it.getDisplayName(it).replaceFirstChar { c -> c.titlecase(it) } }
+    }
     ExposedDropdownMenuBox(open, { open = it }) {
         OutlinedTextField(opts.first { it.first == cur }.second, {}, readOnly = true, singleLine = true,
             label = { Text(stringResource(R.string.sec_language)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) },
@@ -144,8 +150,8 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                                 Text(when {
                                     dg.running && dg.coversTotal > 0 -> stringResource(R.string.discogs_covers, dg.coversDone, dg.coversTotal)
                                     dg.running && dg.detailsTotal > 0 -> stringResource(R.string.discogs_details, dg.detailsDone, dg.detailsTotal)
-                                    dg.running -> stringResource(R.string.discogs_listing, dg.releases)
-                                    else -> stringResource(R.string.discogs_up_to_date, dg.releases)
+                                    dg.running -> pluralStringResource(R.plurals.discogs_listing, dg.releases, dg.releases)
+                                    else -> pluralStringResource(R.plurals.discogs_up_to_date, dg.releases, dg.releases)
                                 }, fontSize = 12.sp)
                             }
                             Button({ DiscogsCollection.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
@@ -256,7 +262,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                             Status.DRAFT -> stringResource(R.string.status_draft, stringResource(ev.reason.res))
                             Status.DISCARDED -> stringResource(R.string.status_discarded, stringResource(ev.reason.res))
                         })
-                        Text(stringResource(R.string.beats, r.beats))
+                        Text(pluralStringResource(R.plurals.beats, r.beats, r.beats))
                     }
                     meta?.let { m ->
                         val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; else -> R.string.meta_from_shazam })

@@ -26,6 +26,9 @@ android {
         buildConfigField("String", "DISCOGS_CONSUMER_SECRET", "\"${secrets.getProperty("DISCOGS_CONSUMER_SECRET", "").trim()}\"")
         buildConfigField("String", "GENIUS_ACCESS_TOKEN", "\"${secrets.getProperty("GENIUS_ACCESS_TOKEN", "").trim()}\"")
     }
+    androidResources {
+        generateLocaleConfig = true // locales_config dalle cartelle values-*
+    }
     buildFeatures {
         compose = true
         buildConfig = true

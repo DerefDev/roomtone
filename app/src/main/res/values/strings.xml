@@ -16,7 +16,10 @@
     <string name="status_valid">✓ valid ×%1$d</string>
     <string name="status_draft">draft: %1$s</string>
     <string name="status_discarded">discarded: %1$s</string>
-    <string name="beats">%1$d beats</string>
+    <plurals name="beats">
+        <item quantity="one">%1$d beat</item>
+        <item quantity="other">%1$d beats</item>
+    </plurals>
     <string name="reason_ok">ok</string>
     <string name="reason_unknown_duration">unknown duration</string>
     <string name="reason_track_under_30s">track under 30 s</string>
@@ -99,10 +102,16 @@
     <string name="discogs_connect">Connect Discogs</string>
     <string name="discogs_not_connected">Discogs: not connected</string>
     <string name="discogs_connected">Discogs: connected as %1$s</string>
-    <string name="discogs_listing">Reading collection… %1$d releases</string>
+    <plurals name="discogs_listing">
+        <item quantity="one">Reading collection… %1$d release</item>
+        <item quantity="other">Reading collection… %1$d releases</item>
+    </plurals>
     <string name="discogs_details">Release details: %1$d / %2$d</string>
     <string name="discogs_covers">Covers: %1$d / %2$d</string>
-    <string name="discogs_up_to_date">%1$d releases in your collection</string>
+    <plurals name="discogs_up_to_date">
+        <item quantity="one">%1$d release in your collection</item>
+        <item quantity="other">%1$d releases in your collection</item>
+    </plurals>
     <string name="sec_album">Album</string>
     <string name="album_history">Consistent with history</string>
     <string name="album_owned">Actual record</string>
