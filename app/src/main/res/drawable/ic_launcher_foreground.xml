@@ -1,30 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icona Roomtone (disegno originale, GPL-3.0-or-later): grammofono di profilo con manovella e
-     campana aperta sopra il piatto; tutto nell'area sicura (cerchio r 33 attorno a 54,54) -->
+<!-- Icona Roomtone: "Gramophone" di Aarne Huttunen (Noun Project 36104), CC0, via Wikimedia Commons;
+     ricolorata a strati da DerefDev. Scala 0.62 → tutto nell'area sicura (cerchio r 33 attorno a 54,54) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <!-- piedini, cassa, cornice superiore, pannello -->
-    <path android:fillColor="#2A140E" android:pathData="M34,77h4v2.5h-4zM60,77h4v2.5h-4z" />
-    <path android:fillColor="#3B1D14" android:pathData="M32,65h34v12h-34z" />
-    <path android:fillColor="#5A2E1F" android:pathData="M30.5,62.5h37v3h-37z" />
-    <path android:fillColor="#2A140E" android:pathData="M36,68.5h26v5h-26z" />
-    <!-- manovella sul fianco -->
-    <path android:strokeColor="#F6EAD8" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M66,71H72V64.5" />
-    <path android:fillColor="#F2B544" android:pathData="M72,62.5m-2.2,0a2.2,2.2 0 1,0 4.4,0a2.2,2.2 0 1,0 -4.4,0" />
-    <!-- piatto e disco visti di taglio -->
-    <path android:fillColor="#F6EAD8" android:pathData="M35,61h23v1.5h-23z" />
-    <path android:fillColor="#1A1A1A" android:pathData="M36,59.6h21v1.4h-21z" />
-    <!-- colonnina sul retro, braccio e diaframma sul disco -->
-    <path android:strokeColor="#F6EAD8" android:strokeWidth="2.2" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M62,62.5V56M62,56.5L52.5,57" />
-    <path android:fillColor="#F6EAD8" android:pathData="M51,57.5m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0" />
-    <!-- gomito, campana e bocca (aperta in alto a sinistra, sopra il piatto) -->
-    <path android:strokeColor="#C98A1E" android:strokeWidth="3.2" android:strokeLineCap="round"
-        android:pathData="M62,56.5Q62.5,48.5 58,46" />
-    <path android:fillColor="#E0A23A" android:pathData="M59.2,44.7Q52,38 49.6,22.3L32.4,41.7Q47,44 56.8,47.3Z" />
-    <group android:rotation="-48.4" android:pivotX="41" android:pivotY="32">
-        <path android:fillColor="#F2B544" android:pathData="M28,32a13,5.5 0 1,0 26,0a13,5.5 0 1,0 -26,0" />
-        <path android:fillColor="#9A6212" android:pathData="M31,32.4a10,3.8 0 1,0 20,0a10,3.8 0 1,0 -20,0" />
+    <group android:scaleX="0.62" android:scaleY="0.62" android:pivotX="49.75" android:pivotY="50.3" android:translateX="4.25" android:translateY="3.7">
+        <!-- sagoma originale (base, collo, anello) in legno scuro -->
+        <path android:fillColor="#3B1D14" android:pathData="M91.572,75.927v-4.192c0,-0.938 -0.76,-1.7 -1.699,-1.7h-6.528V64.99v-1.632H62.9v1.632l0.941,1.634h-5.955c2.073,-1.301 4.02,-2.837 5.793,-4.61c6.172,-6.168 9.565,-14.369 9.565,-23.093c0,-8.726 -3.394,-16.927 -9.565,-23.095c-6.167,-6.168 -14.369,-9.565 -23.093,-9.565c-8.723,0 -16.925,3.397 -23.094,9.565c-6.167,6.169 -9.565,14.37 -9.565,23.095c0,8.724 3.397,16.926 9.565,23.093c1.958,1.958 4.123,3.634 6.442,5.013v2.094h4.176c0.827,0.342 1.671,0.642 2.525,0.914H21.59c-0.938,0 -1.699,0.761 -1.699,1.7v4.192h2.476v12.52h-2.476v4.192c0,0.938 0.761,1.699 1.699,1.699h34.141h34.141c0.938,0 1.699,-0.76 1.699,-1.699v-4.192h-2.474v-12.52H91.572zM20.666,58.842c-5.322,-5.322 -8.251,-12.396 -8.251,-19.921c0,-7.526 2.93,-14.601 8.251,-19.922c5.321,-5.321 12.395,-8.251 19.921,-8.251c7.525,0 14.601,2.931 19.921,8.251c5.321,5.322 8.252,12.396 8.252,19.922c0,7.524 -2.931,14.599 -8.252,19.921c-4.093,4.094 -9.225,6.764 -14.798,7.782c-1.673,0.306 -3.385,0.469 -5.123,0.469s-3.449,-0.163 -5.122,-0.469C29.891,65.605 24.758,62.936 20.666,58.842zM78.253,70.034H55.731H50.54c0.854,-0.272 1.698,-0.572 2.525,-0.914h18.612v-2.496h-7.357l0.942,-1.634h12.991V70.034z" />
+        <!-- piatto con disco (era un vuoto della sagoma) -->
+        <path android:fillColor="#F6EAD8" android:pathData="M55.731,70.034h22.521V64.99H65.262l-0.942,1.634h7.357v2.496H53.064c-0.827,0.342 -1.671,0.642 -2.525,0.914H55.731z" />
+        <!-- tromba: bordo ottone, interno, gola -->
+        <path android:fillColor="#F2B544" android:pathData="M7.928,38.921a32.66,32.66 0 1,0 65.32,0a32.66,32.66 0 1,0 -65.32,0" />
+        <path android:fillColor="#C98A1E" android:pathData="M12.415,38.921a28.172,28.172 0 1,0 56.344,0a28.172,28.172 0 1,0 -56.344,0" />
+        <path android:fillColor="#7A4A0E" android:pathData="M32.258,38.889a8.335,8.335 0 1,0 16.67,0a8.335,8.335 0 1,0 -16.67,0" />
     </group>
 </vector>
