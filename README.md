@@ -32,7 +32,6 @@ Status: early development, v0.6.1 (on `staging`).
 Coming next: persistent offline scrobble queue (v0.7), Discogs as a matching
 bridge (v0.8), launcher mode and boot start (v0.9).
 
-Design document (Italian): [docs/Roomtone_Documento_di_progetto_v1.3.txt](docs/Roomtone_Documento_di_progetto_v1.3.txt)
 
 ## Credits & licenses
 
