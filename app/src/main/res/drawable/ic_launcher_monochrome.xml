@@ -2,12 +2,14 @@
 <!-- Icona Roomtone a tema (Android 13+): sola sagoma, il colore lo decide il sistema -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#000000" android:pathData="M30,68L35,64L63,64L63,74L58,78L30,78Z" />
-    <path android:fillColor="#000000" android:pathData="M33,64a13,3 0 1,0 26,0a13,3 0 1,0 -26,0" />
-    <path android:strokeColor="#000000" android:strokeWidth="2.4" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M53,64L58,63L61,57L62,52" />
-    <path android:fillColor="#000000" android:pathData="M60.7,51.2Q62.5,42 61.7,26.8L82.3,39.2Q68,48 63.3,52.8Z" />
-    <group android:rotation="31" android:pivotX="72" android:pivotY="33">
-        <path android:fillColor="#000000" android:pathData="M60,33a12,5 0 1,0 24,0a12,5 0 1,0 -24,0" />
+    <path android:fillColor="#000000" android:pathData="M34,77h4v2.5h-4zM60,77h4v2.5h-4zM32,65h34v12h-34zM30.5,62.5h37v3h-37zM35,59.6h23v3h-23z" />
+    <path android:strokeColor="#000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M66,71H72V64.5" />
+    <path android:fillColor="#000000" android:pathData="M72,62.5m-2.2,0a2.2,2.2 0 1,0 4.4,0a2.2,2.2 0 1,0 -4.4,0M50.5,57.3m-2.6,0a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0" />
+    <path android:strokeColor="#000000" android:strokeWidth="2.6" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M61,62.5V55M61,55.5L52,56.5M61,55.5Q60.5,49 62,46" />
+    <path android:fillColor="#000000" android:pathData="M60.8,44.9Q64,36 65.7,23.8L82.3,38.2Q72,42 63.2,47.1Z" />
+    <group android:rotation="41" android:pivotX="74" android:pivotY="31">
+        <path android:fillColor="#000000" android:pathData="M63,31a11,4.5 0 1,0 22,0a11,4.5 0 1,0 -22,0" />
     </group>
 </vector>
