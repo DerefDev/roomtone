@@ -12,7 +12,6 @@ sealed interface LyricsState {
     data object Loading : LyricsState
     data class Found(val url: String) : LyricsState
     data object None : LyricsState
-    data object Instrumental : LyricsState
 }
 
 // Link al testo su Genius. Mai loggare URL/header (token).
@@ -20,31 +19,8 @@ sealed interface LyricsState {
 object Lyrics {
     private val cache = HashMap<String, String?>() // chiave → url (null = non trovato)
 
-    private val instr = HashMap<String, Boolean>() // normKey → strumentale (solo risposte valide)
-
-    // Genius non espone "strumentale": tag Last.fm "instrumental" con almeno 10 voti
-    private suspend fun instrumental(t: Track): Boolean = withContext(Dispatchers.IO) {
-        val key = normKey(t)
-        synchronized(instr) { instr[key] }?.let { return@withContext it }
-        val k = BuildConfig.LASTFM_API_KEY
-        if (k.isEmpty()) return@withContext false
-        val a = URLEncoder.encode(firstArtistRaw(t.artist), "UTF-8"); val n = URLEncoder.encode(stripFeat(t.title), "UTF-8")
-        try {
-            val body = (URL("https://ws.audioscrobbler.com/2.0/?method=track.getTopTags&artist=$a&track=$n&autocorrect=1&api_key=$k&format=json").openConnection() as HttpURLConnection).run {
-                connectTimeout = 10_000; readTimeout = 10_000
-                setRequestProperty("User-Agent", MusicBrainz.UA)
-                try { if (responseCode == 200) inputStream.bufferedReader().readText() else null } finally { disconnect() }
-            } ?: return@withContext false
-            val tags = JSONObject(body).optJSONObject("toptags")?.optJSONArray("tag")
-            val r = (0 until (tags?.length() ?: 0)).map { tags!!.getJSONObject(it) }
-                .any { it.optString("name").equals("instrumental", true) && it.optInt("count") >= 10 }
-            synchronized(instr) { instr[key] = r }
-            r
-        } catch (_: Exception) { false } // errore → non strumentale, senza cache
-    }
-
-    suspend fun state(t: Track): LyricsState =
-        if (instrumental(t)) LyricsState.Instrumental else url(t)?.let { LyricsState.Found(it) } ?: LyricsState.None
+    // Genius non espone "strumentale" nella API (campo sempre null) e i tag Last.fm sono incoerenti → sempre il link
+    suspend fun state(t: Track): LyricsState = url(t)?.let { LyricsState.Found(it) } ?: LyricsState.None
 
     suspend fun url(t: Track): String? = withContext(Dispatchers.IO) {
         val token = BuildConfig.GENIUS_ACCESS_TOKEN

@@ -160,7 +160,6 @@
     <string name="cr_d_finale">Last.fm client</string>
     <string name="lyrics_unavailable">Oops, looks like the lyrics aren\'t available right now</string>
     <string name="lyrics_scan">Scan for the lyrics on Genius</string>
-    <string name="lyrics_instrumental">This track is instrumental</string>
     <string name="credit_genius">Genius</string>
     <string name="cr_d_genius">Song lyrics</string>
     <string name="credit_zxing">ZXing</string>

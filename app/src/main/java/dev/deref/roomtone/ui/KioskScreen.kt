@@ -143,11 +143,6 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
                     Spacer(Modifier.height(8.dp))
                     Text(stringResource(R.string.lyrics_scan), color = TextSoft, fontSize = 11.sp, textAlign = TextAlign.Center)
                 }
-                LyricsState.Instrumental -> Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(painterResource(R.drawable.ic_music), null, tint = accent, modifier = Modifier.fillMaxSize(0.35f).aspectRatio(1f))
-                    Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.lyrics_instrumental), color = TextSoft, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp))
-                }
                 LyricsState.None -> Text(stringResource(R.string.lyrics_unavailable), color = TextSoft, textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
             }
         }
