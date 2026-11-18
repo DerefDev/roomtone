@@ -50,6 +50,8 @@ object HistorySync {
         _progress.value = SyncProgress(total = state.getInt("total", 0), complete = state.getBoolean("complete", false))
     }
 
+    fun sessionKey(): String? = secure.get("lastfm_session_key")
+
     suspend fun login(token: String) {
         val (name, key) = LastFmApi.getSession(token)
         secure.put("lastfm_session_key", key)

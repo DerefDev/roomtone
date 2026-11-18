@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
 import java.util.Locale
 
 // eval == null → durata in ricerca…
@@ -42,7 +45,7 @@ fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
     return m.copy(album = a, albumSource = src)
 }
 
-// ponytail: solo in memoria (+ jsonl scritto dal listener) → Room se serve persistenza
+// Ascolti valutati persistiti in listens.json (bozze + ultimi 7 giorni); ponytail: file unico riscritto a ogni modifica → Room se cresce
 // Tutte le chiamate al motore avvengono sul main thread (callback del listener + Handler main).
 object EventStore {
     private val _connected = MutableStateFlow(false)
@@ -64,15 +67,67 @@ object EventStore {
             val m0 = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
             val m = withAlbum(m0, Albums.resolve(l.track, m0.album), l.track)
             _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m) else it } }
+            save()
             onEvaluated(l, e, m)
+            if (e.status == Status.VALID && Prefs.scrobbling.value) ScrobbleQueue.enqueue(l, e, m) // scrobbling spento → mostrato ma non in coda
         }
     }
 
+    private var file: File? = null
+
+    @Synchronized fun init(dir: File) { // idempotente
+        if (file != null) return
+        file = File(dir, "listens.json")
+        try {
+            val a = JSONArray(file!!.readText())
+            _listens.value = (0 until a.length()).map { fromJson(a.getJSONObject(it)) }
+        } catch (_: Exception) { /* assente o corrotto → vuoto */ }
+    }
+
+    private fun fromJson(o: JSONObject): EvaluatedListen {
+        val ts = o.getJSONArray("timestamps")
+        val m = o.getJSONObject("meta")
+        return EvaluatedListen(
+            Listen(Track(o.getString("title"), o.getString("artist")), o.getLong("firstBeat"), o.getLong("lastBeat"), o.getInt("beats")),
+            Evaluation(Status.valueOf(o.getString("status")), Reason.valueOf(o.getString("reason")), o.getInt("plays"),
+                List(ts.length()) { ts.getLong(it) }, if (o.isNull("durationMs")) null else o.getLong("durationMs")),
+            ScrobbleMeta(m.getString("artist"), m.getString("title"), m.optString("album").takeIf { it.isNotEmpty() },
+                MetaSource.valueOf(m.getString("source")), m.optString("albumSource").takeIf { it.isNotEmpty() }?.let { AlbumSource.valueOf(it) }),
+        )
+    }
+
+    private fun toJson(x: EvaluatedListen): JSONObject {
+        val l = x.listen; val e = x.eval!!; val m = x.meta!!
+        return JSONObject().put("title", l.track.title).put("artist", l.track.artist).put("firstBeat", l.firstBeat)
+            .put("lastBeat", l.lastBeat).put("beats", l.beats).put("status", e.status.name).put("reason", e.reason.name)
+            .put("plays", e.plays).put("timestamps", JSONArray(e.timestamps)).put("durationMs", e.durationMs ?: JSONObject.NULL)
+            .put("meta", JSONObject().put("artist", m.artist).put("title", m.title).put("album", m.album ?: JSONObject.NULL)
+                .put("source", m.source.name).put("albumSource", m.albumSource?.name ?: JSONObject.NULL))
+    }
+
+    // Salva in background: tutte le bozze + VALID/DISCARDED degli ultimi 7 giorni (le più vecchie si potano).
+    private fun save() {
+        val f = file ?: return
+        scope.launch { writeFile(f) }
+    }
+
+    // Stato letto al momento della scrittura (non allo scatto): l'ultima scrittura è sempre la più recente.
+    @Synchronized private fun writeFile(f: File) {
+        val min = System.currentTimeMillis() - 7 * 86_400_000L
+        val a = JSONArray()
+        _listens.value.filter { it.eval != null && it.meta != null && (it.eval.status == Status.DRAFT || it.listen.start >= min) }
+            .forEach { a.put(toJson(it)) }
+        try {
+            val tmp = File(f.parentFile, "listens.tmp")
+            tmp.writeText(a.toString())
+            tmp.renameTo(f)
+        } catch (_: Exception) { /* ponytail: scrittura fallita → si riprova al prossimo salvataggio */ }
+    }
+
     fun setConnected(v: Boolean) { _connected.value = v }
-    fun clear() { _listens.value = emptyList() }
+    fun clear() { _listens.value = emptyList(); save() }
 
     // Bozza confermata (VALID, meta/ripetizioni corretti) o scartata (DISCARDED, plays 0).
-    // ponytail: solo in memoria + riga "edit" nel jsonl → coda persistente v0.6
     fun resolve(l: Listen, status: Status, meta: ScrobbleMeta? = null, plays: Int? = null) {
         val cur = _listens.value.firstOrNull { it.listen === l && it.eval != null } ?: return
         val e = cur.eval!!
@@ -80,7 +135,9 @@ object EventStore {
         val ne = e.copy(status = status, plays = n, timestamps = List(n) { l.start + it * (e.durationMs ?: 0L) })
         val nm = meta ?: cur.meta ?: scrobbleMeta(l.track, null)
         _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = ne, meta = nm) else it } }
+        save()
         onEdited(l, ne, nm)
+        if (status == Status.VALID) ScrobbleQueue.enqueue(l, ne, nm) // conferma esplicita → sempre in coda
     }
 
     // Icona Shazam (anteprima finché la copertina non arriva); la prima notifica del match ne è priva → mai sovrascrivere con null

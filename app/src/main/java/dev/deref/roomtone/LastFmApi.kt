@@ -9,11 +9,12 @@ import java.net.URL
 import java.net.URLEncoder
 
 data class HistoryScrobble(val artist: String, val title: String, val album: String?, val uts: Long)
+class LastFmException(val code: Int, message: String) : Exception(message)
 data class LastFmAlbum(val title: String, val image: String?)
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
 object LastFmApi {
-    private const val UA = "Roomtone/0.6 ( https://github.com/DerefDev/roomtone )"
+    private const val UA = "Roomtone/0.7 ( https://github.com/DerefDev/roomtone )"
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
@@ -33,7 +34,7 @@ object LastFmApi {
             val code = c.responseCode
             val text = (if (code < 400) c.inputStream else c.errorStream)?.bufferedReader()?.readText().orEmpty()
             val o = try { JSONObject(text) } catch (_: Exception) { throw Exception("HTTP $code") }
-            if (o.has("error")) throw Exception(o.optString("message", "Last.fm error ${o.optInt("error")}"))
+            if (o.has("error")) throw LastFmException(o.optInt("error"), o.optString("message", "Last.fm error ${o.optInt("error")}"))
             if (code != 200) throw Exception("HTTP $code")
             o
         } finally { c.disconnect() }
@@ -43,6 +44,22 @@ object LastFmApi {
         val p = mapOf("method" to "auth.getSession", "api_key" to BuildConfig.LASTFM_API_KEY, "token" to token)
         val s = call(p + ("api_sig" to sign(p, BuildConfig.LASTFM_API_SECRET))).getJSONObject("session")
         return s.getString("name") to s.getString("key")
+    }
+
+    // Invia un blocco (max 50). Ritorna i codici ignoredMessage nell'ordine della richiesta (0 = accettato).
+    suspend fun scrobble(items: List<QItem>, sk: String): List<Int> {
+        val p = mutableMapOf("method" to "track.scrobble", "api_key" to BuildConfig.LASTFM_API_KEY, "sk" to sk)
+        items.forEachIndexed { i, q ->
+            p["artist[$i]"] = q.artist; p["track[$i]"] = q.title; p["timestamp[$i]"] = q.ts.toString()
+            q.album?.let { p["album[$i]"] = it }
+            q.durationSec?.let { p["duration[$i]"] = it.toString() }
+        }
+        val s = call(p + ("api_sig" to sign(p, BuildConfig.LASTFM_API_SECRET))).getJSONObject("scrobbles")
+        // con un solo elemento Last.fm restituisce un oggetto invece di un array
+        val arr = s.optJSONArray("scrobble")
+        val objs = arr?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: s.optJSONObject("scrobble")?.let { listOf(it) } ?: emptyList()
+        if (objs.size != items.size) throw IOException("incomplete scrobble response") // esito incerto → verifica in cronologia
+        return objs.map { it.optJSONObject("ignoredMessage")?.optString("code")?.toIntOrNull() ?: 0 }
     }
 
     suspend fun recentTracksPage(user: String, page: Int, from: Long?, to: Long?): Pair<List<HistoryScrobble>, Int> {

@@ -47,9 +47,18 @@
     <string name="cd_back">Back</string>
     <string name="tab_sent">Sent</string>
     <string name="tab_drafts">Drafts</string>
-    <string name="sent_note">Sending to Last.fm arrives in the next version</string>
+    <plurals name="queue_pending">
+        <item quantity="one">%1$d scrobble waiting</item>
+        <item quantity="other">%1$d scrobbles waiting</item>
+    </plurals>
+    <string name="queue_offline">offline</string>
+    <string name="queue_login">log in to Last.fm</string>
+    <string name="queue_session">Last.fm session expired, log in again</string>
+    <string name="queue_retry">Retry now</string>
+    <string name="queue_waiting">Waiting</string>
+    <string name="queue_sending">Sending…</string>
+    <string name="queue_ignored">Ignored by Last.fm: %1$s</string>
     <string name="list_empty">Nothing here yet</string>
-    <string name="times" translatable="false">×%1$d</string>
     <string name="draft_confirm">Confirm</string>
     <string name="draft_discard">Discard</string>
     <string name="field_title">Title</string>

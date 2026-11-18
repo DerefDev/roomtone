@@ -45,9 +45,13 @@ class ShazamListener : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
+        Prefs.init(this)
+        Connectivity.init(this)
         Durations.init(getExternalFilesDir(null))
         HistorySync.init(this)
         DiscogsCollection.init(this)
+        EventStore.init(filesDir)
+        ScrobbleQueue.init(this)
         Albums.init(cacheDir)
         Artists.init(cacheDir)
         EventStore.onEvaluated = { l, e, m -> saveListen(l, e, m, "listen") }

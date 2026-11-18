@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,34 +30,69 @@ internal val Reason.res get() = when (this) {
 
 private val dateFmt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
 
+private val SoftRed = Color(0xFFE57373)
+
 @Composable
 fun ScrobbleScreen(tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
     val list by EventStore.listens.collectAsStateWithLifecycle()
+    val queue by ScrobbleQueue.items.collectAsStateWithLifecycle()
     Page(stringResource(R.string.scrobble_title), onBack) {
         TabRow(tab, containerColor = Color.Transparent, contentColor = LocalAccent.current) {
             Tab(tab == 0, { onTab(0) }, text = { Text(stringResource(R.string.tab_sent)) })
             Tab(tab == 1, { onTab(1) }, text = { Text(stringResource(R.string.tab_drafts)) })
         }
-        val status = if (tab == 0) Status.VALID else Status.DRAFT
-        val rows = list.asReversed().filter { it.eval?.status == status } // più recente in alto
+        val rows = list.asReversed().filter { it.eval?.status == Status.DRAFT } // più recente in alto
         LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (tab == 0) item { Text(stringResource(R.string.sent_note), color = TextSoft, fontSize = 13.sp) } // ponytail: lista in memoria
-            if (rows.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
-            if (tab == 0) items(rows) { SentRow(it) } else items(rows, key = { it.listen.start }) { DraftCard(it) }
+            if (tab == 0) {
+                item { QueueHeader(queue.count { it.state == QState.PENDING || it.state == QState.SENDING }) }
+                if (queue.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
+                items(queue.asReversed(), key = { it.id }) { QueueRow(it) }
+            } else {
+                if (rows.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
+                items(rows, key = { it.listen.start }) { DraftCard(it) }
+            }
         }
     }
 }
 
 @Composable
-private fun SentRow(it: EvaluatedListen) {
-    val m = it.meta ?: scrobbleMeta(it.listen.track, null)
+private fun QueueHeader(pending: Int) {
+    if (pending == 0) return
+    val online by Connectivity.online.collectAsStateWithLifecycle()
+    val user by HistorySync.user.collectAsStateWithLifecycle()
+    val err by ScrobbleQueue.error.collectAsStateWithLifecycle()
+    val why = when {
+        err == "session" -> R.string.queue_session
+        user == null -> R.string.queue_login
+        !online -> R.string.queue_offline
+        else -> null
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(pluralStringResource(R.plurals.queue_pending, pending, pending), fontSize = 14.sp)
+            why?.let { Text(stringResource(it), color = TextSoft, fontSize = 13.sp) }
+        }
+        TextButton({ ScrobbleQueue.retry() }) { Text(stringResource(R.string.queue_retry)) }
+    }
+}
+
+@Composable
+private fun QueueRow(q: QItem) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.weight(1f)) {
-            Text(m.title, fontSize = 16.sp)
-            Text(listOfNotNull(m.artist, m.album).joinToString(" · "), color = TextSoft, fontSize = 13.sp)
+            Text(q.title, fontSize = 16.sp)
+            Text(listOfNotNull(q.artist, q.album).joinToString(" · "), color = TextSoft, fontSize = 13.sp)
+            if (q.state == QState.IGNORED) Text(stringResource(R.string.queue_ignored, q.note.orEmpty()), color = SoftRed, fontSize = 13.sp)
         }
-        Text(dateFmt.format(Date(it.listen.start)), color = TextSoft, fontSize = 13.sp)
-        Text(stringResource(R.string.times, it.eval?.plays ?: 1), fontSize = 16.sp)
+        Column(horizontalAlignment = Alignment.End) {
+            Text(dateFmt.format(Date(q.ts * 1000)), color = TextSoft, fontSize = 13.sp)
+            when (q.state) {
+                QState.PENDING -> Text(stringResource(R.string.queue_waiting), color = TextSoft, fontSize = 13.sp)
+                QState.SENDING -> Text(stringResource(R.string.queue_sending), color = TextSoft, fontSize = 13.sp)
+                QState.SENT -> Text("✓", fontSize = 16.sp)
+                QState.IGNORED -> {}
+            }
+        }
     }
 }
 
