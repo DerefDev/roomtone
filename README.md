@@ -36,6 +36,10 @@ Design document (Italian): [docs/Roomtone_Documento_di_progetto_v1.3.txt](docs/R
 
 ## Credits & licenses
 
+**App icon** — ["Gramophone"](https://commons.wikimedia.org/wiki/File:Gramophone_(36104)_-_The_Noun_Project.svg)
+by Aarne Huttunen (The Noun Project), CC0 1.0, recolored and layered for the
+adaptive icon.
+
 **Icons** — [Material Icons](https://github.com/google/material-design-icons) by Google,
 Apache License 2.0 (`arrow_back`, `fast_forward`, `menu`, `music_note`,
 `power_settings_new`, `list`, `settings`). Source noted in each file under

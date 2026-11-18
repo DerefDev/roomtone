@@ -42,6 +42,7 @@ private val groups = listOf(
         Credit(R.string.cr_finale, R.string.cr_d_finale, "https://github.com/nrubin29/finale"),
     ),
     R.string.cr_group_libs to listOf(
+        Credit(R.string.cr_app_icon, R.string.cr_d_app_icon, "https://commons.wikimedia.org/wiki/File:Gramophone_(36104)_-_The_Noun_Project.svg"),
         Credit(R.string.cr_icons, R.string.cr_d_icons, "https://github.com/google/material-design-icons"),
         Credit(R.string.cr_jetpack, R.string.cr_d_jetpack, "https://developer.android.com/jetpack"),
         Credit(R.string.cr_coroutines, R.string.cr_d_coroutines, "https://github.com/Kotlin/kotlinx.coroutines"),

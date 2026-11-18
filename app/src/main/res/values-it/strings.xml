@@ -152,4 +152,6 @@
     <string name="credit_zxing">ZXing</string>
     <string name="cr_d_zxing">Generazione dei QR code (licenza Apache 2.0)</string>
     <string name="lyrics_hint">⇆ Scorri per il testo</string>
+    <string name="cr_app_icon">Icona dell\'app</string>
+    <string name="cr_d_app_icon">\"Gramophone\" di Aarne Huttunen (The Noun Project), CC0, ricolorata</string>
 </resources>
