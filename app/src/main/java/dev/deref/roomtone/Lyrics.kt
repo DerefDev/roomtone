@@ -25,7 +25,7 @@ object Lyrics {
         if (token.isEmpty()) return@withContext null
         val key = normKey(t)
         synchronized(cache) { if (cache.containsKey(key)) return@withContext cache[key] }
-        val q = URLEncoder.encode("${firstArtistRaw(t.artist)} ${stripFeat(t.title)}", "UTF-8")
+        val q = URLEncoder.encode("${firstArtistRaw(t.artist)} ${searchTitle(t.title)}", "UTF-8")
         val body = try {
             httpGet("https://api.genius.com/search?q=$q", headers = mapOf("Authorization" to "Bearer $token"))?.toString(Charsets.UTF_8)
         } catch (_: Exception) { null } ?: return@withContext null // errore → niente cache

@@ -39,6 +39,13 @@ fun firstArtist(artist: String) = base(firstArtistRaw(artist)).trim()
 // "Song (feat. X)" → "Song"
 fun stripFeat(title: String) = featTitle.replace(title, "").trim()
 
+private val bracketsCI = Regex(brackets.pattern, RegexOption.IGNORE_CASE)
+private val suffixCI = Regex(suffix.pattern, RegexOption.IGNORE_CASE)
+
+// Titolo per le ricerche testuali (Genius): senza feat./remaster/deluxe, maiuscole originali.
+// "Song (2025 remaster)", "Song - 2025 Remaster", "Song (feat. X)" → "Song"
+fun searchTitle(title: String) = suffixCI.replace(bracketsCI.replace(title, ""), "").trim()
+
 // Solo a schermo: "Song (feat. X & Y)" di "A, B & C" → "Song" / "A, B, C feat. X, Y"
 // ponytail: gruppo = isGroup (Discogs/MusicBrainz, vedi Artists) → finché non risolto il nome si spezza
 private fun parts(s: String) = s.split(", ").filter { " & " in it }

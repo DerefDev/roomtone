@@ -28,6 +28,13 @@ class NormalizeTest {
         assertEquals("Song", stripFeat("Song"))
     }
 
+    @Test fun titoloPerRicerca() {
+        assertEquals("Song", searchTitle("Song (2025 remaster)"))
+        assertEquals("Song", searchTitle("Song - 2025 Remaster"))
+        assertEquals("Song", searchTitle("Song (feat. Guest One)"))
+        assertEquals("Song (Live)", searchTitle("Song (Live)"))
+    }
+
     @Test fun artistiASchermo() {
         val t = Track("Track Title (feat. Guest One)", "Artist One & Artist Two")
         assertEquals("Track Title", stripFeat(t.title))
