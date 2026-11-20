@@ -25,21 +25,31 @@ object Lyrics {
         if (token.isEmpty()) return@withContext null
         val key = normKey(t)
         synchronized(cache) { if (cache.containsKey(key)) return@withContext cache[key] }
-        val q = URLEncoder.encode("${firstArtistRaw(t.artist)} ${searchTitle(t.title)}", "UTF-8")
-        val body = try {
-            httpGet("https://api.genius.com/search?q=$q", headers = mapOf("Authorization" to "Bearer $token"))?.toString(Charsets.UTF_8)
-        } catch (_: Exception) { null } ?: return@withContext null // errore → niente cache
-        val found = try {
-            val hits = JSONObject(body).getJSONObject("response").getJSONArray("hits")
-            val fk = firstArtist(t.artist); val tk = titleKey(t.title)
-            (0 until hits.length()).map { hits.getJSONObject(it) }.filter { it.optString("type") == "song" }
-                .mapNotNull { it.optJSONObject("result") }.firstOrNull { r ->
-                    val a = base(r.optJSONObject("primary_artist")?.optString("name").orEmpty())
-                    titleKey(r.optString("title")) == tk && (a.contains(fk) || fk.contains(a)) &&
-                        (!r.has("lyrics_state") || r.optString("lyrics_state") == "complete")
-                }?.optString("url")?.takeIf { it.isNotEmpty() }
-        } catch (_: Exception) { return@withContext null } // risposta illeggibile → niente cache
+        val fa = firstArtistRaw(t.artist); val fk = firstArtist(t.artist)
+        val st = searchTitle(t.title); val core = coreTitle(t.title)
+        // 1ª ricerca: titolo senza feat./remaster, confronto esatto; poi titolo di base (prima di " - ", senza parentesi)
+        val hits = search(token, "$fa $st") ?: return@withContext null // errore → niente cache
+        fun ok(r: JSONObject) = artistOk(r, fk) && (!r.has("lyrics_state") || r.optString("lyrics_state") == "complete")
+        val tk = titleKey(t.title); val ck = titleKey(core)
+        fun byCore(l: List<JSONObject>) = l.firstOrNull { core.isNotEmpty() && titleKey(coreTitle(it.optString("title"))) == ck && ok(it) }
+        val hit = hits.firstOrNull { titleKey(it.optString("title")) == tk && ok(it) } ?: byCore(hits)
+            ?: if (core.isNotEmpty() && core != st) byCore(search(token, "$fa $core") ?: return@withContext null) else null
+        val found = hit?.optString("url")?.takeIf { it.isNotEmpty() }
         synchronized(cache) { cache[key] = found }
         found
+    }
+
+    // Risultati di tipo "song"; null = errore di rete o risposta illeggibile
+    private fun search(token: String, q: String): List<JSONObject>? = try {
+        val body = httpGet("https://api.genius.com/search?q=${URLEncoder.encode(q, "UTF-8")}", headers = mapOf("Authorization" to "Bearer $token"))
+            ?.toString(Charsets.UTF_8) ?: throw Exception()
+        val hits = JSONObject(body).getJSONObject("response").getJSONArray("hits")
+        (0 until hits.length()).map { hits.getJSONObject(it) }.filter { it.optString("type") == "song" }.mapNotNull { it.optJSONObject("result") }
+    } catch (_: Exception) { null }
+
+    // Artista principale compatibile, oppure presente nell'elenco completo degli artisti del brano
+    private fun artistOk(r: JSONObject, fk: String): Boolean {
+        val a = base(r.optJSONObject("primary_artist")?.optString("name").orEmpty())
+        return a.contains(fk) || fk.contains(a) || base(r.optString("artist_names")).contains(fk)
     }
 }

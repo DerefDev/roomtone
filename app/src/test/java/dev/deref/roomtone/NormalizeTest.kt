@@ -33,6 +33,10 @@ class NormalizeTest {
         assertEquals("Song", searchTitle("Song - 2025 Remaster"))
         assertEquals("Song", searchTitle("Song (feat. Guest One)"))
         assertEquals("Song (Live)", searchTitle("Song (Live)"))
+        assertEquals("Song", coreTitle("Song - Acoustic Version"))
+        assertEquals("Song", coreTitle("Song (con Guest One & Guest Two)"))
+        assertEquals("Song", coreTitle("Song ft. Guest One"))
+        assertEquals("Song", coreTitle("Song (feat. Guest One) - Ghost track"))
     }
 
     @Test fun artistiASchermo() {

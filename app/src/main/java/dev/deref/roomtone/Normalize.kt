@@ -46,6 +46,13 @@ private val suffixCI = Regex(suffix.pattern, RegexOption.IGNORE_CASE)
 // "Song (2025 remaster)", "Song - 2025 Remaster", "Song (feat. X)" → "Song"
 fun searchTitle(title: String) = suffixCI.replace(bracketsCI.replace(title, ""), "").trim()
 
+private val anyBrackets = Regex("\\s*[(\\[][^)\\]]*[)\\]]")
+private val inlineFeat = Regex("\\s(?:feat|ft|featuring)\\.?\\s.*$", RegexOption.IGNORE_CASE)
+
+// Titolo "di base" per i testi: prima di " - ", senza parentesi e senza " ft. X".
+// "Song - Acoustic Version", "Song (con X)", "Song ft. X" → "Song". ponytail: unisce anche intro/live allo stesso testo
+fun coreTitle(title: String) = inlineFeat.replace(anyBrackets.replace(title.substringBefore(" - "), ""), "").trim()
+
 // Solo a schermo: "Song (feat. X & Y)" di "A, B & C" → "Song" / "A, B, C feat. X, Y"
 // ponytail: gruppo = isGroup (Discogs/MusicBrainz, vedi Artists) → finché non risolto il nome si spezza
 private fun parts(s: String) = s.split(", ").filter { " & " in it }
