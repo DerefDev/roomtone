@@ -59,6 +59,8 @@ class NormalizeTest {
     @Test fun numeriDiversiNonCoincidono() {
         assertEquals(0.0, titleSim("Long Song Title Pt. 1", "Long Song Title Pt. 2"), 0.0)
         assertEquals(null, bestTitle("Long Song Title Pt. 1", listOf("Long Song Title Pt. 2")))
+        assertEquals(null, bestTitle("A Long Song Title", listOf("A Long Song Title II")))
+        assertEquals(0, bestTitle("A Long Song Title II", listOf("A Long Song Title 2")))
     }
 
     @Test fun artistiAParoleIntere() {

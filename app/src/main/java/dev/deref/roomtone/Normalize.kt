@@ -101,7 +101,7 @@ fun titleSim(a: String, b: String): Double {
     val ka = tkey(a); val kb = tkey(b)
     if (ka == kb) return 1.0
     if (ka.replace(" ", "") == kb.replace(" ", "")) return 0.99 // sigle: "S.I.C." ≈ "Sic"
-    if (digits.findAll(ka).map { it.value }.toList() != digits.findAll(kb).map { it.value }.toList()) return 0.0 // "Pt 1" ≠ "Pt 2"
+    if (numbers(ka) != numbers(kb)) return 0.0 // "Pt 1" ≠ "Pt 2", "Song" ≠ "Song II"
     val ta = tokens(ka); val tb = tokens(kb)
     val jac = if (ta.isEmpty() || tb.isEmpty()) 0.0 else ta.intersect(tb).size.toDouble() / ta.union(tb).size
     val m = maxOf(ka.length, kb.length)
@@ -109,6 +109,9 @@ fun titleSim(a: String, b: String): Double {
 }
 
 private val digits = Regex("\\d+")
+// romani come numeri; "i" e "v" esclusi (articolo italiano, lettera)
+private val roman = mapOf("ii" to "2", "iii" to "3", "iv" to "4", "vi" to "6", "vii" to "7", "viii" to "8", "ix" to "9")
+private fun numbers(k: String) = digits.findAll(k).map { it.value }.toList() + k.split(' ').mapNotNull { roman[it] }
 
 const val TITLE_MIN = 0.85
 
