@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         HistorySync.init(this)
         DiscogsCollection.init(this)
         EventStore.init(filesDir)
+        VersionChoices.init(filesDir)
         ScrobbleQueue.init(this)
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()

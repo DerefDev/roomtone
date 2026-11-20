@@ -86,6 +86,38 @@ private fun CustomMinDialog(cur: Int, onDismiss: () -> Unit) {
         dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } })
 }
 
+// Versioni scelte: brano → "titolo · album"; tocco → dialogo per cambiare o rimuovere la scelta
+@Composable
+private fun VersionsArea() {
+    val all by VersionChoices.choices.collectAsStateWithLifecycle()
+    var edit by remember { mutableStateOf<String?>(null) }
+    Area(R.string.sec_versions) {
+        if (all.isEmpty()) Text(stringResource(R.string.versions_hint), fontSize = 12.sp, color = TextSoft)
+        all.forEach { (hk, c) ->
+            Column(Modifier.fillMaxWidth().clickable { edit = hk }.padding(vertical = 4.dp)) {
+                Text("${c.song.title} – ${c.song.artist}", fontSize = 15.sp)
+                Text(listOfNotNull(c.key.title, c.key.album).joinToString(" · "), fontSize = 13.sp, color = TextSoft)
+            }
+        }
+    }
+    val c = edit?.let { all[it] }
+    if (c != null) {
+        // ponytail: scelta non più in cronologia → compare solo come voce salvata (plays 0)
+        val opts = HistorySync.index.versions(c.song).let { vs -> if (vs.any { it.key == c.key }) vs else listOf(Version(c.key.artist, c.key.title, c.key.album, 0, emptyList())) + vs }
+        var sel by remember(c) { mutableStateOf(opts.first { it.key == c.key }) }
+        AlertDialog({ edit = null },
+            title = { Text("${c.song.title} – ${c.song.artist}", fontSize = 16.sp) },
+            text = { LazyColumn { item { VersionPicker(opts, sel) { sel = it } } } },
+            confirmButton = { TextButton({ VersionChoices.set(c.song, sel.key); edit = null }) { Text(stringResource(R.string.version_save)) } },
+            dismissButton = {
+                Row {
+                    TextButton({ VersionChoices.remove(edit!!); edit = null }) { Text(stringResource(R.string.version_remove)) }
+                    TextButton({ edit = null }) { Text(stringResource(R.string.cancel)) }
+                }
+            })
+    }
+}
+
 @Composable
 fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> Unit, onCredits: () -> Unit, onBack: () -> Unit) {
     val ctx = LocalContext.current
@@ -223,6 +255,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                     }
                 }
             }
+            item { VersionsArea() }
             item { Area(R.string.sec_general) { LangMenu() } }
             item {
                 Area(R.string.sec_permissions) {

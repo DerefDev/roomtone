@@ -25,6 +25,15 @@
     <string name="reason_track_under_30s">track under 30 s</string>
     <string name="reason_less_than_half">less than half the track</string>
     <string name="reason_ambiguous_repeats">ambiguous repeats</string>
+    <string name="reason_choose_version">Several versions in your history — choose one</string>
+    <plurals name="version_plays">
+        <item quantity="one">%1$d play · last %2$s</item>
+        <item quantity="other">%1$d plays · last %2$s</item>
+    </plurals>
+    <string name="sec_versions">Chosen versions</string>
+    <string name="versions_hint">When a song has several versions in your history, your pick is saved here</string>
+    <string name="version_save">Save</string>
+    <string name="version_remove">Remove</string>
     <string name="lang_system">System</string>
     <string name="lastfm_connect">Connect Last.fm</string>
     <string name="lastfm_disconnect">Disconnect</string>

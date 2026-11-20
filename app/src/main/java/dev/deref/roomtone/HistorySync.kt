@@ -35,7 +35,7 @@ object HistorySync {
     private val _progress = MutableStateFlow(SyncProgress())
     val progress: StateFlow<SyncProgress> = _progress
 
-    private val indexFile get() = File(dir, "history_index.tsv")
+    private val indexFile get() = File(dir, "history_index_v2.tsv")
 
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::dir.isInitialized) return
@@ -45,6 +45,10 @@ object HistorySync {
         account = app.getSharedPreferences("lastfm", Context.MODE_PRIVATE)
         secure = SecureStore(app)
         _user.value = account.getString("lastfm_user", null)
+        if (state.getInt("indexVersion", 0) != 2) { // formato v2 → risincronizzazione completa
+            File(dir, "history_index.tsv").delete()
+            state.edit().remove("newestUts").remove("oldestUts").remove("complete").remove("total").remove("lastSync").putInt("indexVersion", 2).apply()
+        }
         // ponytail: lettura sincrona sul thread chiamante → caricare in background se l'indice diventa enorme
         try { index.loadTsv(indexFile.readText()) } catch (_: Exception) { /* assente → indice vuoto */ }
         _progress.value = SyncProgress(total = state.getInt("total", 0), complete = state.getBoolean("complete", false))
@@ -66,7 +70,7 @@ object HistorySync {
             j?.cancelAndJoin()
             secure.remove("lastfm_session_key")
             account.edit().clear().apply()
-            state.edit().clear().apply()
+            state.edit().clear().putInt("indexVersion", 2).apply()
             index.clear()
             indexFile.delete()
             _user.value = null

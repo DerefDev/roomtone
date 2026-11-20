@@ -1,52 +1,69 @@
 package dev.deref.roomtone
 
-// Kotlin puro. Cronologia Last.fm aggregata per normKey → variante (artista, titolo) → album.
-data class HistoryMatch(val artist: String, val title: String, val album: String?, val plays: Int)
-
+// Kotlin puro. Cronologia Last.fm aggregata per histKey → variante esatta (artista, titolo, album).
 enum class MetaSource { HISTORY, SHAZAM, OWNED }
 
 // Metadati da inviare (v0.5) per un ascolto.
 data class ScrobbleMeta(val artist: String, val title: String, val album: String?, val source: MetaSource, val albumSource: AlbumSource? = null)
 
-fun scrobbleMeta(t: Track, h: HistoryMatch?) =
-    if (h != null) ScrobbleMeta(h.artist, h.title, h.album, MetaSource.HISTORY)
+fun scrobbleMeta(t: Track, v: Version?) =
+    if (v != null) ScrobbleMeta(v.artist, v.title, v.album, MetaSource.HISTORY)
     else ScrobbleMeta(t.artist, t.title, null, MetaSource.SHAZAM)
 
+// Variante come scritta in cronologia; recent = ultimi (max 5) uts, dal più recente.
+data class Version(val artist: String, val title: String, val album: String?, val plays: Int, val recent: List<Long>) {
+    val lastUts get() = recent.firstOrNull() ?: 0L
+    val key get() = VersionKey(artist, title, album)
+}
+data class VersionKey(val artist: String, val title: String, val album: String?)
+
+sealed interface Pick {
+    data class Auto(val v: Version) : Pick
+    data class Ask(val options: List<Version>) : Pick
+}
+
+private const val RECENT = 5
+
+fun pick(vs: List<Version>, saved: VersionKey?): Pick? {
+    if (saved != null) return Pick.Auto(vs.firstOrNull { it.key == saved } ?: Version(saved.artist, saved.title, saved.album, 0, emptyList()))
+    if (vs.isEmpty()) return null
+    if (vs.size == 1) return Pick.Auto(vs[0])
+    val last = vs.flatMap { v -> v.recent.map { it to v } }.sortedByDescending { it.first }.take(RECENT)
+    if (last.size >= RECENT && last.all { it.second === last[0].second }) return Pick.Auto(last[0].second)
+    return Pick.Ask(vs)
+}
+
 class HistoryIndex {
-    private class Variant(val artist: String, val title: String) {
+    private class Var(val artist: String, val title: String, val album: String) {
         var count = 0
-        var lastUts = 0L
-        val albums = HashMap<String, Int>() // "" = senza album
+        var recent = emptyList<Long>()
     }
 
-    private val map = HashMap<String, HashMap<Pair<String, String>, Variant>>()
+    private val map = HashMap<String, HashMap<Triple<String, String, String>, Var>>()
     var size = 0
         private set
 
-    @Synchronized fun add(s: HistoryScrobble) = addRaw(s.artist, s.title, s.album.orEmpty(), 1, s.uts)
+    @Synchronized fun add(s: HistoryScrobble) = addRaw(s.artist, s.title, s.album.orEmpty(), 1, listOf(s.uts))
 
-    private fun addRaw(artist: String, title: String, album: String, n: Int, uts: Long) {
-        val v = map.getOrPut(normKey(Track(title, artist))) { HashMap() }.getOrPut(artist to title) { Variant(artist, title) }
+    private fun addRaw(artist: String, title: String, album: String, n: Int, uts: List<Long>) {
+        val v = map.getOrPut(histKey(Track(title, artist))) { HashMap() }.getOrPut(Triple(artist, title, album)) { Var(artist, title, album) }
         v.count += n
-        if (uts > v.lastUts) v.lastUts = uts
-        v.albums.merge(album, n, Int::plus)
+        v.recent = (v.recent + uts).sortedDescending().take(RECENT)
         size += n
     }
 
     @Synchronized fun clear() { map.clear(); size = 0 }
 
-    @Synchronized fun lookup(t: Track): HistoryMatch? {
-        val v = map[normKey(t)]?.values?.maxWithOrNull(compareBy<Variant> { it.count }.thenBy { it.lastUts }) ?: return null
-        val album = v.albums.filterKeys { it.isNotEmpty() }.entries.maxByOrNull { it.value }?.key
-        return HistoryMatch(v.artist, v.title, album, v.count)
-    }
+    @Synchronized fun versions(t: Track): List<Version> =
+        map[histKey(t)]?.values?.map { Version(it.artist, it.title, it.album.ifEmpty { null }, it.count, it.recent) }
+            ?.sortedWith(compareByDescending<Version> { it.plays }.thenByDescending { it.lastUts }).orEmpty()
 
-    // TSV: artist, title, album, count, lastUts (una riga per variante+album). La chiave si ricalcola al caricamento.
+    // TSV v2: artist, title, album, count, recent (uts separati da virgola). La chiave si ricalcola al caricamento.
     @Synchronized fun toTsv(): String = buildString {
-        map.values.forEach { vs -> vs.values.forEach { v -> v.albums.forEach { (al, n) ->
-            append(esc(v.artist)).append('\t').append(esc(v.title)).append('\t').append(esc(al)).append('\t')
-                .append(n).append('\t').append(v.lastUts).append('\n')
-        } } }
+        map.values.forEach { vs -> vs.values.forEach { v ->
+            append(esc(v.artist)).append('\t').append(esc(v.title)).append('\t').append(esc(v.album)).append('\t')
+                .append(v.count).append('\t').append(v.recent.joinToString(",")).append('\n')
+        } }
     }
 
     @Synchronized fun loadTsv(text: String) {
@@ -55,7 +72,8 @@ class HistoryIndex {
             val c = line.split('\t')
             if (c.size != 5) continue
             val n = c[3].toIntOrNull() ?: continue
-            addRaw(unesc(c[0]), unesc(c[1]), unesc(c[2]), n, c[4].toLongOrNull() ?: 0L)
+            val uts = if (c[4].isEmpty()) emptyList() else c[4].split(',').mapNotNull { it.toLongOrNull() }
+            addRaw(unesc(c[0]), unesc(c[1]), unesc(c[2]), n, uts)
         }
     }
 

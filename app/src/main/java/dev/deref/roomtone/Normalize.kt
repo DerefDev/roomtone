@@ -52,3 +52,7 @@ fun displayArtist(t: Track, isGroup: (String) -> Boolean = { false }): String {
     val f = fix(featGuests(t.title).orEmpty())
     return if (f.isEmpty()) a else "$a feat. $f"
 }
+
+// Chiave della cronologia: solo il primo artista + titolo normalizzato.
+// ponytail: i duo condividono la chiave con i brani solisti del primo membro con lo stesso titolo → accettato, l'utente può scegliere
+fun histKey(t: Track) = normKey(Track(t.title, firstArtistRaw(t.artist)))

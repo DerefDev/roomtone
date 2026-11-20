@@ -51,6 +51,7 @@ class ShazamListener : NotificationListenerService() {
         HistorySync.init(this)
         DiscogsCollection.init(this)
         EventStore.init(filesDir)
+        VersionChoices.init(filesDir)
         ScrobbleQueue.init(this)
         Albums.init(cacheDir)
         Artists.init(cacheDir)

@@ -26,6 +26,7 @@ internal val Reason.res get() = when (this) {
     Reason.TRACK_UNDER_30S -> R.string.reason_track_under_30s
     Reason.LESS_THAN_HALF -> R.string.reason_less_than_half
     Reason.AMBIGUOUS_REPEATS -> R.string.reason_ambiguous_repeats
+    Reason.CHOOSE_VERSION -> R.string.reason_choose_version
 }
 
 private val dateFmt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
@@ -101,9 +102,11 @@ private fun DraftCard(it: EvaluatedListen) {
     val l = it.listen
     val e = it.eval!!
     val m = it.meta ?: scrobbleMeta(l.track, null)
-    var title by remember(l) { mutableStateOf(m.title) }
-    var artist by remember(l) { mutableStateOf(m.artist) }
-    var album by remember(l) { mutableStateOf(m.album.orEmpty()) }
+    val choose = e.reason == Reason.CHOOSE_VERSION
+    var title by remember(l, m) { mutableStateOf(m.title) }
+    var artist by remember(l, m) { mutableStateOf(m.artist) }
+    var album by remember(l, m) { mutableStateOf(m.album.orEmpty()) }
+    var sel by remember(l) { mutableStateOf(it.options.firstOrNull { v -> v.artist == m.artist && v.title == m.title && v.album == m.album } ?: it.options.firstOrNull()) }
     var plays by remember(l) { mutableIntStateOf(e.plays) }
     val accent = LocalAccent.current
     Column(
@@ -111,7 +114,11 @@ private fun DraftCard(it: EvaluatedListen) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("${stringResource(e.reason.res)} · ${dateFmt.format(Date(l.start))}", color = TextSoft, fontSize = 13.sp)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (it.options.isNotEmpty()) VersionPicker(it.options, sel) { v ->
+            sel = v
+            if (!choose) EventStore.chooseVersion(l, v) // altre cause: aggiorna solo i metadati, conferma a mano
+        }
+        if (!choose) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Field(title, { title = it }, R.string.field_title, Modifier.weight(1f))
             Field(artist, { artist = it }, R.string.field_artist, Modifier.weight(1f))
             Field(album, { album = it }, R.string.field_album, Modifier.weight(1f))
@@ -125,8 +132,8 @@ private fun DraftCard(it: EvaluatedListen) {
             Spacer(Modifier.weight(1f))
             TextButton({ EventStore.resolve(l, Status.DISCARDED) }) { Text(stringResource(R.string.draft_discard)) }
             Button(
-                { EventStore.resolve(l, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source), plays) },
-                enabled = title.isNotBlank() && artist.isNotBlank(), // titolo e artista obbligatori
+                { if (choose) EventStore.chooseVersion(l, sel!!) else EventStore.resolve(l, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source), plays) },
+                enabled = if (choose) sel != null else title.isNotBlank() && artist.isNotBlank(), // titolo e artista obbligatori
             ) { Text(stringResource(R.string.draft_confirm)) }
         }
     }

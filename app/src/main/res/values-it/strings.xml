@@ -24,6 +24,15 @@
     <string name="reason_track_under_30s">brano sotto 30 s</string>
     <string name="reason_less_than_half">meno di metà brano</string>
     <string name="reason_ambiguous_repeats">ripetizioni ambigue</string>
+    <string name="reason_choose_version">Più versioni nella cronologia: scegline una</string>
+    <plurals name="version_plays">
+        <item quantity="one">%1$d ascolto · ultimo %2$s</item>
+        <item quantity="other">%1$d ascolti · ultimo %2$s</item>
+    </plurals>
+    <string name="sec_versions">Versioni scelte</string>
+    <string name="versions_hint">Quando un brano ha più versioni nella cronologia, la tua scelta viene salvata qui</string>
+    <string name="version_save">Salva</string>
+    <string name="version_remove">Rimuovi</string>
     <string name="lang_system">Sistema</string>
     <string name="lastfm_connect">Connetti Last.fm</string>
     <string name="lastfm_disconnect">Disconnetti</string>

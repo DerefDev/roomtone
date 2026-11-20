@@ -16,7 +16,13 @@ import java.io.File
 import java.util.Locale
 
 // eval == null → durata in ricerca…
-data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val meta: ScrobbleMeta? = null)
+data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val meta: ScrobbleMeta? = null,
+    val options: List<Version> = emptyList()) // versioni in cronologia tra cui scegliere (vuoto = nessuna scelta)
+
+// Versione da usare: scelta/automatica, altrimenti la più ascoltata (default in attesa della scelta); null → Shazam
+private fun versionOf(p: Pick?) = when (p) { is Pick.Auto -> p.v; is Pick.Ask -> p.options[0]; null -> null }
+
+private fun pickFor(t: Track) = pick(HistorySync.index.versions(t), VersionChoices.get(t))
 
 // Brano in corso: startedAt = istante in cui compare a schermo (≈ primo battito del tratto);
 // durationMs e meta si completano in seguito (meta subito, durata dopo la ricerca in rete).
@@ -63,10 +69,14 @@ object EventStore {
     private val engine = ListeningEngine(if (Locale.getDefault().language == "it") " di " else " by ") { l ->
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
-            val e = evaluate(l, Durations.duration(l.track))
-            val m0 = scrobbleMeta(l.track, HistorySync.index.lookup(l.track)) // cronologia → altrimenti Shazam
+            val p = pickFor(l.track)
+            val m0 = scrobbleMeta(l.track, versionOf(p)) // cronologia → altrimenti Shazam
             val m = withAlbum(m0, Albums.resolve(l.track, m0.album), l.track)
-            _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m) else it } }
+            var e = evaluate(l, Durations.duration(l.track))
+            val ask = p is Pick.Ask && m.source != MetaSource.OWNED // "disco reale": titolo/artista/album dal disco, la versione non conta
+            if (ask && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.CHOOSE_VERSION)
+            val opts = if (ask && e.status == Status.DRAFT) (p as Pick.Ask).options else emptyList()
+            _listens.update { list -> list.map { if (it.listen === l) it.copy(eval = e, meta = m, options = opts) else it } }
             save()
             onEvaluated(l, e, m)
             if (e.status == Status.VALID && Prefs.scrobbling.value) ScrobbleQueue.enqueue(l, e, m) // scrobbling spento → mostrato ma non in coda
@@ -93,6 +103,10 @@ object EventStore {
                 List(ts.length()) { ts.getLong(it) }, if (o.isNull("durationMs")) null else o.getLong("durationMs")),
             ScrobbleMeta(m.getString("artist"), m.getString("title"), m.optString("album").takeIf { it.isNotEmpty() },
                 MetaSource.valueOf(m.getString("source")), m.optString("albumSource").takeIf { it.isNotEmpty() }?.let { AlbumSource.valueOf(it) }),
+            o.optJSONArray("options")?.let { a -> List(a.length()) { i -> a.getJSONObject(i).let { v ->
+                val r = v.getJSONArray("recent")
+                Version(v.getString("artist"), v.getString("title"), v.optString("album").takeIf { it.isNotEmpty() }, v.getInt("plays"), List(r.length()) { r.getLong(it) })
+            } } }.orEmpty(),
         )
     }
 
@@ -103,6 +117,9 @@ object EventStore {
             .put("plays", e.plays).put("timestamps", JSONArray(e.timestamps)).put("durationMs", e.durationMs ?: JSONObject.NULL)
             .put("meta", JSONObject().put("artist", m.artist).put("title", m.title).put("album", m.album ?: JSONObject.NULL)
                 .put("source", m.source.name).put("albumSource", m.albumSource?.name ?: JSONObject.NULL))
+            .put("options", JSONArray().also { a -> x.options.forEach { v ->
+                a.put(JSONObject().put("artist", v.artist).put("title", v.title).put("album", v.album ?: "").put("plays", v.plays).put("recent", JSONArray(v.recent)))
+            } })
     }
 
     // Salva in background: tutte le bozze + VALID/DISCARDED degli ultimi 7 giorni (le più vecchie si potano).
@@ -140,6 +157,20 @@ object EventStore {
         if (status == Status.VALID) ScrobbleQueue.enqueue(l, ne, nm) // conferma esplicita → sempre in coda
     }
 
+    // Versione scelta dall'utente: salvata per il brano; le bozze "scegli versione" dello stesso brano si risolvono (→ coda),
+    // le altre bozze con opzioni ne aggiornano solo i metadati (conferma ancora a carico dell'utente).
+    fun chooseVersion(l: Listen, v: Version) {
+        VersionChoices.set(l.track, v.key)
+        val hk = histKey(l.track)
+        val meta = scrobbleMeta(l.track, v)
+        _listens.value.filter { it.eval?.status == Status.DRAFT && it.options.isNotEmpty() && histKey(it.listen.track) == hk }.forEach { x ->
+            val m = withAlbum(meta, null, x.listen.track)
+            if (x.eval!!.reason == Reason.CHOOSE_VERSION) resolve(x.listen, Status.VALID, m)
+            else _listens.update { list -> list.map { if (it.listen === x.listen) it.copy(meta = m) else it } }
+        }
+        save()
+    }
+
     // Icona Shazam (anteprima finché la copertina non arriva); la prima notifica del match ne è priva → mai sovrascrivere con null
     private val icons = LruCache<Track, Bitmap>(8)
     private val _icon = MutableStateFlow<Bitmap?>(null)
@@ -170,7 +201,7 @@ object EventStore {
                     if (amp.isNotEmpty()) { val g = Artists.resolve(amp); upd { it.copy(groups = g) } }
                 }
                 launch {
-                    val m = scrobbleMeta(t, HistorySync.index.lookup(t))
+                    val m = scrobbleMeta(t, versionOf(pickFor(t)))
                     upd { it.copy(meta = m) }
                     val ref = Albums.resolve(t, m.album)
                     // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
