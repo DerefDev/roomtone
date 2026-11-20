@@ -87,6 +87,14 @@ object HistorySync {
         job = scope.launch { sync(_user.value ?: return@launch) }
     }
 
+    // Errori temporanei (timeout, Last.fm sovraccarico): stessa pagina ritentata dopo 5 e 15 s prima di fermarsi.
+    private suspend fun <T> retry3(f: suspend () -> T): T {
+        for (wait in longArrayOf(5_000, 15_000)) {
+            try { return f() } catch (e: CancellationException) { throw e } catch (_: Exception) { delay(wait) }
+        }
+        return f()
+    }
+
     private suspend fun sync(user: String) {
         var newest = state.getLong("newestUts", 0)
         var oldest = state.getLong("oldestUts", 0)
@@ -110,7 +118,7 @@ object HistorySync {
         var page = 1
         try {
             while (true) {
-                val (items, pages) = LastFmApi.recentTracksPage(user, page, from, to)
+                val (items, pages) = retry3 { LastFmApi.recentTracksPage(user, page, from, to) }
                 if (from != null) pending += items else {
                     items.forEach(index::add)
                     items.forEach { newest = maxOf(newest, it.uts); oldest = if (oldest == 0L) it.uts else minOf(oldest, it.uts) }
