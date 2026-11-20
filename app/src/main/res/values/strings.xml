@@ -25,6 +25,7 @@
     <string name="reason_track_under_30s">track under 30 s</string>
     <string name="reason_less_than_half">less than half the track</string>
     <string name="reason_ambiguous_repeats">ambiguous repeats</string>
+    <string name="reason_not_on_record">Not on the record you\'re playing and not in your history — check it</string>
     <string name="reason_choose_version">Several versions in your history — choose one</string>
     <plurals name="version_plays">
         <item quantity="one">%1$d play · last %2$s</item>
@@ -135,6 +136,7 @@
     <string name="album_owned">Actual record</string>
     <string name="album_hint">The album sent with each scrobble: the one in your Last.fm history (so tracks stay grouped), or the record you actually own in your Discogs collection. The screen always shows your record.</string>
     <string name="meta_from_owned">from your record</string>
+    <string name="meta_from_discogs">from your Discogs record</string>
     <string name="edit_title">Clean up when scrobbling your record</string>
     <string name="edit_note">The screen always shows the title exactly as on your record.</string>
     <string name="edit_remaster">Remove \'Remastered\'</string>

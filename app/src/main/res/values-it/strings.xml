@@ -24,6 +24,7 @@
     <string name="reason_track_under_30s">brano sotto 30 s</string>
     <string name="reason_less_than_half">meno di metà brano</string>
     <string name="reason_ambiguous_repeats">ripetizioni ambigue</string>
+    <string name="reason_not_on_record">Non è sul disco in ascolto né nella cronologia: controlla</string>
     <string name="reason_choose_version">Più versioni nella cronologia: scegline una</string>
     <plurals name="version_plays">
         <item quantity="one">%1$d ascolto · ultimo %2$s</item>
@@ -134,6 +135,7 @@
     <string name="album_owned">Disco reale</string>
     <string name="album_hint">L\'album inviato con ogni scrobble: quello della cronologia Last.fm (così i brani restano raggruppati) oppure il disco che possiedi nella collezione Discogs. Lo schermo mostra sempre il tuo disco.</string>
     <string name="meta_from_owned">dal tuo disco</string>
+    <string name="meta_from_discogs">dal tuo disco Discogs</string>
     <string name="edit_title">Pulizia quando scrobbli il tuo disco</string>
     <string name="edit_note">Lo schermo mostra sempre il titolo esatto del tuo disco.</string>
     <string name="edit_remaster">Togli \'Remastered\'</string>

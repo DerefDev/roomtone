@@ -1,7 +1,7 @@
 package dev.deref.roomtone
 
 // Kotlin puro. Cronologia Last.fm aggregata per histKey → variante esatta (artista, titolo, album).
-enum class MetaSource { HISTORY, SHAZAM, OWNED }
+enum class MetaSource { HISTORY, SHAZAM, OWNED, DISCOGS }
 
 // Metadati da inviare (v0.5) per un ascolto.
 data class ScrobbleMeta(val artist: String, val title: String, val album: String?, val source: MetaSource, val albumSource: AlbumSource? = null)
@@ -23,6 +23,10 @@ sealed interface Pick {
 }
 
 private const val RECENT = 5
+
+// Unisce due elenchi di versioni (senza doppioni per chiave), più ascoltate prima, a parità la più recente
+fun mergeVersions(a: List<Version>, b: List<Version>): List<Version> =
+    (a + b).distinctBy { it.key }.sortedWith(compareByDescending<Version> { it.plays }.thenByDescending { it.lastUts })
 
 fun pick(vs: List<Version>, saved: VersionKey?): Pick? {
     if (saved != null) return Pick.Auto(vs.firstOrNull { it.key == saved } ?: Version(saved.artist, saved.title, saved.album, 0, emptyList()))

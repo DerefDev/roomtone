@@ -22,7 +22,18 @@ data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val
 // Versione da usare: scelta/automatica, altrimenti la più ascoltata (default in attesa della scelta); null → Shazam
 private fun versionOf(p: Pick?) = when (p) { is Pick.Auto -> p.v; is Pick.Ask -> p.options[0]; null -> null }
 
-private fun pickFor(t: Track) = pick(HistorySync.index.versions(t), VersionChoices.get(t))
+private const val CONTEXT_MS = 30 * 60_000L
+
+// Metadati di un brano: cronologia (anche via titolo/artista come scritti su Discogs) → disco Discogs → Shazam.
+// Terzo valore: true se la cronologia non ha versioni.
+private fun metaFor(t: Track, own: Pair<OwnedRelease, OwnedTrack>?): Triple<ScrobbleMeta, Pick?, Boolean> {
+    val ot = own?.let { Track(it.second.title, it.second.artist ?: it.first.artist) }
+    val vs = mergeVersions(HistorySync.index.versions(t), ot?.let { HistorySync.index.versions(it) }.orEmpty())
+    val p = pick(vs, VersionChoices.get(t) ?: ot?.let { VersionChoices.get(it) })
+    val m = versionOf(p)?.let { scrobbleMeta(t, it) }
+        ?: if (ot != null) ScrobbleMeta(ot.artist, ot.title, null, MetaSource.DISCOGS) else scrobbleMeta(t, null)
+    return Triple(m, p, vs.isEmpty())
+}
 
 // Brano in corso: startedAt = istante in cui compare a schermo (≈ primo battito del tratto);
 // durationMs e meta si completano in seguito (meta subito, durata dopo la ricerca in rete).
@@ -66,13 +77,22 @@ object EventStore {
     var onEdited: (Listen, Evaluation, ScrobbleMeta) -> Unit = { _, _, _ -> } // idem per le modifiche da UI
     var onEvaluated: (Listen, Evaluation, ScrobbleMeta) -> Unit = { _, _, _ -> } // hook del listener per la scrittura su file
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // Disco in ascolto: valido 30 min dall'ultimo brano riconosciuto su un disco posseduto
+    @Volatile private var currentRecord: OwnedRelease? = null
+    @Volatile private var recordSeenAt = 0L
+    private fun context(now: Long) = currentRecord?.takeIf { now - recordSeenAt < CONTEXT_MS }
+    private fun seen(own: Pair<OwnedRelease, OwnedTrack>?, now: Long) { if (own != null) { currentRecord = own.first; recordSeenAt = now } }
+
     private val engine = ListeningEngine(if (Locale.getDefault().language == "it") " di " else " by ") { l ->
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
-            val p = pickFor(l.track)
-            val m0 = scrobbleMeta(l.track, versionOf(p)) // cronologia → altrimenti Shazam
-            val m = withAlbum(m0, Albums.resolve(l.track, m0.album), l.track)
+            val ctx = context(l.lastBeat)
+            val own = DiscogsCollection.findOwned(l.track, ctx)
+            seen(own, l.lastBeat)
+            val (m0, p, noHist) = metaFor(l.track, own)
+            val m = withAlbum(m0, Albums.resolve(l.track, m0.album, own), l.track)
             var e = evaluate(l, Durations.duration(l.track))
+            if (ctx != null && own == null && noHist && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.NOT_ON_RECORD)
             val ask = p is Pick.Ask && m.source != MetaSource.OWNED // "disco reale": titolo/artista/album dal disco, la versione non conta
             if (ask && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.CHOOSE_VERSION)
             val opts = if (ask && e.status == Status.DRAFT) (p as Pick.Ask).options else emptyList()
@@ -201,12 +221,13 @@ object EventStore {
                     if (amp.isNotEmpty()) { val g = Artists.resolve(amp); upd { it.copy(groups = g) } }
                 }
                 launch {
-                    val m = scrobbleMeta(t, versionOf(pickFor(t)))
+                    val own = DiscogsCollection.findOwned(t, context(now))
+                    seen(own, now)
+                    val m = metaFor(t, own).first
                     upd { it.copy(meta = m) }
-                    val ref = Albums.resolve(t, m.album)
+                    val ref = Albums.resolve(t, m.album, own)
                     // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
-                    val ot = if (ref?.source == AlbumSource.OWNED) DiscogsCollection.ownedTrack(t, ref.releaseId)?.second?.title else null
-                    upd { it.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = ot) }
+                    upd { it.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = own?.second?.title) }
                     val nx = Tracklists.next(t, ref)
                     upd { it.copy(next = nx) }
                 }

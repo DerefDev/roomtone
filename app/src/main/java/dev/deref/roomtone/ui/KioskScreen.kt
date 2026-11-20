@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import dev.deref.roomtone.AlbumSource
 import dev.deref.roomtone.Lyrics
 import dev.deref.roomtone.LyricsState
 import dev.deref.roomtone.Track
@@ -60,7 +61,7 @@ fun KioskScreen(
         val side = minOf(h - margin * 2 - hint, maxWidth * 0.45f)
         Row(Modifier.fillMaxSize().padding(margin), verticalAlignment = Alignment.CenterVertically) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Cover(cover, np?.track, Modifier.size(side))
+                Cover(cover, np?.track, np?.ownedTitle, np?.album?.takeIf { it.source == AlbumSource.OWNED }?.title, Modifier.size(side))
                 Box(Modifier.height(hint), contentAlignment = Alignment.BottomCenter) {
                     if (np != null) Text(stringResource(R.string.lyrics_hint), color = TextSoft.copy(alpha = 0.6f), fontSize = 12.sp)
                 }
@@ -104,7 +105,7 @@ fun KioskScreen(
 }
 
 @Composable
-private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
+private fun Cover(bmp: Bitmap?, track: Track?, ownedTitle: String?, ownedAlbum: String?, modifier: Modifier) {
     val accent = LocalAccent.current
     val shape = RoundedCornerShape(10.dp)
     // ponytail: niente shadow colorata (su Android < 9 diventa una fascia piena) → bordo tenue dell'accento
@@ -115,7 +116,7 @@ private fun Cover(bmp: Bitmap?, track: Track?, modifier: Modifier) {
     val threshold = with(dens) { 48.dp.toPx() }
     val density = dens.density
     var lyrics by remember(track) { mutableStateOf<LyricsState>(LyricsState.Loading) }
-    LaunchedEffect(track, flipped) { if (track != null && flipped && lyrics == LyricsState.Loading) lyrics = Lyrics.state(track) }
+    LaunchedEffect(track, flipped) { if (track != null && flipped && lyrics == LyricsState.Loading) lyrics = Lyrics.state(track, ownedTitle, ownedAlbum) }
     Box(
         modifier.pointerInput(track) {
             if (track == null) return@pointerInput

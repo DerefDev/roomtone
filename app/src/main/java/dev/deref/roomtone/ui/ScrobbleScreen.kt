@@ -27,6 +27,7 @@ internal val Reason.res get() = when (this) {
     Reason.LESS_THAN_HALF -> R.string.reason_less_than_half
     Reason.AMBIGUOUS_REPEATS -> R.string.reason_ambiguous_repeats
     Reason.CHOOSE_VERSION -> R.string.reason_choose_version
+    Reason.NOT_ON_RECORD -> R.string.reason_not_on_record
 }
 
 private val dateFmt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)

@@ -56,9 +56,9 @@ object Albums {
         } catch (_: Exception) { /* assente o corrotta → cache vuota */ }
     }
 
-    suspend fun resolve(t: Track, historyAlbum: String?): AlbumRef? = withContext(Dispatchers.IO) {
+    suspend fun resolve(t: Track, historyAlbum: String?, owned: Pair<OwnedRelease, OwnedTrack>? = null): AlbumRef? = withContext(Dispatchers.IO) {
         val first = firstArtistRaw(t.artist)
-        DiscogsCollection.owned(t)?.let { return@withContext AlbumRef(it.artist, it.title, AlbumSource.OWNED, it.id, it.masterId, it.coverImage) }
+        (if (owned != null) owned.first else DiscogsCollection.owned(t))?.let { return@withContext AlbumRef(it.artist, it.title, AlbumSource.OWNED, it.id, it.masterId, it.coverImage) }
         if (historyAlbum != null) return@withContext AlbumRef(first, historyAlbum, AlbumSource.HISTORY)
         val key = normKey(t)
         cacheLock.withLock { cache[key] }?.let { o ->

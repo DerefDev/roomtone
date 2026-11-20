@@ -18,26 +18,48 @@ object Lyrics {
     private val cache = HashMap<String, String?>() // chiave → url (null = non trovato)
 
     // Genius non espone "strumentale" nella API (campo sempre null) e i tag Last.fm sono incoerenti → sempre il link
-    suspend fun state(t: Track): LyricsState = url(t)?.let { LyricsState.Found(it) } ?: LyricsState.None
+    suspend fun state(t: Track, ownedTitle: String? = null, album: String? = null): LyricsState =
+        url(t, ownedTitle, album)?.let { LyricsState.Found(it) } ?: LyricsState.None
 
-    suspend fun url(t: Track): String? = withContext(Dispatchers.IO) {
+    private val generic = setOf("intro", "outro", "interlude", "skit")
+
+    suspend fun url(t: Track, ownedTitle: String? = null, album: String? = null): String? = withContext(Dispatchers.IO) {
         val token = BuildConfig.GENIUS_ACCESS_TOKEN
         if (token.isEmpty()) return@withContext null
-        val key = normKey(t)
+        val key = normKey(t) + "|" + ownedTitle?.let(::titleKey).orEmpty()
         synchronized(cache) { if (cache.containsKey(key)) return@withContext cache[key] }
-        val fa = firstArtistRaw(t.artist); val fk = firstArtist(t.artist)
-        val st = searchTitle(t.title); val core = coreTitle(t.title)
-        // 1ª ricerca: titolo senza feat./remaster, confronto esatto; poi titolo di base (prima di " - ", senza parentesi)
-        val hits = search(token, "$fa $st") ?: return@withContext null // errore → niente cache
-        fun ok(r: JSONObject) = artistOk(r, fk) && (!r.has("lyrics_state") || r.optString("lyrics_state") == "complete")
-        val tk = titleKey(t.title); val ck = titleKey(core)
-        fun byCore(l: List<JSONObject>) = l.firstOrNull { core.isNotEmpty() && titleKey(coreTitle(it.optString("title"))) == ck && ok(it) }
-        val hit = hits.firstOrNull { titleKey(it.optString("title")) == tk && ok(it) } ?: byCore(hits)
-            ?: if (core.isNotEmpty() && core != st) byCore(search(token, "$fa $core") ?: return@withContext null) else null
+        var c = candidates(token, t) ?: return@withContext null // errore → niente cache
+        // titolo esatto sul disco posseduto diverso da quello di Shazam → stessi passaggi con quello
+        if (c.isEmpty() && ownedTitle != null && titleKey(ownedTitle) != titleKey(t.title)) c = candidates(token, Track(ownedTitle, t.artist)) ?: return@withContext null
+        var hit = c.firstOrNull()
+        // titoli generici (intro, outro…): più brani con lo stesso nome → quello dell'album giusto
+        if (album != null && c.size >= 2 && titleKey(coreTitle(ownedTitle ?: t.title)) in generic) {
+            val ak = titleKey(album)
+            hit = c.take(3).firstOrNull { albumName(token, it.optLong("id"))?.let(::titleKey) == ak } ?: hit
+        }
         val found = hit?.optString("url")?.takeIf { it.isNotEmpty() }
         synchronized(cache) { cache[key] = found }
         found
     }
+
+    // Risultati compatibili, in ordine di preferenza; null = errore di rete
+    private fun candidates(token: String, t: Track): List<JSONObject>? {
+        val fa = firstArtistRaw(t.artist); val fk = firstArtist(t.artist)
+        val st = searchTitle(t.title); val core = coreTitle(t.title)
+        // 1ª ricerca: titolo senza feat./remaster, confronto esatto; poi titolo di base (prima di " - ", senza parentesi)
+        val hits = search(token, "$fa $st") ?: return null
+        fun ok(r: JSONObject) = artistOk(r, fk) && (!r.has("lyrics_state") || r.optString("lyrics_state") == "complete")
+        val tk = titleKey(t.title); val ck = titleKey(core)
+        fun byCore(l: List<JSONObject>) = l.filter { core.isNotEmpty() && titleKey(coreTitle(it.optString("title"))) == ck && ok(it) }
+        return hits.filter { titleKey(it.optString("title")) == tk && ok(it) }.ifEmpty { byCore(hits) }
+            .ifEmpty { if (core.isNotEmpty() && core != st) byCore(search(token, "$fa $core") ?: return null) else emptyList() }
+    }
+
+    // Nome dell'album del brano da /songs/{id}; null = errore o assente
+    private fun albumName(token: String, id: Long): String? = try {
+        val body = httpGet("https://api.genius.com/songs/$id", headers = mapOf("Authorization" to "Bearer $token"))?.toString(Charsets.UTF_8)
+        JSONObject(body ?: "").getJSONObject("response").getJSONObject("song").optJSONObject("album")?.optString("name")?.takeIf { it.isNotEmpty() }
+    } catch (_: Exception) { null }
 
     // Risultati di tipo "song"; null = errore di rete o risposta illeggibile
     private fun search(token: String, q: String): List<JSONObject>? = try {

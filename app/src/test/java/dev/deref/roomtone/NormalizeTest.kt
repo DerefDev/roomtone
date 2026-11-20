@@ -53,4 +53,11 @@ class NormalizeTest {
         assertEquals(listOf("Artist One & Artist Two", "Guest Two & Guest Three"), ampParts(Track("S (feat. Guest Two & Guest Three)", "Artist One & Artist Two")))
         assertEquals("Dance Track [New Edit]", stripFeat("Dance Track (feat. Guest Four & Guest Five) [New Edit]"))
     }
+
+    @Test fun sigle() = assertEquals(1, bestTitle("Abc", listOf("Other", "A.B.C.")))
+
+    @Test fun numeriDiversiNonCoincidono() {
+        assertEquals(0.0, titleSim("Long Song Title Pt. 1", "Long Song Title Pt. 2"), 0.0)
+        assertEquals(null, bestTitle("Long Song Title Pt. 1", listOf("Long Song Title Pt. 2")))
+    }
 }

@@ -298,7 +298,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                         Text(pluralStringResource(R.plurals.beats, r.beats, r.beats))
                     }
                     meta?.let { m ->
-                        val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; else -> R.string.meta_from_shazam })
+                        val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; MetaSource.DISCOGS -> R.string.meta_from_discogs; else -> R.string.meta_from_shazam })
                         val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
                         Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
                     }

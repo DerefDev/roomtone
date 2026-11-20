@@ -70,3 +70,41 @@ fun displayArtist(t: Track, isGroup: (String) -> Boolean = { false }): String {
 // Chiave della cronologia: solo il primo artista + titolo normalizzato.
 // ponytail: i duo condividono la chiave con i brani solisti del primo membro con lo stesso titolo → accettato, l'utente può scegliere
 fun histKey(t: Track) = normKey(Track(t.title, firstArtistRaw(t.artist)))
+
+// Somiglianza tra titoli (0..1) sulle titleKey: 1.0 se uguali, altrimenti max(Jaccard sui token, 1 - Levenshtein/lunghezza max). "part" ≡ "pt".
+private fun tkey(s: String) = titleKey(s).substringAfter('|')
+private fun tokens(k: String) = k.split(' ').filter { it.isNotEmpty() }.map { if (it == "part") "pt" else it }.toSet()
+
+private fun levenshtein(a: String, b: String): Int {
+    var prev = IntArray(b.length + 1) { it }
+    for (i in 1..a.length) {
+        val cur = IntArray(b.length + 1).also { it[0] = i }
+        for (j in 1..b.length) cur[j] = minOf(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + if (a[i - 1] == b[j - 1]) 0 else 1)
+        prev = cur
+    }
+    return prev[b.length]
+}
+
+fun titleSim(a: String, b: String): Double {
+    val ka = tkey(a); val kb = tkey(b)
+    if (ka == kb) return 1.0
+    if (ka.replace(" ", "") == kb.replace(" ", "")) return 0.99 // sigle: "S.I.C." ≈ "Sic"
+    if (digits.findAll(ka).map { it.value }.toList() != digits.findAll(kb).map { it.value }.toList()) return 0.0 // "Pt 1" ≠ "Pt 2"
+    val ta = tokens(ka); val tb = tokens(kb)
+    val jac = if (ta.isEmpty() || tb.isEmpty()) 0.0 else ta.intersect(tb).size.toDouble() / ta.union(tb).size
+    val m = maxOf(ka.length, kb.length)
+    return maxOf(jac, 1.0 - levenshtein(ka, kb).toDouble() / m)
+}
+
+private val digits = Regex("\\d+")
+
+const val TITLE_MIN = 0.85
+
+// Indice del candidato: chiave esatta, altrimenti l'unico migliore con titleSim ≥ 0.85 (pareggio → null, ambiguo)
+fun bestTitle(title: String, candidates: List<String>): Int? {
+    val k = tkey(title)
+    candidates.indexOfFirst { tkey(it) == k }.takeIf { it >= 0 }?.let { return it }
+    val s = candidates.map { titleSim(title, it) }
+    val best = s.maxOrNull() ?: return null
+    return if (best >= TITLE_MIN && s.count { it == best } == 1) s.indexOf(best) else null
+}

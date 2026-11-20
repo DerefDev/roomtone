@@ -14,7 +14,7 @@ data class LastFmAlbum(val title: String, val image: String?)
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
 object LastFmApi {
-    private const val UA = "Roomtone/0.7 ( https://github.com/DerefDev/roomtone )"
+    private const val UA = "Roomtone/0.8 ( https://github.com/DerefDev/roomtone )"
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
