@@ -102,14 +102,15 @@ object DiscogsCollection {
 
     // Disco in ascolto (artista ignorato: Shazam può accreditare diversamente) → indice esatto → approssimato per artista contenuto
     fun findOwned(t: Track, context: OwnedRelease?): Pair<OwnedRelease, OwnedTrack>? {
-        context?.let { r -> matchTrack(t, r)?.let { return r to it } }
+        // disco in ascolto: almeno un artista del brano (anche ospite) tra quelli del disco
+        val parts = allArtists(t)
+        fun credited(r: OwnedRelease) = (listOf(r.artist) + r.tracks.mapNotNull { it.artist }).flatMap { firstSep.split(it) }.any { a -> parts.any { artistMatch(a, it) } }
+        context?.takeIf(::credited)?.let { r -> matchTrack(t, r)?.let { return r to it } }
         owned(t)?.let { r -> matchTrack(t, r)?.let { return r to it } }
-        val fa = firstArtist(t.artist)
-        if (fa.isEmpty()) return null
+        if (parts.isEmpty()) return null
         val c = ArrayList<Triple<OwnedRelease, OwnedTrack, Double>>()
         for (r in _releases.value) {
-            val ok = (listOf(r.artist) + r.tracks.mapNotNull { it.artist }).any { val a = firstArtist(it); a.isNotEmpty() && (a.contains(fa) || fa.contains(a)) }
-            if (ok) matchTrack(t, r)?.let { c += Triple(r, it, titleSim(t.title, it.title)) }
+            if (credited(r)) matchTrack(t, r)?.let { c += Triple(r, it, titleSim(t.title, it.title)) }
         }
         val best = c.maxOfOrNull { it.third } ?: return null
         // ponytail: pareggio tra release diverse → null (ambiguo)

@@ -60,4 +60,14 @@ class NormalizeTest {
         assertEquals(0.0, titleSim("Long Song Title Pt. 1", "Long Song Title Pt. 2"), 0.0)
         assertEquals(null, bestTitle("Long Song Title Pt. 1", listOf("Long Song Title Pt. 2")))
     }
+
+    @Test fun artistiAParoleIntere() {
+        assert(artistMatch("Artist One", "artist one"))
+        assert(artistMatch("Artist One (2)", "Artist One"))
+        assert(artistMatch("Artist One & Artist Two", "Artist Two"))
+        assert(!artistMatch("Mace", "Macedonia"))
+        assert(!artistMatch("Artist One", "Artist Two"))
+        assertEquals(listOf("Artist One", "Artist Two", "Guest One", "Guest Two"),
+            allArtists(Track("Song (feat. Guest One & Guest Two)", "Artist One & Artist Two")))
+    }
 }

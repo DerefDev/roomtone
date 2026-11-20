@@ -72,6 +72,6 @@ object Lyrics {
     // Artista principale compatibile, oppure presente nell'elenco completo degli artisti del brano
     private fun artistOk(r: JSONObject, fk: String): Boolean {
         val a = base(r.optJSONObject("primary_artist")?.optString("name").orEmpty())
-        return a.contains(fk) || fk.contains(a) || base(r.optString("artist_names")).contains(fk)
+        return artistMatch(a, fk) || artistMatch(r.optString("artist_names"), fk)
     }
 }

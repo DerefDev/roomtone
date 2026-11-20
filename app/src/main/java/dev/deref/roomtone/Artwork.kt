@@ -252,7 +252,7 @@ object Artwork {
     private fun deezerAlbum(first: String, album: String): String? {
         val fk = firstArtist(first); val ak = normKey(Track(album, ""))
         return deezerList("search/album?q=${enc("$first $album")}").firstOrNull {
-            base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && normKey(Track(it.optString("title"), "")) == ak
+            artistMatch(it.optJSONObject("artist")?.optString("name").orEmpty(), fk) && normKey(Track(it.optString("title"), "")) == ak
         }.let(::deezerCover)
     }
 
@@ -260,7 +260,7 @@ object Artwork {
     private fun deezerTrack(first: String, title: String): String? {
         val fk = firstArtist(first); val tk = normKey(Track(title, ""))
         val ok = deezerList("search?q=${enc("$first ${stripFeat(title)}")}").filter {
-            base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && normKey(Track(it.optString("title"), "")) == tk && deezerCover(it.optJSONObject("album")) != null
+            artistMatch(it.optJSONObject("artist")?.optString("name").orEmpty(), fk) && normKey(Track(it.optString("title"), "")) == tk && deezerCover(it.optJSONObject("album")) != null
         }
         return deezerCover((ok.firstOrNull { it.getJSONObject("album").optString("type") == "album" } ?: ok.firstOrNull())?.optJSONObject("album"))
     }
@@ -271,7 +271,7 @@ object Artwork {
         val body = httpGet("https://itunes.apple.com/search?$q&limit=5&media=music")?.toString(Charsets.UTF_8) ?: return emptyList()
         val arr = JSONObject(body).optJSONArray("results") ?: return emptyList()
         val fk = firstArtist(first)
-        val ok = (0 until arr.length()).map { arr.getJSONObject(it) }.filter { base(it.optString("artistName")).contains(fk) && it.optString("artworkUrl100").isNotEmpty() }
+        val ok = (0 until arr.length()).map { arr.getJSONObject(it) }.filter { artistMatch(it.optString("artistName"), fk) && it.optString("artworkUrl100").isNotEmpty() }
         fun good(r: JSONObject): Boolean {
             val n = r.optString("collectionName")
             return !n.endsWith(" - Single") && !n.endsWith(" - EP") && r.optInt("trackCount", 2) > 1

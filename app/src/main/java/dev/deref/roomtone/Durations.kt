@@ -78,7 +78,7 @@ object Durations {
             val a = JSONObject(body).optJSONArray("data") ?: return 0L
             val fk = firstArtist(t.artist); val tk = titleKey(t.title)
             val ok = (0 until a.length()).map { a.getJSONObject(it) }.filter {
-                base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && titleKey(it.optString("title")) == tk && it.optLong("duration") > 0
+                artistMatch(it.optJSONObject("artist")?.optString("name").orEmpty(), fk) && titleKey(it.optString("title")) == tk && it.optLong("duration") > 0
             }
             ((ok.firstOrNull { it.optJSONObject("album")?.optString("type") == "album" } ?: ok.firstOrNull())?.optLong("duration") ?: 0L) * 1000
         } catch (_: Exception) { null }

@@ -28,7 +28,7 @@ fun normKey(t: Track): String {
 }
 
 private val featTitle = Regex("\\s*[(\\[][^)\\]]*\\b(?:feat|ft|featuring)\\b[^)\\]]*[)\\]]", RegexOption.IGNORE_CASE)
-private val firstSep = Regex("&|,|;|\\band\\b|\\bfeat\\b|\\bft\\b|\\bfeaturing\\b", RegexOption.IGNORE_CASE)
+internal val firstSep = Regex("&|,|;|\\band\\b|\\bfeat\\b|\\bft\\b|\\bfeaturing\\b", RegexOption.IGNORE_CASE)
 
 // Primo artista con maiuscole originali (per query verso API): "Artist One & Artist Two" → "Artist One"
 fun firstArtistRaw(artist: String) = firstSep.split(artist).first().trim()
@@ -41,6 +41,18 @@ fun stripFeat(title: String) = featTitle.replace(title, "").trim()
 
 private val bracketsCI = Regex(brackets.pattern, RegexOption.IGNORE_CASE)
 private val suffixCI = Regex(suffix.pattern, RegexOption.IGNORE_CASE)
+
+// Stesso artista a parole intere: una sequenza di parole contenuta nell'altra ("bassi maestro" ⊂ "bassi maestro 2", "mace" ⊄ "macedonia")
+fun artistMatch(a: String, b: String): Boolean {
+    fun w(s: String) = clean(base(s)).split(' ').filter { it.isNotEmpty() }
+    fun List<String>.has(o: List<String>) = o.size <= size && (0..size - o.size).any { subList(it, it + o.size) == o }
+    val x = w(a); val y = w(b)
+    return x.isNotEmpty() && y.isNotEmpty() && (x.has(y) || y.has(x))
+}
+
+// Tutti gli artisti accreditati: "A & B feat. C" + "(feat. D, E)" nel titolo
+fun allArtists(t: Track): List<String> =
+    (firstSep.split(t.artist) + (featGuests(t.title)?.let { firstSep.split(it) } ?: emptyList())).map { it.trim() }.filter { it.isNotEmpty() }
 
 // Titolo per le ricerche testuali (Genius): senza feat./remaster/deluxe, maiuscole originali.
 // "Song (2025 remaster)", "Song - 2025 Remaster", "Song (feat. X)" → "Song"

@@ -108,7 +108,7 @@ object Albums {
         val a = DiscogsApi.get("/database/search", mapOf("type" to type, "artist" to artist, "track" to track, "per_page" to "25")).optJSONArray("results") ?: return emptyList()
         val fk = firstArtist(artist)
         // "Artista - Titolo": la ricerca per artista è approssimata → tieni solo i risultati con l'artista coerente
-        return (0 until a.length()).map { a.getJSONObject(it) }.filter { base(it.optString("title").substringBefore(" - ")).contains(fk) }.map { r ->
+        return (0 until a.length()).map { a.getJSONObject(it) }.filter { artistMatch(it.optString("title").substringBefore(" - "), fk) }.map { r ->
             val f = r.optJSONArray("format")
             val id = if (type == "master") r.optLong("id") else r.optLong("master_id")
             DiscogsHit(id.takeIf { it > 0 }, discogsTitle(r.optString("title")), r.optString("year").toIntOrNull() ?: 0,
@@ -123,7 +123,7 @@ object Albums {
         val fk = firstArtist(first)
         val tk = titleKey(title)
         val ok = (0 until a.length()).map { a.getJSONObject(it) }.filter {
-            base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && titleKey(it.optString("title")) == tk &&
+            artistMatch(it.optJSONObject("artist")?.optString("name").orEmpty(), fk) && titleKey(it.optString("title")) == tk &&
                 it.optJSONObject("album")?.optString("title").orEmpty().isNotEmpty()
         }
         val r = (ok.firstOrNull { it.getJSONObject("album").optString("type") == "album" } ?: ok.firstOrNull()) ?: return null

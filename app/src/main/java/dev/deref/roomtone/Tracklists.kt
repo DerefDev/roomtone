@@ -36,7 +36,7 @@ object Tracklists {
             val q = URLEncoder.encode("${firstArtistRaw(ref.artist)} ${ref.title}", "UTF-8")
             val hits = JSONObject(httpGet("https://api.deezer.com/search/album?q=$q")?.toString(Charsets.UTF_8) ?: return@cached null).optJSONArray("data")
             val al = (0 until (hits?.length() ?: 0)).map { hits!!.getJSONObject(it) }.firstOrNull {
-                base(it.optJSONObject("artist")?.optString("name").orEmpty()).contains(fk) && titleKey(it.optString("title")) == ak
+                artistMatch(it.optJSONObject("artist")?.optString("name").orEmpty(), fk) && titleKey(it.optString("title")) == ak
             } ?: return@cached emptyList()
             val a = JSONObject(httpGet("https://api.deezer.com/album/${al.getLong("id")}/tracks")?.toString(Charsets.UTF_8) ?: return@cached null).optJSONArray("data")
             (0 until (a?.length() ?: 0)).map { a!!.getJSONObject(it).optString("title") }
