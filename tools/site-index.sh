@@ -5,7 +5,8 @@
 cd "$(dirname "$0")/.." || exit 1
 {
   printf -- '---\ntitle: Ambient scrobbler for vinyl records, CDs and tapes\nhide:\n  - navigation\n---\n\n'
-  awk '/^## /{skip = ($0 == "## Docs")} !skip' README.md |
+  # ponytail: drops the Website · Docs · Download line too, the site has its own tabs
+  awk '/^## /{skip = ($0 == "## Docs")} !skip && !/^<p align="center"><a href="https:\/\/derefdev/' README.md |
     sed -e 's#](docs/#](#g' -e 's#src="docs/#src="#g' \
         -e 's#](LICENSE)#](https://github.com/DerefDev/roomtone/blob/main/LICENSE)#g'
 } > docs/index.md
