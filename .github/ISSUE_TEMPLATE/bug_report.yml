@@ -49,4 +49,4 @@ body:
     attributes:
       label: Screenshots or logs
       description: |
-        Drag files here. To get logs, turn diagnostics on (tap the version seven times in Settings → About) and reproduce the problem. The logs are in `Android/data/dev.deref.roomtone/files/` (`shazam_raw.jsonl`, `listens.jsonl`). They contain the names of the tracks you played: attach only the part around the problem if you prefer.
+        Drag files here. Roomtone keeps the logs of the last couple of days in `Android/data/dev.deref.roomtone/files/` (`shazam_raw.jsonl`, `listens.jsonl`). They contain the names of the tracks you played: attach only the part around the problem if you prefer.

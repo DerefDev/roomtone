@@ -26,6 +26,9 @@ object Prefs {
     private val _diagnostics = MutableStateFlow(false) // nascosta: 7 tocchi sulla versione
     val diagnostics: StateFlow<Boolean> = _diagnostics
 
+    private val _logDays = MutableStateFlow(2) // i log si svuotano ogni N giorni
+    val logDays: StateFlow<Int> = _logDays
+
     private val _editOptions = MutableStateFlow(EditOptions())
     val editOptions: StateFlow<EditOptions> = _editOptions
 
@@ -38,6 +41,7 @@ object Prefs {
         _autoStartShazam.value = sp.getBoolean("autoStartShazam", true)
         _restartShazamOnScreenOn.value = sp.getBoolean("restartShazamOnScreenOn", true)
         _diagnostics.value = sp.getBoolean("diagnostics", false)
+        _logDays.value = sp.getInt("log_days", 2)
         _albumMode.value = sp.getString("albumMode", "history")?.takeIf { it == "owned" } ?: "history"
         val d = EditOptions()
         fun b(n: String, def: Boolean) = sp.getBoolean("edit_$n", def)
@@ -56,6 +60,11 @@ object Prefs {
     fun setStandbyAuto(v: Boolean) { _standbyAuto.value = v; sp.edit().putBoolean("standby_auto", v).apply() }
     fun setAutoStartShazam(v: Boolean) { _autoStartShazam.value = v; sp.edit().putBoolean("autoStartShazam", v).apply() }
     fun setRestartShazamOnScreenOn(v: Boolean) { _restartShazamOnScreenOn.value = v; sp.edit().putBoolean("restartShazamOnScreenOn", v).apply() }
+    fun setLogDays(v: Int) { _logDays.value = v; sp.edit().putInt("log_days", v).apply() }
+    // inizio del periodo di log corrente (0 = mai)
+    var logStartedAt: Long
+        get() = sp.getLong("log_started_at", 0)
+        set(v) { sp.edit().putLong("log_started_at", v).apply() }
     fun setDiagnostics(v: Boolean) { _diagnostics.value = v; sp.edit().putBoolean("diagnostics", v).apply() }
     fun setAlbumMode(v: String) { _albumMode.value = v; sp.edit().putString("albumMode", v).apply() }
     fun setStandbyMin(v: Int) { _standbyMin.value = v; sp.edit().putInt("standby_min", v).apply() }

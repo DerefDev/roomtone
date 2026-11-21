@@ -195,4 +195,9 @@
     <string name="cr_d_app_icon">\"Gramophone\" by Aarne Huttunen (The Noun Project), CC0, recolored</string>
     <string name="diag_shown">Diagnostics shown</string>
     <string name="diag_hidden">Diagnostics hidden</string>
+    <string name="log_keep">Clear the logs every</string>
+    <plurals name="days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
 </resources>

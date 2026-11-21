@@ -81,6 +81,18 @@ class ShazamListener : NotificationListenerService() {
         handler.removeCallbacks(ticker)
     }
 
+    // Log su file (thread io): svuotati ogni Prefs.logDays giorni
+    private fun log(name: String, line: String) {
+        val dir = getExternalFilesDir(null) ?: return
+        val now = System.currentTimeMillis()
+        val start = Prefs.logStartedAt
+        if (start == 0L || now - start > Prefs.logDays.value * 86_400_000L) {
+            File(dir, "shazam_raw.jsonl").delete(); File(dir, "listens.jsonl").delete()
+            Prefs.logStartedAt = now
+        }
+        File(dir, name).appendText(line + "\n")
+    }
+
     private fun saveListen(l: Listen, e: Evaluation, m: ScrobbleMeta, event: String) {
         val line = JSONObject().apply {
             put("event", event)
@@ -96,7 +108,7 @@ class ShazamListener : NotificationListenerService() {
         }.toString()
         io.execute {
             try {
-                if (Prefs.diagnostics.value) getExternalFilesDir(null)?.let { File(it, "listens.jsonl").appendText(line + "\n") }
+                log("listens.jsonl", line)
             } catch (_: Exception) { /* ponytail: errori di scrittura ignorati → log su logcat */ }
         }
     }
@@ -129,7 +141,7 @@ class ShazamListener : NotificationListenerService() {
         // scrittura su thread dedicato, append + chiusura (flush) ad ogni riga
         io.execute {
             try {
-                if (Prefs.diagnostics.value) getExternalFilesDir(null)?.let { File(it, "shazam_raw.jsonl").appendText(line + "\n") }
+                log("shazam_raw.jsonl", line)
             } catch (_: Exception) { /* ponytail: errori di scrittura ignorati → log su logcat */ }
         }
         if (event != "posted") return

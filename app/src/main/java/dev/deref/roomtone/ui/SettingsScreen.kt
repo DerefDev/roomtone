@@ -125,6 +125,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
     val diag by Prefs.diagnostics.collectAsStateWithLifecycle()
+    val logDays by Prefs.logDays.collectAsStateWithLifecycle()
     val user by HistorySync.user.collectAsStateWithLifecycle()
     val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
@@ -281,6 +282,10 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                                 Text(stringResource(R.string.log_path, logPath), fontSize = 11.sp)
                             }
                             Button({ EventStore.clear() }) { Text(stringResource(R.string.clear)) }
+                        }
+                        Text(stringResource(R.string.log_keep))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            for (d in listOf(1, 2, 7, 30)) FilterChip(logDays == d, { Prefs.setLogDays(d) }, { Text(pluralStringResource(R.plurals.days, d, d)) })
                         }
                     }
                 }
