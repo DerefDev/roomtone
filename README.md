@@ -9,7 +9,9 @@ written the way you already have it there.
 
 ## Screenshots
 
-<!-- Screenshots coming: now playing, lyrics QR code, listening -->
+[<img src="docs/assets/screenshots/now-playing.png" alt="Now playing screen" width="270"/>](docs/assets/screenshots/now-playing.png)
+[<img src="docs/assets/screenshots/lyrics.png" alt="Cover flipped to the lyrics QR code" width="270"/>](docs/assets/screenshots/lyrics.png)
+[<img src="docs/assets/screenshots/listening.png" alt="Listening, waiting for a track" width="270"/>](docs/assets/screenshots/listening.png)
 
 ## Getting started
 
