@@ -15,8 +15,12 @@ under `app/src/main/res/drawable/`.
 
 ## Libraries
 
-Android Jetpack (Compose, AppCompat, Core, Lifecycle, Activity, Palette),
-Kotlin coroutines and ZXing (QR codes), all under the Apache License 2.0.
+All under the Apache License 2.0:
+
+- [Android Jetpack](https://developer.android.com/jetpack): Compose, Material 3,
+  AppCompat, Core, Lifecycle, Activity, Palette
+- [Kotlin coroutines](https://github.com/Kotlin/kotlinx.coroutines)
+- [ZXing](https://github.com/zxing/zxing): QR codes
 
 ## Data sources
 

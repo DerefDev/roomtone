@@ -1,36 +1,15 @@
-<p align="center">
-  <img src="docs/assets/icon.svg" alt="Roomtone icon" width="128">
-</p>
+# <img src="docs/assets/icon.svg" alt="Roomtone icon" width="32"> Roomtone
 
-<h1 align="center">Roomtone</h1>
-
-<p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
+Ambient scrobbler for your records, CDs and tapes.
 
 Streaming services scrobble to Last.fm on their own. The music you play on
-your hi-fi doesn't. Roomtone fills that gap: put a spare Android phone next to
-your speakers, and every vinyl, CD or cassette you play ends up on your
-Last.fm profile, written the way you already have it there.
+your hi-fi doesn't. Put a spare Android phone next to your speakers, and
+Roomtone adds every record, CD or tape you play to your Last.fm profile,
+written the way you already have it there.
 
-## What it does
+## Screenshots
 
-- **Shows what's playing.** The cover of the pressing you own, title, artist,
-  album and the next track, with colors taken from the cover.
-- **Scrobbles only what you really listened to.** A track that played for a
-  few seconds while you changed the record doesn't count; one you played
-  twice counts twice.
-- **Keeps your profile tidy.** If a song is already on Last.fm as
-  "Song - 2025 Remaster" from your streaming days, Roomtone scrobbles it the
-  same way, so plays don't end up split between two entries.
-- **Knows your collection.** Connect Discogs and Roomtone uses your own
-  records for covers, album names and track titles.
-- **Asks instead of guessing.** When something isn't clear, the listen waits
-  as a draft for you to check, and your choices are remembered.
-- **Works offline.** Listens are saved on the phone and sent when the
-  connection is back.
-- **Lyrics at hand.** Swipe the cover to flip it and scan a QR code that
-  opens the lyrics on Genius.
-- **Rests when you do.** After a while without music it switches to a dim
-  clock and stops listening.
+<!-- Screenshots coming: now playing, lyrics QR code, listening -->
 
 ## Getting started
 
@@ -38,39 +17,65 @@ Last.fm profile, written the way you already have it there.
    [latest release](https://github.com/DerefDev/roomtone/releases/latest) and
    install it on the phone.
 2. Install [Shazam](https://www.shazam.com) on the same phone.
-3. Open Roomtone and allow notification access and display over other apps.
-   Roomtone uses them to read what Shazam recognizes and to turn Auto Shazam
-   on for you.
-4. Log in to [Last.fm](https://www.last.fm) and, if you like, to
-   [Discogs](https://www.discogs.com).
-5. Put on a record.
+3. Open Roomtone and allow notification access and display over other apps,
+   so it can read what Shazam recognizes and turn Auto Shazam on for you.
+4. Log in to Last.fm and, if you like, to Discogs.
+5. Play a record, tape or CD.
 
-Roomtone needs Android 8.0 or later. The interface is in English and Italian.
+Roomtone needs Android 8.0 or later.
 
-## Privacy
+## [Build from source](docs/build.md) • [Credits](docs/credits.md)
 
-Roomtone has no server of its own. What you listen to stays on the phone,
-apart from the scrobbles sent to your Last.fm account and the lookups made to
-the music services Roomtone uses for track details, covers and lyrics. Login
-sessions are stored encrypted on the device.
+## Features
+
+- Shows the cover, title, artist, album and next track of what's playing
+- Takes its colors from the cover
+- Scrobbles only what you really listened to, and counts a track twice if you
+  played it twice
+- Scrobbles each song the way it already appears in your Last.fm history, so
+  plays don't get split between two entries
+- Asks which one to use when a song has several versions in your history, and
+  remembers your choice
+- Uses your Discogs collection for covers, album names and track titles
+- Keeps listens that need a check as drafts you can fix, confirm or discard
+- Saves listens on the phone and sends them when you're back online
+- Turns Auto Shazam on and off for you
+- Shows a QR code to the lyrics on Genius when you swipe the cover
+- Switches to a dim clock and stops listening when no music is playing
+- Optional cleanups for titles and albums, such as removing "Remastered"
+- No ads, no account other than your own, no server of its own
 
 ## Status
 
-Roomtone is in active development (v0.8) and has been tested on a single
-phone so far. Next up: running as the phone's home screen and starting
-automatically when the phone turns on.
+Roomtone is in active development and has been tested on a single phone so
+far.
 
-## More
+## Credits
 
-- [Build from source](docs/build.md)
-- [Credits and data sources](docs/credits.md)
+- App icon from ["Gramophone"](https://commons.wikimedia.org/wiki/File:Gramophone_(36104)_-_The_Noun_Project.svg) by Aarne Huttunen (The Noun Project)
+- Icons from [Material Icons](https://github.com/google/material-design-icons)
+- Music recognition from [Shazam](https://www.shazam.com)
+- Scrobbling and listening history from [Last.fm](https://www.last.fm/api)
+- Collection, tracklists and artwork from [Discogs](https://www.discogs.com/developers)
+- Track durations and release data from [MusicBrainz](https://musicbrainz.org) and
+  covers from [Cover Art Archive](https://coverartarchive.org)
+- Durations, albums and covers from [Deezer](https://developers.deezer.com) and
+  [iTunes](https://performance-partners.apple.com/search-api)
+- Lyrics links from [Genius](https://docs.genius.com)
+- QR codes from [ZXing](https://github.com/zxing/zxing)
+
+Inspired by [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler) and
+[Finale](https://github.com/nrubin29/finale). Licenses and details are in
+[docs/credits.md](docs/credits.md).
+
+## Disclaimer
 
 Roomtone is an independent project, not affiliated with or endorsed by Shazam,
-Apple, Last.fm, Discogs or Genius.
+Apple, Last.fm, Discogs or Genius. Artwork and data remain the property of
+their rights holders.
 
 ## License
 
-Roomtone is free software, released under the
-[GNU General Public License v3.0 or later](LICENSE).
+SPDX-License-Identifier: [GPL-3.0-or-later](LICENSE)
 
 Copyright (C) 2026 DerefDev
