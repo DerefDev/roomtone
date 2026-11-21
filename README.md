@@ -1,6 +1,10 @@
-# <img src="docs/assets/icon.svg" alt="Roomtone icon" width="32"> Roomtone
+<p align="center">
+  <img src="docs/assets/icon.svg" alt="Roomtone icon" width="128">
+</p>
 
-Ambient scrobbler for your records, CDs and tapes.
+<h1 align="center">Roomtone</h1>
+
+<p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
 
 Streaming services scrobble to Last.fm on their own. The music you play on
 your hi-fi doesn't. Put a spare Android phone next to your speakers, and
@@ -9,9 +13,17 @@ written the way you already have it there.
 
 ## Screenshots
 
-[<img src="docs/assets/screenshots/now-playing.png" alt="Now playing screen" width="270"/>](docs/assets/screenshots/now-playing.png)
-[<img src="docs/assets/screenshots/lyrics.png" alt="Cover flipped to the lyrics QR code" width="270"/>](docs/assets/screenshots/lyrics.png)
-[<img src="docs/assets/screenshots/listening.png" alt="Listening, waiting for a track" width="270"/>](docs/assets/screenshots/listening.png)
+<img src="docs/assets/screenshots/now-playing.png" alt="Now playing screen" width="600">
+
+*Now playing: the cover of your record, the track, the album and what comes next.*
+
+<img src="docs/assets/screenshots/lyrics.png" alt="Cover flipped to the lyrics QR code" width="600">
+
+*Swipe the cover to flip it and scan the code for the lyrics on Genius.*
+
+<img src="docs/assets/screenshots/listening.png" alt="Listening, waiting for a track" width="600">
+
+*Waiting for the next track while Auto Shazam listens.*
 
 ## Getting started
 
