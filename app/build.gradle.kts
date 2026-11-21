@@ -34,6 +34,21 @@ android {
     androidResources {
         generateLocaleConfig = true // locales_config dalle cartelle values-*
     }
+    // firma release: keystore da env (CI) o secrets.properties (locale), stessa password per store e chiave (PKCS12).
+    // ponytail: senza keystore la release si firma con la chiave debug, solo per provare R8 in locale; il workflow controlla che ci sia.
+    val ks = (System.getenv("KEYSTORE_FILE") ?: secrets.getProperty("KEYSTORE_FILE"))?.let { file(it) }?.takeIf { it.exists() }
+    val ksPass = System.getenv("KEYSTORE_PASSWORD") ?: secrets.getProperty("KEYSTORE_PASSWORD")
+    signingConfigs {
+        if (ks != null) create("release") { storeFile = ks; storePassword = ksPass; keyAlias = "roomtone"; keyPassword = ksPass }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+        }
+    }
     buildFeatures {
         compose = true
         buildConfig = true
