@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.util.Locale
 
 // eval == null → durata in ricerca…
 data class EvaluatedListen(val listen: Listen, val eval: Evaluation? = null, val meta: ScrobbleMeta? = null,
@@ -64,6 +63,9 @@ fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
 
 // Ascolti valutati persistiti in listens.json (bozze + ultimi 7 giorni); ponytail: file unico riscritto a ogni modifica → Room se cresce
 // Tutte le chiamate al motore avvengono sul main thread (callback del listener + Handler main).
+// Shazam scrive le notifiche nella lingua del sistema, non in quella scelta per Roomtone
+private fun shazamLanguage() = android.content.res.Resources.getSystem().configuration.locales[0].language
+
 object EventStore {
     private val _connected = MutableStateFlow(false)
     val connected: StateFlow<Boolean> = _connected
@@ -83,7 +85,7 @@ object EventStore {
     private fun context(now: Long) = currentRecord?.takeIf { now - recordSeenAt < CONTEXT_MS }
     private fun seen(own: Pair<OwnedRelease, OwnedTrack>?, now: Long) { if (own != null) { currentRecord = own.first; recordSeenAt = now } }
 
-    private val engine = ListeningEngine(if (Locale.getDefault().language == "it") " di " else " by ") { l ->
+    private val engine = ListeningEngine(if (shazamLanguage() == "it") " di " else " by ") { l ->
         _listens.update { it + EvaluatedListen(l) }
         scope.launch {
             val ctx = context(l.lastBeat)
