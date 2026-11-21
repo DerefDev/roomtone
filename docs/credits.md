@@ -9,9 +9,7 @@ adaptive icon.
 ## Icons
 
 [Material Icons](https://github.com/google/material-design-icons) by Google,
-Apache License 2.0 (`arrow_back`, `fast_forward`, `menu`, `music_note`,
-`power_settings_new`, `list`, `settings`). The source is noted in each file
-under `app/src/main/res/drawable/`.
+Apache License 2.0.
 
 ## Libraries
 
