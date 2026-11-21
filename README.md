@@ -4,7 +4,7 @@
 
 <h1 align="center">Roomtone</h1>
 
-<p align="center">Scrobble the music you play at home: records, CDs, tapes.</p>
+<p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
 
 Streaming services scrobble to Last.fm on their own. The music you play on
 your hi-fi doesn't. Roomtone fills that gap: put a spare Android phone next to
