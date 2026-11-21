@@ -76,6 +76,11 @@ far.
 - [Build from source](docs/build.md): building the app and the API keys it
   needs
 
+## Translate
+
+Roomtone is available in English and Italian. Help bring it to your language:
+see [Translations](docs/translations.md).
+
 ## Credits
 
 - App icon from ["Gramophone"](https://commons.wikimedia.org/wiki/File:Gramophone_(36104)_-_The_Noun_Project.svg) by Aarne Huttunen (The Noun Project)

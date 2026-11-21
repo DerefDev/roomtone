@@ -24,6 +24,11 @@ android {
         buildConfigField("String", "LASTFM_API_SECRET", "\"${secrets.getProperty("LASTFM_API_SECRET", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_KEY", "\"${secrets.getProperty("DISCOGS_CONSUMER_KEY", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_SECRET", "\"${secrets.getProperty("DISCOGS_CONSUMER_SECRET", "").trim()}\"")
+        // lingue = inglese + ogni cartella values-xx con strings.xml ("pt-rBR" → "pt-BR", "b+sr+Latn" → "sr-Latn")
+        val langs = listOf("en") + (file("src/main/res").listFiles() ?: emptyArray())
+            .filter { it.name.startsWith("values-") && File(it, "strings.xml").exists() }
+            .map { it.name.removePrefix("values-").removePrefix("b+").replace("-r", "-").replace('+', '-') }.sorted()
+        buildConfigField("String", "LANGS", "\"${langs.joinToString(",")}\"")
         buildConfigField("String", "GENIUS_ACCESS_TOKEN", "\"${secrets.getProperty("GENIUS_ACCESS_TOKEN", "").trim()}\"")
     }
     androidResources {

@@ -1,0 +1,5 @@
+# Crowdin: English source strings and where translations are written.
+# %android_code% gives Android resource folder names such as "it", "pt-rBR", "zh-rCN".
+files:
+  - source: /app/src/main/res/values/strings.xml
+    translation: /app/src/main/res/values-%android_code%/strings.xml

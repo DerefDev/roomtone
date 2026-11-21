@@ -37,8 +37,8 @@ private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 private fun mmss(ms: Long) = "%d:%02d".format(ms / 60_000, ms / 1000 % 60)
 
 // tag vuoto = lingua di sistema
-// Lingue con una cartella values-xx (inglese = values). Nuova lingua: cartella + tag qui.
-private val LANGS = listOf("en", "it")
+// Lingue con una cartella values-xx (inglese = values), elenco generato da Gradle: nuova lingua = nuova cartella
+private val LANGS = BuildConfig.LANGS.split(',')
 
 private fun setLang(tag: String) = AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
 
