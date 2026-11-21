@@ -1,37 +1,71 @@
 # Roomtone
 
-Ambient scrobbler for your records, CDs and tapes.
+Scrobble the records you play at home.
 
-Roomtone turns a spare Android phone into a display for your hi-fi. It
-listens through Shazam's Auto Shazam notifications, matches what is
-playing against your Discogs collection and scrobbles it to Last.fm.
+Roomtone turns a spare Android phone into a small display next to your
+turntable. When you put on a record, it shows what's playing and adds each
+track you actually listened to your Last.fm profile. It works the same with
+CDs and tapes.
 
-Status: early development, v0.6.1 (on `staging`).
+## How it works
 
-## Features
+1. Leave the phone near your speakers. Roomtone turns on Shazam's Auto Shazam
+   and keeps it running while you listen.
+2. It follows what Shazam recognizes and how long each track plays, and
+   decides whether it counts as a listen.
+3. It looks the track up in your Discogs collection and in your Last.fm
+   history, so the scrobble matches the record you own and the way the song
+   already appears on your profile.
+4. Listens are saved on the phone and sent to Last.fm, later if you're offline.
 
-- **Listening engine** — follows Auto Shazam's ongoing notification beat by
-  beat, tolerates short gaps, counts consecutive repeats and applies the
-  Last.fm rules (half the track or 4 minutes, tracks over 30 s).
-- **Durations** — from the owned Discogs tracklist, Last.fm, Deezer and
-  MusicBrainz, cached on the device.
-- **Album and metadata** — the owned Discogs release first, then your Last.fm
-  history (so scrobbles group with what you already have), the Discogs
-  catalog, Last.fm and Deezer.
-- **Covers** — Cover Art Archive, Last.fm, Deezer, iTunes and Discogs, with a
-  manual picker for the records you own.
-- **Next track** — predicted from the tracklist of the owned release, the
-  Discogs master or the Deezer album.
-- **Kiosk display** — cover, title, artist, album, next track and clock, with
-  colors from the cover; manual and automatic standby that stops Shazam.
-- **Scrobble review** — listens that need a check stay as drafts you can fix,
-  confirm or discard.
-- **Lyrics** — swipe the cover to flip it and scan a QR code to the lyrics on Genius.
-- **Accounts** — Last.fm and Discogs login; English and Italian interface.
+When something isn't clear, such as an unknown track length, a song with
+several versions in your history, or a track that isn't on the record you're
+playing, Roomtone keeps it as a draft for you to check instead of guessing.
 
-Coming next: persistent offline scrobble queue (v0.7), Discogs as a matching
-bridge (v0.8), launcher mode and boot start (v0.9).
+## What you see
 
+- The cover of your own pressing, with title, artist, album and the next track
+- Colors taken from the cover
+- A QR code to the lyrics on Genius when you swipe the cover
+- A dim clock in standby when nothing is playing
+- A Scrobble page with what was sent, what's waiting and the drafts to review
+
+## Requirements
+
+- Android 8.0 or later
+- The [Shazam](https://www.shazam.com) app
+- A [Last.fm](https://www.last.fm) account, and optionally a
+  [Discogs](https://www.discogs.com) account with your collection
+- Two permissions: notification access, to read what Shazam recognizes, and
+  display over other apps, to start Auto Shazam
+
+## Install
+
+There is no release yet. To build it yourself:
+
+```sh
+git clone https://github.com/DerefDev/roomtone.git
+cd roomtone
+cp secrets.properties.example secrets.properties   # then add your API keys
+./gradlew assembleDebug
+```
+
+The example file links to the pages where you can create the Last.fm, Discogs
+and Genius keys. The APK ends up in `app/build/outputs/apk/debug/`.
+
+## Status
+
+Roomtone is in active development (v0.8) and has been tested on a single
+device so far. Next up: running as the phone's launcher and starting at boot.
+
+The interface is available in English and Italian. Translations are welcome.
+
+## Privacy
+
+Roomtone has no server of its own. Your data stays on the phone, apart from
+the requests it makes to the services listed below: scrobbles and history to
+Last.fm, your collection from Discogs, and track details, artwork and lyrics
+links from the others. Login sessions are stored encrypted on the device.
 
 ## Credits & licenses
 
@@ -60,8 +94,10 @@ Palette), Kotlin coroutines and ZXing (QR codes), Apache License 2.0.
 - [Genius API](https://docs.genius.com) — lyrics links shown as a QR code.
 - [iTunes Search API](https://performance-partners.apple.com/search-api) — artwork.
   Artwork from all sources remains the property of its rights holders.
-- [Shazam](https://www.shazam.com) — recognition, read from its notifications;
-  Roomtone is not affiliated with or endorsed by Shazam or Apple.
+- [Shazam](https://www.shazam.com) — recognition, read from its notifications.
+
+Roomtone is an independent project, not affiliated with or endorsed by Shazam,
+Apple, Last.fm, Discogs or Genius.
 
 **Reference projects** — [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler)
 (GPL-3.0) and [Finale](https://github.com/nrubin29/finale) (BSD-3-Clause).
