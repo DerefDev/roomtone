@@ -78,8 +78,7 @@ far.
 
 ## Translate
 
-Roomtone is available in English and Italian. Help bring it to your language:
-see [Translations](docs/translations.md).
+Help bring Roomtone to your language: see [Translations](docs/translations.md).
 
 ## Credits
 
