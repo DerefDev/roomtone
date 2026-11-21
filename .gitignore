@@ -20,3 +20,12 @@ secrets.properties
 .DS_Store
 
 logs/
+
+# Note di progetto personali
+notes/
+
+# Sito: home generata dal README, build locale
+docs/index.md
+site/
+docs/release.md
+__pycache__/

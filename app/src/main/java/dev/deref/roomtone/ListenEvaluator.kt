@@ -5,7 +5,7 @@ import kotlin.math.max
 
 // Kotlin puro. Valuta un tratto d'ascolto contro la durata del brano.
 enum class Status { VALID, DRAFT, DISCARDED }
-enum class Reason { OK, UNKNOWN_DURATION, TRACK_UNDER_30S, LESS_THAN_HALF, AMBIGUOUS_REPEATS }
+enum class Reason { OK, UNKNOWN_DURATION, TRACK_UNDER_30S, LESS_THAN_HALF, AMBIGUOUS_REPEATS, CHOOSE_VERSION, NOT_ON_RECORD }
 
 data class Evaluation(
     val status: Status,
