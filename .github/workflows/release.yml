@@ -1,4 +1,5 @@
 # On a v* tag: runs the tests, builds the signed APK and creates a draft release with notes generated from the merged PRs.
+# A tag with a dash (v0.9-beta1) makes a pre-release: it stays out of the site and the changelog.
 name: Release
 
 on:
@@ -46,4 +47,5 @@ jobs:
         run: |
           apk="roomtone-$GITHUB_REF_NAME.apk"
           cp app/build/outputs/apk/release/app-release.apk "$apk"
-          gh release create "$GITHUB_REF_NAME" "$apk" --draft --verify-tag --generate-notes --title "Roomtone ${GITHUB_REF_NAME#v}"
+          pre=; [[ "$GITHUB_REF_NAME" == *-* ]] && pre=--prerelease
+          gh release create "$GITHUB_REF_NAME" "$apk" --draft $pre --verify-tag --generate-notes --title "Roomtone ${GITHUB_REF_NAME#v}"
