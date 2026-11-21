@@ -38,17 +38,6 @@ written the way you already have it there.
 
 Roomtone needs Android 8.0 or later.
 
-## Docs
-
-- [Recognition and listens](docs/recognition.md): how Roomtone follows Shazam
-  and decides what counts as a listen
-- [Scrobbling](docs/scrobbling.md): how tracks are matched with your Last.fm
-  history and your Discogs collection, and sent
-- [Lyrics and covers](docs/lyrics-and-covers.md): where covers and lyrics
-  links come from
-- [Build from source](docs/build.md): building the app and the API keys it
-  needs
-
 ## Features
 
 - Shows the cover, title, artist, album and next track of what's playing
@@ -72,6 +61,17 @@ Roomtone needs Android 8.0 or later.
 
 Roomtone is in active development and has been tested on a single phone so
 far.
+
+## Docs
+
+- [Recognition and listens](docs/recognition.md): how Roomtone follows Shazam
+  and decides what counts as a listen
+- [Scrobbling](docs/scrobbling.md): how tracks are matched with your Last.fm
+  history and your Discogs collection, and sent
+- [Lyrics and covers](docs/lyrics-and-covers.md): where covers and lyrics
+  links come from
+- [Build from source](docs/build.md): building the app and the API keys it
+  needs
 
 ## Credits
 
@@ -99,6 +99,6 @@ their rights holders.
 
 ## License
 
-SPDX-License-Identifier: [GPL-3.0-or-later](LICENSE)
+Roomtone is released under the [GNU General Public License v3.0 or later](LICENSE).
 
 Copyright (C) 2026 DerefDev
