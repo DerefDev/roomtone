@@ -25,9 +25,12 @@ android {
         buildConfigField("String", "LASTFM_API_SECRET", "\"${secrets.getProperty("LASTFM_API_SECRET", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_KEY", "\"${secrets.getProperty("DISCOGS_CONSUMER_KEY", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_SECRET", "\"${secrets.getProperty("DISCOGS_CONSUMER_SECRET", "").trim()}\"")
-        // lingue = inglese + ogni cartella values-xx con strings.xml ("pt-rBR" → "pt-BR", "b+sr+Latn" → "sr-Latn")
+        // lingue = inglese + ogni cartella values-xx tradotta almeno all'80% ("pt-rBR" → "pt-BR", "b+sr+Latn" → "sr-Latn");
+        // le lingue sotto soglia restano nell'APK (stringhe tradotte + inglese) ma non nel menu
+        fun count(f: File) = Regex("<(string|plurals) name=\"[^\"]+\"(?! translatable=\"false\")").findAll(f.readText()).count()
+        val total = count(file("src/main/res/values/strings.xml"))
         val langs = listOf("en") + (file("src/main/res").listFiles() ?: emptyArray())
-            .filter { it.name.startsWith("values-") && File(it, "strings.xml").exists() }
+            .filter { it.name.startsWith("values-") && File(it, "strings.xml").let { f -> f.exists() && count(f) * 5 >= total * 4 } }
             .map { it.name.removePrefix("values-").removePrefix("b+").replace("-r", "-").replace('+', '-') }.sorted()
         buildConfigField("String", "LANGS", "\"${langs.joinToString(",")}\"")
         buildConfigField("String", "GENIUS_ACCESS_TOKEN", "\"${secrets.getProperty("GENIUS_ACCESS_TOKEN", "").trim()}\"")

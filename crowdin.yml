@@ -1,5 +1,35 @@
 # Crowdin: English source strings and where translations are written.
-# %android_code% gives Android resource folder names such as "it", "pt-rBR", "zh-rCN".
+# %android_code% gives folders like "it-rIT"; the mapping keeps the plain language where the region adds nothing.
 files:
   - source: /app/src/main/res/values/strings.xml
     translation: /app/src/main/res/values-%android_code%/strings.xml
+    # only translated strings: the rest falls back to English
+    skip_untranslated_strings: true
+    languages_mapping:
+      android_code:
+        af: af
+        ar: ar
+        ca: ca
+        cs: cs
+        da: da
+        de: de
+        el: el
+        es-ES: es
+        fi: fi
+        fr: fr
+        hu: hu
+        it: it
+        ja: ja
+        ko: ko
+        nl: nl
+        "no": nb
+        pl: pl
+        pt-PT: pt
+        ro: ro
+        ru: ru
+        sr: sr
+        sr-CS: b+sr+Latn
+        sv-SE: sv
+        tr: tr
+        uk: uk
+        vi: vi
