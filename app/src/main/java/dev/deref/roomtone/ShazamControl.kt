@@ -89,6 +89,19 @@ object ShazamControl {
         if (Prefs.autoStartShazam.value && !_autoOn.value) start(ctx)
     }
 
+    // Roomtone in secondo piano: spegni (salvo durante il nostro avvio, che porta Shazam davanti) e ricorda di riaccendere.
+    @Volatile private var wasOnBeforeBackground = false
+    fun onBackground() {
+        if (starting || wasOnBeforeScreenOff || !_autoOn.value) return
+        Log.d("Roomtone", "App in secondo piano: spengo Auto Shazam")
+        wasOnBeforeBackground = true; stop()
+    }
+    fun onForeground(ctx: Context) {
+        if (!wasOnBeforeBackground) return
+        wasOnBeforeBackground = false
+        start(ctx, user = true)
+    }
+
     // Riavvio dopo schermo riacceso: serve activity visibile.
     fun onScreenOff() {
         Log.d("Roomtone", "Schermo spento: attivo=${_autoOn.value}")

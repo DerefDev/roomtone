@@ -96,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         ShazamControl.maybeAutoStart(this)
         ShazamControl.onScreenOn(this) // USER_PRESENT non sempre arriva (es. sblocco senza PIN): ricontrolla qui
         ShazamControl.consumeRestart(this)
+        ShazamControl.onForeground(this)
         accessGranted = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
         // Dopo un aggiornamento o se EMUI chiude il processo, il sistema può non ricollegare il listener:
         // con accesso concesso ma listener scollegato, chiedi esplicitamente il ricollegamento.
@@ -120,6 +121,12 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (isFinishing) { android.util.Log.d("Roomtone", "App chiusa: spengo Auto Shazam"); ShazamControl.stop() }
         super.onDestroy()
+    }
+
+    // Home / altra app: Roomtone in secondo piano (non distrutta) → spegni Auto Shazam, riacceso al ritorno
+    override fun onStop() {
+        if (!isChangingConfigurations) ShazamControl.onBackground()
+        super.onStop()
     }
 
     override fun onPause() {
