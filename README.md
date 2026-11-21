@@ -26,7 +26,16 @@ written the way you already have it there.
 
 Roomtone needs Android 8.0 or later.
 
-## [Build from source](docs/build.md) • [Credits](docs/credits.md)
+## Docs
+
+- [Recognition and listens](docs/recognition.md): how Roomtone follows Shazam
+  and decides what counts as a listen
+- [Scrobbling](docs/scrobbling.md): how tracks are matched with your Last.fm
+  history and your Discogs collection, and sent
+- [Lyrics and covers](docs/lyrics-and-covers.md): where covers and lyrics
+  links come from
+- [Build from source](docs/build.md): building the app and the API keys it
+  needs
 
 ## Features
 
