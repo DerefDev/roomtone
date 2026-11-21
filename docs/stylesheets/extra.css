@@ -1,0 +1,20 @@
+/* Colors from the app icon */
+:root, [data-md-color-scheme="default"] {
+  --md-primary-fg-color: #a8022e;
+  --md-primary-fg-color--light: #e8577e;
+  --md-primary-fg-color--dark: #7a0121;
+  --md-accent-fg-color: #e8577e;
+}
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #a8022e;
+  --md-primary-fg-color--light: #e8577e;
+  --md-primary-fg-color--dark: #7a0121;
+  --md-accent-fg-color: #e8577e;
+  --md-typeset-a-color: #f08aa6;
+}
+/* Screenshots on the home page */
+.md-typeset img[src*="screenshots/"] { border-radius: 8px; }
+/* Latest release header */
+.release-head { text-align: center; margin-bottom: 1.5rem; }
+.release-head h1 { margin: 0.4rem 0 1rem; }
+.release-head .md-button { margin: 0.2rem; }

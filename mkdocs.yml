@@ -1,0 +1,68 @@
+site_name: Roomtone
+site_description: Ambient scrobbler for your records, CDs and tapes.
+site_url: https://derefdev.github.io/roomtone/
+repo_url: https://github.com/DerefDev/roomtone
+repo_name: DerefDev/roomtone
+copyright: Roomtone is released under the GNU General Public License v3.0 or later.
+
+theme:
+  name: material
+  logo: assets/icon.svg
+  favicon: assets/icon.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dark theme
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Light theme
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - search.suggest
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/notranslate.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - github-callouts
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Latest release: release.md
+  - Docs:
+      - Overview: docs.md
+      - How it works:
+          - Recognition and listens: recognition.md
+          - Scrobbling: scrobbling.md
+          - Lyrics and covers: lyrics-and-covers.md
+      - Help:
+          - Troubleshooting: troubleshooting.md
+          - Privacy: privacy.md
+      - Contribute:
+          - Build from source: build.md
+          - Translations: translations.md
+      - Credits: credits.md
