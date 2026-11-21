@@ -8,8 +8,10 @@ on:
   push:
     branches: [main]
     paths: [README.md, docs/**, mkdocs.yml, tools/site-index.sh, tools/releases.py, .github/workflows/site.yml]
-  release:
-    types: [published, edited]
+  # after a release, via the changelog workflow: it runs on main, the only ref allowed to deploy to Pages
+  workflow_run:
+    workflows: [Changelog]
+    types: [completed]
   workflow_dispatch:
 
 permissions:

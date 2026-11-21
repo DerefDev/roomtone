@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+# publishing a release sends both "published" and "edited": run one at a time, the second finds nothing to change
+concurrency:
+  group: changelog
+
 jobs:
   changelog:
     runs-on: ubuntu-latest
