@@ -100,5 +100,3 @@ their rights holders.
 ## License
 
 Roomtone is released under the [GNU General Public License v3.0 or later](LICENSE).
-
-Copyright (C) 2026 DerefDev
