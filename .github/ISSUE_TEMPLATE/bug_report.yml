@@ -1,0 +1,52 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please check [Troubleshooting](https://github.com/DerefDev/roomtone/blob/main/docs/troubleshooting.md) first: many problems come from the phone closing apps in the background.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: If you know how to make it happen again.
+      placeholder: |
+        1. Play ...
+        2. ...
+  - type: textarea
+    id: track
+    attributes:
+      label: Track details
+      description: For a wrong track or scrobble, the track as Shazam showed it and as Roomtone scrobbled it.
+  - type: input
+    id: phone
+    attributes:
+      label: Phone and Android version
+      placeholder: e.g. Pixel 7, Android 15
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Roomtone version
+      description: Settings → About
+    validations:
+      required: true
+  - type: input
+    id: shazam
+    attributes:
+      label: Shazam version
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs
+      description: |
+        Drag files here. The logs are in `Android/data/dev.deref.roomtone/files/` (`shazam_raw.jsonl`, `listens.jsonl`). They contain the names of the tracks you played: attach only the part around the problem if you prefer.

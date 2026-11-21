@@ -70,6 +70,9 @@ far.
   history and your Discogs collection, and sent
 - [Lyrics and covers](docs/lyrics-and-covers.md): where covers and lyrics
   links come from
+- [Troubleshooting](docs/troubleshooting.md): common problems and how to
+  report one
+- [Privacy](docs/privacy.md): what Roomtone stores and what it sends
 - [Build from source](docs/build.md): building the app and the API keys it
   needs
 
