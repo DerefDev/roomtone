@@ -33,7 +33,10 @@ object LastFmApi {
             c.outputStream.use { it.write(body.toByteArray()) }
             val code = c.responseCode
             val text = (if (code < 400) c.inputStream else c.errorStream)?.bufferedReader()?.readText().orEmpty()
-            val o = try { JSONObject(text) } catch (_: Exception) { throw Exception("HTTP $code") }
+            // 5xx, risposta illeggibile, servizio non disponibile/sovraccarico (11, 16, 29): temporanei → IOException (niente cache, si riprova)
+            if (code >= 500) throw IOException("HTTP $code")
+            val o = try { JSONObject(text) } catch (_: Exception) { throw IOException("HTTP $code") }
+            if (o.optInt("error") in setOf(11, 16, 29)) throw IOException("Last.fm error ${o.optInt("error")}")
             if (o.has("error")) throw LastFmException(o.optInt("error"), o.optString("message", "Last.fm error ${o.optInt("error")}"))
             if (code != 200) throw Exception("HTTP $code")
             o

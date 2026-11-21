@@ -149,7 +149,6 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menu by remember { mutableStateOf(false) }
-    var autoStandby by remember { mutableStateOf(false) } // standby entrato da solo (per ora solo informativo)
 
     // copertina: al cambio brano subito l'icona Shazam (se c'è), poi la copertina vera appena l'album è risolto
     val n = np
@@ -165,7 +164,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
         if (idle && autoOn && screen == Screen.KIOSK) {
             delay(mins * 60_000L)
             // anche lo standby automatico spegne Shazam (privacy): si esce solo toccando lo schermo
-            autoStandby = true; menu = false
+            menu = false
             standbyWasOn = ShazamControl.autoOn.value; ShazamControl.stop()
             screen = Screen.STANDBY
         }
@@ -197,7 +196,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
                         onStandby = {
-                            menu = false; autoStandby = false
+                            menu = false
                             standbyWasOn = shazamOn; ShazamControl.stop() // all'uscita riacceso solo se era acceso
                             screen = Screen.STANDBY
                         },

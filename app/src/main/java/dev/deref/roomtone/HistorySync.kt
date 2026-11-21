@@ -99,7 +99,8 @@ object HistorySync {
         var newest = state.getLong("newestUts", 0)
         var oldest = state.getLong("oldestUts", 0)
         var complete = state.getBoolean("complete", false)
-        val to = if (!complete && oldest > 0) oldest - 1 else null // riprende da dove era arrivato
+        // fine fissata all'avvio: gli scrobble che arrivano durante la sync non spostano le pagine (niente doppioni)
+        val to = if (!complete && oldest > 0) oldest - 1 else System.currentTimeMillis() / 1000
         val from = if (complete) newest + 1 else null
         val pending = ArrayList<HistoryScrobble>() // incrementale: applicato solo a finestra completa (niente doppi)
 

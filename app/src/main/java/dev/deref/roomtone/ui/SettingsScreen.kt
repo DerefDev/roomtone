@@ -57,12 +57,12 @@ private fun Area(title: Int, content: @Composable ColumnScope.() -> Unit) =
 @Composable
 private fun LangMenu() {
     var open by remember { mutableStateOf(false) }
-    val cur = AppCompatDelegate.getApplicationLocales().let { if (it.isEmpty) "" else it[0]!!.language }
+    val cur = AppCompatDelegate.getApplicationLocales().let { if (it.isEmpty) "" else it[0]!!.toLanguageTag() }
     val opts = listOf("" to stringResource(R.string.lang_system)) + LANGS.map { t ->
         t to Locale.forLanguageTag(t).let { it.getDisplayName(it).replaceFirstChar { c -> c.titlecase(it) } }
     }
     ExposedDropdownMenuBox(open, { open = it }) {
-        OutlinedTextField(opts.first { it.first == cur }.second, {}, readOnly = true, singleLine = true,
+        OutlinedTextField((opts.firstOrNull { it.first == cur } ?: opts[0]).second, {}, readOnly = true, singleLine = true,
             label = { Text(stringResource(R.string.sec_language)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(320.dp))
         ExposedDropdownMenu(open, { open = false }) {

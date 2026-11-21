@@ -34,8 +34,9 @@ to them.
 - recent listens, drafts and the scrobble queue
 - your saved version picks and settings
 - cached covers, track lengths and album lookups
-- two log files of recognized tracks and listens, in the app's folder on
-  shared storage, useful when reporting a problem
+- only if you turn diagnostics on (seven taps on the version in Settings →
+  About): two log files of recognized tracks and listens, in the app's folder
+  on shared storage, useful when reporting a problem
 
 Logging out of Last.fm or Discogs deletes the copy of your history or
 collection. Uninstalling Roomtone deletes everything.

@@ -52,9 +52,9 @@ object ScrobbleQueue {
             val a = JSONArray(f.readText())
             _items.value = (0 until a.length()).map {
                 val o = a.getJSONObject(it)
-                QItem(o.getString("id"), o.getString("artist"), o.getString("title"), o.optString("album").takeIf { s -> s.isNotEmpty() },
+                QItem(o.getString("id"), o.getString("artist"), o.getString("title"), o.optStr("album"),
                     o.getLong("ts"), if (o.isNull("durationSec")) null else o.getLong("durationSec"), QState.valueOf(o.getString("state")),
-                    o.optString("note").takeIf { s -> s.isNotEmpty() }, if (o.isNull("sentAt")) null else o.getLong("sentAt"))
+                    o.optStr("note"), if (o.isNull("sentAt")) null else o.getLong("sentAt"))
             }
         } catch (_: Exception) { /* assente o corrotto → vuota */ }
         scope.launch { Connectivity.online.filter { it }.collect { flush() } }
@@ -152,7 +152,6 @@ object ScrobbleQueue {
                 val c = (e as? LastFmException)?.code
                 when {
                     c == 9 -> { _error.value = "session"; return }
-                    c == 11 || c == 16 || c == 29 -> {}
                     else -> _error.value = e.message ?: e.javaClass.simpleName
                 }
                 backoff = next(backoff)

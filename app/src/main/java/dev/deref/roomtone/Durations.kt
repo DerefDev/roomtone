@@ -28,9 +28,10 @@ object Durations {
         } catch (_: Exception) { /* assente o corrotta → cache vuota */ }
     }
 
-    suspend fun duration(t: Track): Long? = withContext(Dispatchers.IO) {
+    // owned = durata della traccia sul disco già agganciato (anche dal disco in ascolto): vince su tutto
+    suspend fun duration(t: Track, owned: Long? = null): Long? = withContext(Dispatchers.IO) {
         val key = normKey(t)
-        DiscogsCollection.ownedTrack(t)?.second?.durationMs?.takeIf { it > 0 }?.let { return@withContext it }
+        (owned ?: DiscogsCollection.ownedTrack(t)?.second?.durationMs)?.takeIf { it > 0 }?.let { return@withContext it }
         cacheLock.withLock { cache[key] }?.let { (ms, ts) ->
             if (ms > 0) return@withContext ms
             if (System.currentTimeMillis() - ts < DAY) return@withContext null // non trovato di recente

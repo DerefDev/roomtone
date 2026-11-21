@@ -76,7 +76,9 @@ A good report includes:
   scrobbled
 - screenshots, if they help
 
-For problems with recognition or scrobbling, the log files help a lot. They
+For problems with recognition or scrobbling, the log files help a lot.
+Roomtone writes them only while diagnostics are on: tap the version seven
+times in Settings → About to turn them on, then reproduce the problem. They
 are in `Android/data/dev.deref.roomtone/files/` on the phone's storage:
 `shazam_raw.jsonl` (what Shazam reported) and `listens.jsonl` (the listens
 Roomtone counted). They contain the names of the tracks you played, so look

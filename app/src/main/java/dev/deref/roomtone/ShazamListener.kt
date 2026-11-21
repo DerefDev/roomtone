@@ -96,7 +96,7 @@ class ShazamListener : NotificationListenerService() {
         }.toString()
         io.execute {
             try {
-                getExternalFilesDir(null)?.let { File(it, "listens.jsonl").appendText(line + "\n") }
+                if (Prefs.diagnostics.value) getExternalFilesDir(null)?.let { File(it, "listens.jsonl").appendText(line + "\n") }
             } catch (_: Exception) { /* ponytail: errori di scrittura ignorati → log su logcat */ }
         }
     }
@@ -111,6 +111,9 @@ class ShazamListener : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        // gli hook puntano a questa istanza: dopo shutdown di io andrebbero in errore
+        EventStore.onEvaluated = { _, _, _ -> }
+        EventStore.onEdited = { _, _, _ -> }
         unregisterScreenRx()
         handler.removeCallbacks(ticker)
         io.shutdown()
@@ -126,7 +129,7 @@ class ShazamListener : NotificationListenerService() {
         // scrittura su thread dedicato, append + chiusura (flush) ad ogni riga
         io.execute {
             try {
-                getExternalFilesDir(null)?.let { File(it, "shazam_raw.jsonl").appendText(line + "\n") }
+                if (Prefs.diagnostics.value) getExternalFilesDir(null)?.let { File(it, "shazam_raw.jsonl").appendText(line + "\n") }
             } catch (_: Exception) { /* ponytail: errori di scrittura ignorati → log su logcat */ }
         }
         if (event != "posted") return
@@ -159,7 +162,8 @@ class ShazamListener : NotificationListenerService() {
             n.extras.keySet().forEach { k ->
                 o.put(k, when (val v = n.extras.get(k)) {
                     null -> JSONObject.NULL
-                    is CharSequence, is Number, is Boolean -> if (v is CharSequence) v.toString() else v
+                    is CharSequence -> v.toString()
+                    is Number, is Boolean -> v
                     else -> v.toString()
                 })
             }

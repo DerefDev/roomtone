@@ -54,7 +54,8 @@ fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
     }
     val (a, src) = when {
         Prefs.albumMode.value == "owned" && ref?.source == AlbumSource.OWNED -> ref.title to AlbumSource.OWNED
-        m.album != null -> m.album to AlbumSource.HISTORY
+        // scrobble coerente con Last.fm: versione dalla cronologia → il suo album, anche se assente
+        m.source == MetaSource.HISTORY -> m.album to m.album?.let { AlbumSource.HISTORY }
         ref != null -> ref.title to ref.source
         else -> null to null
     }
@@ -71,8 +72,6 @@ object EventStore {
     val connected: StateFlow<Boolean> = _connected
     private val _listens = MutableStateFlow<List<EvaluatedListen>>(emptyList()) // più recente in fondo
     val listens: StateFlow<List<EvaluatedListen>> = _listens
-    private val _currentTrack = MutableStateFlow<Track?>(null)
-    val currentTrack: StateFlow<Track?> = _currentTrack
     private val _nowPlaying = MutableStateFlow<NowPlaying?>(null)
     val nowPlaying: StateFlow<NowPlaying?> = _nowPlaying
 
@@ -93,7 +92,7 @@ object EventStore {
             seen(own, l.lastBeat)
             val (m0, p, noHist) = metaFor(l.track, own)
             val m = withAlbum(m0, Albums.resolve(l.track, m0.album, own), l.track)
-            var e = evaluate(l, Durations.duration(l.track))
+            var e = evaluate(l, Durations.duration(l.track, own?.second?.durationMs))
             if (ctx != null && own == null && noHist && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.NOT_ON_RECORD)
             val ask = p is Pick.Ask && m.source != MetaSource.OWNED // "disco reale": titolo/artista/album dal disco, la versione non conta
             if (ask && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.CHOOSE_VERSION)
@@ -123,11 +122,11 @@ object EventStore {
             Listen(Track(o.getString("title"), o.getString("artist")), o.getLong("firstBeat"), o.getLong("lastBeat"), o.getInt("beats")),
             Evaluation(Status.valueOf(o.getString("status")), Reason.valueOf(o.getString("reason")), o.getInt("plays"),
                 List(ts.length()) { ts.getLong(it) }, if (o.isNull("durationMs")) null else o.getLong("durationMs")),
-            ScrobbleMeta(m.getString("artist"), m.getString("title"), m.optString("album").takeIf { it.isNotEmpty() },
-                MetaSource.valueOf(m.getString("source")), m.optString("albumSource").takeIf { it.isNotEmpty() }?.let { AlbumSource.valueOf(it) }),
+            ScrobbleMeta(m.getString("artist"), m.getString("title"), m.optStr("album"),
+                MetaSource.valueOf(m.getString("source")), m.optStr("albumSource")?.let { AlbumSource.valueOf(it) }),
             o.optJSONArray("options")?.let { a -> List(a.length()) { i -> a.getJSONObject(i).let { v ->
                 val r = v.getJSONArray("recent")
-                Version(v.getString("artist"), v.getString("title"), v.optString("album").takeIf { it.isNotEmpty() }, v.getInt("plays"), List(r.length()) { r.getLong(it) })
+                Version(v.getString("artist"), v.getString("title"), v.optStr("album"), v.getInt("plays"), List(r.length()) { r.getLong(it) })
             } } }.orEmpty(),
         )
     }
@@ -197,7 +196,6 @@ object EventStore {
     private val icons = LruCache<Track, Bitmap>(8)
     private val _icon = MutableStateFlow<Bitmap?>(null)
     val icon: StateFlow<Bitmap?> = _icon
-    fun shazamIcon(t: Track): Bitmap? = icons.get(t)
 
     fun match(title: String, artist: String, now: Long, icon: Bitmap? = null) {
         if (icon != null) icons.put(Track(title, artist), icon)
@@ -208,7 +206,6 @@ object EventStore {
 
     private fun publish(now: Long) {
         val t = engine.displayTrack
-        _currentTrack.value = t
         _icon.value = t?.let(icons::get)
         if (t == null) { _nowPlaying.value = null; return }
         if (_nowPlaying.value?.track == t) return
@@ -233,7 +230,7 @@ object EventStore {
                     val nx = Tracklists.next(t, ref)
                     upd { it.copy(next = nx) }
                 }
-                launch { val d = Durations.duration(t); upd { it.copy(durationMs = d) } }
+                launch { val d = Durations.duration(t, DiscogsCollection.findOwned(t, context(now))?.second?.durationMs); upd { it.copy(durationMs = d) } }
             }
         }
     }
