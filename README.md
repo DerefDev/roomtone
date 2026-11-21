@@ -6,6 +6,8 @@
 
 <p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
 
+<p align="center"><a href="https://derefdev.github.io/roomtone/">Website</a> · <a href="https://derefdev.github.io/roomtone/docs/">Docs</a> · <a href="https://github.com/DerefDev/roomtone/releases/latest">Download</a></p>
+
 Streaming services scrobble to Last.fm on their own. The music you play on
 your hi-fi doesn't. Put a spare Android phone next to your speakers, and
 Roomtone adds every record, CD or tape you play to your Last.fm profile,
@@ -64,6 +66,8 @@ far.
 
 ## Docs
 
+Also on the [website](https://derefdev.github.io/roomtone/docs/).
+
 - [Recognition and listens](docs/recognition.md): how Roomtone follows Shazam
   and decides what counts as a listen
 - [Scrobbling](docs/scrobbling.md): how tracks are matched with your Last.fm
@@ -95,8 +99,9 @@ Help bring Roomtone to your language: see [Translations](docs/translations.md).
 - QR codes from [ZXing](https://github.com/zxing/zxing)
 
 Inspired by [Pano Scrobbler](https://github.com/kawaiiDango/pano-scrobbler) and
-[Finale](https://github.com/nrubin29/finale). Licenses and details are in
-[docs/credits.md](docs/credits.md).
+[Finale](https://github.com/nrubin29/finale).
+
+Licenses and details are in [docs/credits.md](docs/credits.md).
 
 ## Disclaimer
 
