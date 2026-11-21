@@ -18,8 +18,9 @@
     <plurals name="beats">
         <item quantity="one">%1$d battito</item>
         <item quantity="other">%1$d battiti</item>
+        <item quantity="many">%1$d battiti</item>
     </plurals>
-    <string name="reason_ok">ok</string>
+    <string name="reason_ok">OK</string>
     <string name="reason_unknown_duration">durata sconosciuta</string>
     <string name="reason_track_under_30s">brano sotto 30 s</string>
     <string name="reason_less_than_half">meno di metà brano</string>
@@ -29,6 +30,7 @@
     <plurals name="version_plays">
         <item quantity="one">%1$d ascolto · ultimo %2$s</item>
         <item quantity="other">%1$d ascolti · ultimo %2$s</item>
+        <item quantity="many">%1$d ascolti · ultimo %2$s</item>
     </plurals>
     <string name="sec_versions">Versioni scelte</string>
     <string name="versions_hint">Quando un brano ha più versioni nella cronologia, la tua scelta viene salvata qui</string>
@@ -59,6 +61,7 @@
     <plurals name="queue_pending">
         <item quantity="one">%1$d scrobble in attesa</item>
         <item quantity="other">%1$d scrobble in attesa</item>
+        <item quantity="many">%1$d scrobble in attesa</item>
     </plurals>
     <string name="queue_offline">offline</string>
     <string name="queue_login">accedi a Last.fm</string>
@@ -123,12 +126,14 @@
     <plurals name="discogs_listing">
         <item quantity="one">Lettura collezione… %1$d disco</item>
         <item quantity="other">Lettura collezione… %1$d dischi</item>
+        <item quantity="many">Lettura collezione… %1$d dischi</item>
     </plurals>
     <string name="discogs_details">Dettagli dischi: %1$d / %2$d</string>
     <string name="discogs_covers">Copertine: %1$d / %2$d</string>
     <plurals name="discogs_up_to_date">
         <item quantity="one">%1$d disco nella collezione</item>
         <item quantity="other">%1$d dischi nella collezione</item>
+        <item quantity="many">%1$d dischi nella collezione</item>
     </plurals>
     <string name="sec_album">Album</string>
     <string name="album_history">Coerente con la cronologia</string>
@@ -192,4 +197,6 @@
     <string name="lyrics_hint">⇆ Scorri per il testo</string>
     <string name="cr_app_icon">Icona dell\'app</string>
     <string name="cr_d_app_icon">\"Gramophone\" di Aarne Huttunen (The Noun Project), CC0, ricolorata</string>
+    <string name="diag_shown">Diagnostica visibile</string>
+    <string name="diag_hidden">Diagnostica nascosta</string>
 </resources>

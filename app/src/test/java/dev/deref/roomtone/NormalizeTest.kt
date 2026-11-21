@@ -67,7 +67,7 @@ class NormalizeTest {
         assert(artistMatch("Artist One", "artist one"))
         assert(artistMatch("Artist One (2)", "Artist One"))
         assert(artistMatch("Artist One & Artist Two", "Artist Two"))
-        assert(!artistMatch("Mace", "Macedonia"))
+        assert(!artistMatch("Art", "Artemis"))
         assert(!artistMatch("Artist One", "Artist Two"))
         assertEquals(listOf("Artist One", "Artist Two", "Guest One", "Guest Two"),
             allArtists(Track("Song (feat. Guest One & Guest Two)", "Artist One & Artist Two")))

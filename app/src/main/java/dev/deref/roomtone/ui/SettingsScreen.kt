@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
@@ -123,6 +124,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
     val ctx = LocalContext.current
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
+    val diag by Prefs.diagnostics.collectAsStateWithLifecycle()
     val user by HistorySync.user.collectAsStateWithLifecycle()
     val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
@@ -270,43 +272,52 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                     Text(stringResource(R.string.huawei_note), fontSize = 12.sp, color = TextSoft)
                 }
             }
-            item {
-                Area(R.string.sec_diag) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.listener_status, stringResource(if (connected) R.string.listener_connected else R.string.listener_disconnected)))
-                            Text(stringResource(R.string.log_path, logPath), fontSize = 11.sp)
+            if (diag) {
+                item {
+                    Area(R.string.sec_diag) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.listener_status, stringResource(if (connected) R.string.listener_connected else R.string.listener_disconnected)))
+                                Text(stringResource(R.string.log_path, logPath), fontSize = 11.sp)
+                            }
+                            Button({ EventStore.clear() }) { Text(stringResource(R.string.clear)) }
                         }
-                        Button({ EventStore.clear() }) { Text(stringResource(R.string.clear)) }
                     }
                 }
-            }
-            items(list.asReversed()) { (r, ev, meta) -> // più recente in alto
-                Column {
-                    Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(timeFmt.format(Date(r.start)))
-                        Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
-                        val sec = r.playedMs / 1000
-                        Text("%d:%02d".format(sec / 60, sec % 60))
-                        Text(ev?.durationMs?.let { stringResource(R.string.track_duration, mmss(it)) } ?: "")
-                        Text(when (ev?.status) {
-                            null -> stringResource(R.string.duration_searching)
-                            Status.VALID -> stringResource(R.string.status_valid, ev.plays)
-                            Status.DRAFT -> stringResource(R.string.status_draft, stringResource(ev.reason.res))
-                            Status.DISCARDED -> stringResource(R.string.status_discarded, stringResource(ev.reason.res))
-                        })
-                        Text(pluralStringResource(R.plurals.beats, r.beats, r.beats))
-                    }
-                    meta?.let { m ->
-                        val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; MetaSource.DISCOGS -> R.string.meta_from_discogs; else -> R.string.meta_from_shazam })
-                        val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
-                        Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
+                items(list.asReversed()) { (r, ev, meta) -> // più recente in alto
+                    Column {
+                        Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(timeFmt.format(Date(r.start)))
+                            Text("${r.track.title} – ${r.track.artist}", Modifier.weight(1f))
+                            val sec = r.playedMs / 1000
+                            Text("%d:%02d".format(sec / 60, sec % 60))
+                            Text(ev?.durationMs?.let { stringResource(R.string.track_duration, mmss(it)) } ?: "")
+                            Text(when (ev?.status) {
+                                null -> stringResource(R.string.duration_searching)
+                                Status.VALID -> stringResource(R.string.status_valid, ev.plays)
+                                Status.DRAFT -> stringResource(R.string.status_draft, stringResource(ev.reason.res))
+                                Status.DISCARDED -> stringResource(R.string.status_discarded, stringResource(ev.reason.res))
+                            })
+                            Text(pluralStringResource(R.plurals.beats, r.beats, r.beats))
+                        }
+                        meta?.let { m ->
+                            val src = stringResource(when (m.source) { MetaSource.HISTORY -> R.string.meta_from_history; MetaSource.OWNED -> R.string.meta_from_owned; MetaSource.DISCOGS -> R.string.meta_from_discogs; else -> R.string.meta_from_shazam })
+                            val body = listOfNotNull("${m.title} – ${m.artist}", m.album, src).joinToString(" · ")
+                            Text(stringResource(R.string.meta_as, body), fontSize = 12.sp)
+                        }
                     }
                 }
             }
             item {
                 Area(R.string.sec_about) {
-                    Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
+                    // 7 tocchi sulla versione: mostra/nasconde la diagnostica
+                    var taps by remember { mutableIntStateOf(0) }
+                    Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME), Modifier.clickable {
+                        if (++taps < 7) return@clickable
+                        taps = 0
+                        Prefs.setDiagnostics(!diag)
+                        Toast.makeText(ctx, if (diag) R.string.diag_hidden else R.string.diag_shown, Toast.LENGTH_SHORT).show()
+                    })
                     Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft)
                     Link(R.string.about_site, "https://derefdev.github.io/roomtone/", ::open)
                     Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open)

@@ -20,7 +20,7 @@
         <item quantity="one">%1$d beat</item>
         <item quantity="other">%1$d beats</item>
     </plurals>
-    <string name="reason_ok">ok</string>
+    <string name="reason_ok">OK</string>
     <string name="reason_unknown_duration">unknown duration</string>
     <string name="reason_track_under_30s">track under 30 s</string>
     <string name="reason_less_than_half">less than half the track</string>
@@ -193,4 +193,6 @@
     <string name="lyrics_hint">⇆ Swipe for the lyrics</string>
     <string name="cr_app_icon">App icon</string>
     <string name="cr_d_app_icon">\"Gramophone\" by Aarne Huttunen (The Noun Project), CC0, recolored</string>
+    <string name="diag_shown">Diagnostics shown</string>
+    <string name="diag_hidden">Diagnostics hidden</string>
 </resources>

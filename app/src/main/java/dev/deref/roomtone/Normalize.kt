@@ -42,7 +42,7 @@ fun stripFeat(title: String) = featTitle.replace(title, "").trim()
 private val bracketsCI = Regex(brackets.pattern, RegexOption.IGNORE_CASE)
 private val suffixCI = Regex(suffix.pattern, RegexOption.IGNORE_CASE)
 
-// Stesso artista a parole intere: una sequenza di parole contenuta nell'altra ("bassi maestro" ⊂ "bassi maestro 2", "mace" ⊄ "macedonia")
+// Stesso artista a parole intere: una sequenza di parole contenuta nell'altra ("artist one" ⊂ "artist one 2", "art" ⊄ "artemis")
 fun artistMatch(a: String, b: String): Boolean {
     fun w(s: String) = clean(base(s)).split(' ').filter { it.isNotEmpty() }
     fun List<String>.has(o: List<String>) = o.size <= size && (0..size - o.size).any { subList(it, it + o.size) == o }
