@@ -8,6 +8,16 @@
     <!-- "Mostra sopra altre app": su Android 10+ permette di avviare Shazam e tornare in primo piano da background -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
+    <!-- Android 11+: per leggere nome e aprire l'app che gestisce gli aggiornamenti (Updates.STORES) -->
+    <queries>
+        <package android:name="dev.imranr.obtainium" />
+        <package android:name="org.fdroid.fdroid" />
+        <package android:name="org.fdroid.basic" />
+        <package android:name="com.looker.droidify" />
+        <package android:name="com.machiav3lli.fdroid" />
+        <package android:name="com.aurora.store" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:localeConfig="@xml/locales_config"

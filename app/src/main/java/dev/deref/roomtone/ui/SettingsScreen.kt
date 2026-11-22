@@ -343,27 +343,36 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                         Prefs.setDiagnostics(!diag)
                         Toast.makeText(ctx, if (diag) R.string.diag_hidden else R.string.diag_shown, Toast.LENGTH_SHORT).show()
                     })
-                    val checking by Updates.checking.collectAsStateWithLifecycle()
-                    val avail by Updates.available.collectAsStateWithLifecycle()
-                    val status by Updates.status.collectAsStateWithLifecycle()
-                    val updAuto by Updates.auto.collectAsStateWithLifecycle()
-                    val installing by Updates.installing.collectAsStateWithLifecycle()
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button({ Updates.checkNow(ctx) }, enabled = !checking) {
-                            if (checking) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                            else Text(stringResource(R.string.update_check))
+                    val mgr = Updates.manager
+                    if (mgr != null) {
+                        // installata da Obtainium/F-Droid…: aggiornamenti gestiti da lì, niente controllo interno
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(stringResource(R.string.update_managed, mgr.second), Modifier.weight(1f, fill = false))
+                            ctx.packageManager.getLaunchIntentForPackage(mgr.first)?.let { i -> Button({ open(i) }) { Text(stringResource(R.string.update_open, mgr.second)) } }
                         }
-                        val a = avail
-                        if (a != null) {
-                            Text(stringResource(R.string.update_available, a.version), Modifier.weight(1f, fill = false))
-                            Button({ Updates.install(ctx) }, enabled = !installing) { Text(stringResource(R.string.update_install)) }
-                        } else status?.let { Text(stringResource(it), fontSize = 12.sp, color = TextSoft) }
+                    } else {
+                        val checking by Updates.checking.collectAsStateWithLifecycle()
+                        val avail by Updates.available.collectAsStateWithLifecycle()
+                        val status by Updates.status.collectAsStateWithLifecycle()
+                        val updAuto by Updates.auto.collectAsStateWithLifecycle()
+                        val installing by Updates.installing.collectAsStateWithLifecycle()
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Button({ Updates.checkNow(ctx) }, enabled = !checking) {
+                                if (checking) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                else Text(stringResource(R.string.update_check))
+                            }
+                            val a = avail
+                            if (a != null) {
+                                Text(stringResource(R.string.update_available, a.version), Modifier.weight(1f, fill = false))
+                                Button({ Updates.install(ctx) }, enabled = !installing) { Text(stringResource(R.string.update_install)) }
+                            } else status?.let { Text(stringResource(it), fontSize = 12.sp, color = TextSoft) }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(stringResource(R.string.update_auto), Modifier.weight(1f))
+                            Switch(updAuto, Updates::setAuto)
+                        }
+                        Text(stringResource(R.string.update_auto_hint), fontSize = 12.sp, color = TextSoft)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(stringResource(R.string.update_auto), Modifier.weight(1f))
-                        Switch(updAuto, Updates::setAuto)
-                    }
-                    Text(stringResource(R.string.update_auto_hint), fontSize = 12.sp, color = TextSoft)
                     Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft)
                     Link(R.string.about_site, "https://derefdev.github.io/roomtone/", ::open)
                     Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open)
