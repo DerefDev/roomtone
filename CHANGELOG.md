@@ -2,6 +2,23 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9.3](https://github.com/DerefDev/roomtone/releases/tag/v0.9.3) - 2026-11-22
+
+#### New
+
+- **Install with Obtainium.** The easiest way to install Roomtone is now
+  [Obtainium](https://github.com/ImranR98/Obtainium), which installs apps
+  from GitHub and keeps them up to date, and avoids the Play Protect block
+  on installs from a file. See [Getting started](https://derefdev.github.io/roomtone/#getting-started).
+- When Roomtone was installed by Obtainium or an F-Droid client, updates are
+  left to that app: Roomtone doesn't check GitHub itself, and Settings shows
+  a button to open it. After an update you still see what's new.
+
+#### Install
+
+With Obtainium, update from Obtainium. If you installed the APK yourself,
+tap **Update** in Roomtone, or download `roomtone-v0.9.3.apk` below.
+
 ## [v0.9.2](https://github.com/DerefDev/roomtone/releases/tag/v0.9.2) - 2026-11-22
 
 #### New
