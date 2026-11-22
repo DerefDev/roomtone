@@ -38,6 +38,10 @@ written the way you already have it there.
 4. Log in to Last.fm and, if you like, to Discogs.
 5. Play a record, tape or CD.
 
+When a new version comes out, Roomtone tells you and can update itself: tap
+the banner in the menu or "Check for updates" in Settings. The first time,
+Android asks you to allow Roomtone to install apps.
+
 Roomtone needs Android 8.0 or later.
 
 ## Features

@@ -26,6 +26,7 @@ class ShazamListener : NotificationListenerService() {
     private val ticker = object : Runnable {
         override fun run() {
             EventStore.tick(System.currentTimeMillis())
+            Updates.checkIfStale(applicationContext) // controllo giornaliero anche con app in background
             handler.postDelayed(this, 15_000)
         }
     }
@@ -46,6 +47,7 @@ class ShazamListener : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         Prefs.init(this)
+        Updates.init(this)
         Connectivity.init(this)
         Durations.init(getExternalFilesDir(null))
         HistorySync.init(this)

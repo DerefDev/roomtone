@@ -2,6 +2,7 @@ package dev.deref.roomtone.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.*
@@ -266,6 +267,11 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                         Text(stringResource(R.string.notif_access, stringResource(if (accessGranted) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
                         Button({ open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) { Text(stringResource(R.string.grant_access)) }
                     }
+                    if (Build.VERSION.SDK_INT >= 33) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val ok = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+                        Text(stringResource(R.string.notif_perm, stringResource(if (ok) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
+                        Button({ open(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)) }) { Text(stringResource(R.string.grant_access)) }
+                    }
                     Button({ open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { Text(stringResource(R.string.battery_opt)) }
                     // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
                     Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) }
@@ -323,6 +329,27 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                         Prefs.setDiagnostics(!diag)
                         Toast.makeText(ctx, if (diag) R.string.diag_hidden else R.string.diag_shown, Toast.LENGTH_SHORT).show()
                     })
+                    val checking by Updates.checking.collectAsStateWithLifecycle()
+                    val avail by Updates.available.collectAsStateWithLifecycle()
+                    val status by Updates.status.collectAsStateWithLifecycle()
+                    val updAuto by Updates.auto.collectAsStateWithLifecycle()
+                    val installing by Updates.installing.collectAsStateWithLifecycle()
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button({ Updates.checkNow(ctx) }, enabled = !checking) {
+                            if (checking) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                            else Text(stringResource(R.string.update_check))
+                        }
+                        val a = avail
+                        if (a != null) {
+                            Text(stringResource(R.string.update_available, a.version), Modifier.weight(1f, fill = false))
+                            Button({ Updates.install(ctx) }, enabled = !installing) { Text(stringResource(R.string.update_install)) }
+                        } else status?.let { Text(stringResource(it), fontSize = 12.sp, color = TextSoft) }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.update_auto), Modifier.weight(1f))
+                        Switch(updAuto, Updates::setAuto)
+                    }
+                    Text(stringResource(R.string.update_auto_hint), fontSize = 12.sp, color = TextSoft)
                     Text(stringResource(R.string.about_made_by), fontSize = 12.sp, color = TextSoft)
                     Link(R.string.about_site, "https://derefdev.github.io/roomtone/", ::open)
                     Link(R.string.about_source, "https://github.com/DerefDev/roomtone", ::open)
