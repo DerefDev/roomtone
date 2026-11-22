@@ -221,6 +221,8 @@
     <string name="update_allow_install">Allow Roomtone to install apps, then tap Update again</string>
     <string name="update_auto">Check automatically</string>
     <string name="update_auto_hint">Once a day Roomtone asks GitHub for the latest version. Updates come from the Roomtone releases on GitHub and are installed only when you tap Update.</string>
+    <string name="update_managed">Updates are managed by %1$s.</string>
+    <string name="update_open">Open %1$s</string>
     <string name="update_ask_title">Check for updates?</string>
     <string name="update_ask_body">Roomtone can check GitHub once a day and tell you when a new version is out. Updates are downloaded from the Roomtone releases on GitHub (github.com/DerefDev/roomtone) and installed only when you tap Update, after Android asks you to confirm. You can change this anytime in Settings.</string>
     <string name="update_ask_yes">Check daily</string>

@@ -60,15 +60,29 @@ object Updates {
     private val _promptedTag = MutableStateFlow("")
     val promptedTag: StateFlow<String> = _promptedTag
 
+    // App che installano e aggiornano altre app: se Roomtone arriva da una di queste, gli aggiornamenti sono loro
+    private val STORES = setOf("dev.imranr.obtainium", "org.fdroid.fdroid", "org.fdroid.basic", "com.looker.droidify", "com.machiav3lli.fdroid", "com.aurora.store")
+    /** Pacchetto e nome dell'app che gestisce gli aggiornamenti (Obtainium, F-Droid…), o null: aggiornamenti interni. */
+    var manager: Pair<String, String>? = null; private set
+
+    @Suppress("DEPRECATION")
+    private fun installer(ctx: Context): String? = try {
+        if (Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
+        else ctx.packageManager.getInstallerPackageName(ctx.packageName)
+    } catch (_: Exception) { null }
+
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::sp.isInitialized) return
         sp = ctx.applicationContext.getSharedPreferences("updates", Context.MODE_PRIVATE)
-        _auto.value = sp.getBoolean("auto", false)
-        _asked.value = sp.contains("auto")
+        manager = installer(ctx)?.takeIf { it in STORES }?.let { p ->
+            p to (try { ctx.packageManager.run { getApplicationLabel(getApplicationInfo(p, 0)).toString() } } catch (_: Exception) { p })
+        }
+        _auto.value = manager == null && sp.getBoolean("auto", false)
+        _asked.value = manager != null || sp.contains("auto") // con un gestore esterno nessuna domanda al primo avvio
         _promptedTag.value = sp.getString("prompted_tag", "") ?: ""
         // la release in cache tiene il banner vivo offline; scartata se non più nuova (es. dopo l'aggiornamento)
         val r = sp.getString("release", null)?.let(::parse)
-        if (r != null && newer(r.version, BuildConfig.VERSION_NAME)) _available.value = r
+        if (manager == null && r != null && newer(r.version, BuildConfig.VERSION_NAME)) _available.value = r
         else { sp.edit().remove("release").apply(); NotificationManagerCompat.from(ctx.applicationContext).cancel(NOTIF_ID) } // avviso ormai vecchio
     }
 
@@ -113,7 +127,7 @@ object Updates {
     }
 
     fun checkIfStale(ctx: Context) {
-        if (BuildConfig.DEBUG || !_auto.value || _checking.value || System.currentTimeMillis() - sp.getLong("last_check", 0) <= DAY) return
+        if (BuildConfig.DEBUG || manager != null || !_auto.value || _checking.value || System.currentTimeMillis() - sp.getLong("last_check", 0) <= DAY) return
         run(ctx) {}
     }
 

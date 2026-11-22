@@ -29,9 +29,16 @@ written the way you already have it there.
 
 ## Getting started
 
-1. Download the APK of the
+1. Install Roomtone with [Obtainium](https://github.com/ImranR98/Obtainium),
+   which installs apps from GitHub and keeps them up to date: install
+   Obtainium, then tap the button below on the phone. The first time, Play
+   Protect may ask to scan Roomtone: let it scan, then install.
+
+   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/DerefDev/roomtone"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
+
+   Or download the APK of the
    [latest release](https://github.com/DerefDev/roomtone/releases/latest) and
-   install it on the phone.
+   install it yourself.
 2. Install [Shazam](https://www.shazam.com) on the same phone.
 3. Open Roomtone and allow notification access and display over other apps,
    so it can read what Shazam recognizes and turn Auto Shazam on for you
@@ -39,13 +46,14 @@ written the way you already have it there.
 4. Log in to Last.fm and, if you like, to Discogs.
 5. Play a record, tape or CD.
 
-If Google Play Protect says "App blocked to protect your device", see
+If you install the APK from a file and Google Play Protect says "App blocked
+to protect your device", see
 [Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation).
 
-On first start Roomtone asks whether it may check GitHub once a day for a new
-version. If you say yes, it tells you when one is out and can update itself:
-tap the banner in the menu or "Check for updates" in Settings. The first time,
-Android asks you to allow Roomtone to install apps.
+Updates: with Obtainium, Obtainium tells you about new versions and installs
+them. If you installed the APK yourself, Roomtone asks on first start whether
+it may check GitHub once a day; if you say yes, it tells you when a new
+version is out and can update itself.
 
 Roomtone needs Android 8.0 or later.
 
@@ -74,9 +82,9 @@ Roomtone is in active development and has been tested on a single phone so
 far.
 
 Google Play Protect may block the installation from a file, because Roomtone
-needs notification access to read what Shazam recognizes. See
-[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation)
-for how to install it anyway. A listing on IzzyOnDroid is on its way.
+needs notification access to read what Shazam recognizes. Installing with
+Obtainium avoids the block; see
+[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation).
 
 ## Docs
 
