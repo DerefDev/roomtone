@@ -1,1 +1,3 @@
-Changed: Settings → Permissions shows whether each permission is granted and the button only when it's missing; the battery guide link sits under the battery button; links in Settings are underlined.
+Changed:
+• Settings → Permissions shows whether each permission is granted, and the button to grant it only when it's missing. "Display over other apps" now shows its state too.
+• The link to the guide for keeping Roomtone running sits right under the battery button, and links in Settings are underlined so they stand out.

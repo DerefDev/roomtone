@@ -3,6 +3,7 @@
 
   tools/releases.py page        writes docs/release.md from the latest release
   tools/releases.py changelog   writes CHANGELOG.md from all releases
+  tools/releases.py fastlane    writes fastlane/.../changelogs/<versionCode>.txt from the latest release
 
 GitHub is the source: release notes are written (or generated) on the release itself.
 A token is read from GH_TOKEN / GITHUB_TOKEN or `gh auth token`, so private repos work too.
@@ -77,10 +78,47 @@ def changelog():
     write("CHANGELOG.md", "\n".join(out))
 
 
+def plain(md):
+    """Release notes in Markdown → the short plain text that app stores show (max 500 characters)."""
+    out, skip = [], False
+    for line in md.splitlines():
+        line = line.strip()
+        if line.startswith("#"):
+            title = line.lstrip("#").strip()
+            skip = title.lower() == "install"  # how to install is for the GitHub page only
+            if not skip:
+                out.append(title + ":")
+            continue
+        if skip or not line:
+            continue
+        line = re.sub(r"\*\*(.+?)\*\*", r"\1", re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", line))
+        if line[:2] in ("- ", "* "):
+            out.append("• " + line[2:])
+        elif out:
+            out[-1] += " " + line  # riga a capo dentro lo stesso punto
+        else:
+            out.append(line)
+    text = "\n".join(out)
+    return text if len(text) <= 500 else text[:497].rsplit(" ", 1)[0] + "…"
+
+
+def fastlane():
+    rel = api("releases/latest")
+    if not rel:
+        return
+    gradle = subprocess.run(["git", "show", f"{rel['tag_name']}:app/build.gradle.kts"], cwd=ROOT,
+                            capture_output=True, text=True, check=True).stdout
+    code = re.search(r"versionCode\s*=\s*(\d+)", gradle).group(1)
+    path = f"fastlane/metadata/android/en-US/changelogs/{code}.txt"
+    if os.path.exists(os.path.join(ROOT, path)):
+        return  # già scritto a mano: vince quello
+    write(path, plain(rel.get("body") or ""))
+
+
 def write(path, text):
     with open(os.path.join(ROOT, path), "w", encoding="utf-8") as f:
         f.write(text.rstrip() + "\n")
 
 
 if __name__ == "__main__":
-    {"page": page, "changelog": changelog}[sys.argv[1] if len(sys.argv) > 1 else "page"]()
+    {"page": page, "changelog": changelog, "fastlane": fastlane}[sys.argv[1] if len(sys.argv) > 1 else "page"]()
