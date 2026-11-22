@@ -72,6 +72,11 @@ Roomtone needs Android 8.0 or later.
 Roomtone is in active development and has been tested on a single phone so
 far.
 
+Google Play Protect may block the installation from a file, because Roomtone
+needs notification access to read what Shazam recognizes. See
+[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation)
+for how to install it anyway. A listing on IzzyOnDroid is on its way.
+
 ## Docs
 
 Also on the [website](https://derefdev.github.io/roomtone/docs/).
