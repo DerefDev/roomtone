@@ -34,7 +34,8 @@ written the way you already have it there.
    install it on the phone.
 2. Install [Shazam](https://www.shazam.com) on the same phone.
 3. Open Roomtone and allow notification access and display over other apps,
-   so it can read what Shazam recognizes and turn Auto Shazam on for you.
+   so it can read what Shazam recognizes and turn Auto Shazam on for you
+   ([why](https://derefdev.github.io/roomtone/permissions/)).
 4. Log in to Last.fm and, if you like, to Discogs.
 5. Play a record, tape or CD.
 

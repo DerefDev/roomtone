@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
@@ -35,6 +37,7 @@ enum class Screen { KIOSK, SCROBBLE, SETTINGS, COVERS, CREDITS, STANDBY }
 class MainActivity : AppCompatActivity() {
 
     private var accessGranted by mutableStateOf(false)
+    private var overlayGranted by mutableStateOf(false)
     private var loginError by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()
         DiscogsCollection.startIfStale()
-        setContent { Root(accessGranted, loginError) }
+        setContent { Root(accessGranted, overlayGranted, loginError) }
     }
 
     // modalità immersiva: barre nascoste, swipe per mostrarle temporaneamente
@@ -109,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         ShazamControl.consumeRestart(this)
         ShazamControl.onForeground(this)
         accessGranted = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+        overlayGranted = android.provider.Settings.canDrawOverlays(this)
         // Dopo un aggiornamento o se EMUI chiude il processo, il sistema può non ricollegare il listener:
         // con accesso concesso ma listener scollegato, chiedi esplicitamente il ricollegamento.
         if (accessGranted && !ShazamControl.listenerUp) {
@@ -147,7 +151,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-private fun Root(accessGranted: Boolean, loginError: String?) {
+private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: String?) {
     val np by EventStore.nowPlaying.collectAsStateWithLifecycle()
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val scrobbling by Prefs.scrobbling.collectAsStateWithLifecycle()
@@ -184,6 +188,15 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
             screen = Screen.STANDBY
         }
     }
+    // schermate secondarie dimenticate aperte (Impostazioni, Scrobble…): dopo gli stessi minuti senza tocchi
+    // si torna alla principale, da cui parte il normale timer dello standby. Ogni tocco fa ripartire il conto.
+    var lastTouch by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(screen, lastTouch, autoOn, mins) {
+        if (autoOn && screen != Screen.KIOSK && screen != Screen.STANDBY) {
+            delay(mins * 60_000L)
+            screen = Screen.KIOSK
+        }
+    }
     // uscita dallo standby (tap o back) → riaccende Shazam se era acceso
     fun leave() {
         if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx, user = true)
@@ -194,19 +207,22 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
 
     RoomtoneTheme(cover) {
         if (screen == Screen.STANDBY) StandbyScreen { leave() }
-        else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+        else Box(Modifier.fillMaxSize()
+            // osserva ogni tocco senza consumarlo (passaggio Initial): serve solo a far ripartire il conto qui sopra
+            .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent(PointerEventPass.Initial); lastTouch = System.currentTimeMillis() } } }
+            .windowInsetsPadding(WindowInsets.safeDrawing)) {
             val cl = changelog; val up = update
             if (cl != null) ChangelogDialog(cl, Updates::changelogSeen)
             else if (!asked) AutoCheckDialog { Updates.setAuto(it); if (it) Updates.checkIfStale(ctx) }
             else if (up != null && up.tag != promptedTag) UpdateDialog(up, { Updates.prompted(up.tag); Updates.install(ctx) }, { Updates.prompted(up.tag) })
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
-                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
+                Screen.SETTINGS -> SettingsScreen(accessGranted, overlayGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
                 Screen.COVERS -> CoversScreen { screen = Screen.SETTINGS }
                 Screen.CREDITS -> CreditsScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn,
+                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn, accessGranted, overlayGranted,
                         onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
                     )
                     Drawer(

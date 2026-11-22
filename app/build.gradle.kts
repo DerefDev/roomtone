@@ -42,9 +42,9 @@ android {
         applicationId = "dev.deref.roomtone"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
+        versionCode = 15
         // in CI the name comes from the tag (v0.9-beta1 → "0.9-beta1"); locally from here
-        versionName = System.getenv("GITHUB_REF_NAME")?.takeIf { it.startsWith("v") }?.removePrefix("v") ?: "0.9.1"
+        versionName = System.getenv("GITHUB_REF_NAME")?.takeIf { it.startsWith("v") }?.removePrefix("v") ?: "0.9.2"
         buildConfigField("String", "LASTFM_API_KEY", "\"${secrets.getProperty("LASTFM_API_KEY", "").trim()}\"")
         buildConfigField("String", "LASTFM_API_SECRET", "\"${secrets.getProperty("LASTFM_API_SECRET", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_KEY", "\"${secrets.getProperty("DISCOGS_CONSUMER_KEY", "").trim()}\"")

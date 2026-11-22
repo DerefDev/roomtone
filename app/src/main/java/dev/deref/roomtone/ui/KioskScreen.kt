@@ -1,6 +1,11 @@
 package dev.deref.roomtone.ui
 
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.Settings
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import android.text.format.DateFormat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -51,6 +56,7 @@ import java.util.Date
 @Composable
 fun KioskScreen(
     np: NowPlaying?, cover: Bitmap?, scrobbling: Boolean, online: Boolean, drafts: Int, shazamOn: Boolean,
+    accessGranted: Boolean, overlayGranted: Boolean,
     onMenu: () -> Unit, onDrafts: () -> Unit,
 ) {
     val accent = LocalAccent.current
@@ -59,7 +65,8 @@ fun KioskScreen(
         val margin = h * 0.07f
         val hint = 28.dp // spazio per "scorri per il testo" sotto la copertina
         val side = minOf(h - margin * 2 - hint, maxWidth * 0.45f)
-        Row(Modifier.fillMaxSize().padding(margin), verticalAlignment = Alignment.CenterVertically) {
+        if (np == null && !(accessGranted && overlayGranted)) SetupCard(accessGranted, overlayGranted, Modifier.align(Alignment.Center).padding(horizontal = margin, vertical = 56.dp))
+        else Row(Modifier.fillMaxSize().padding(margin), verticalAlignment = Alignment.CenterVertically) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Cover(cover, np?.track, np?.ownedTitle, np?.album?.takeIf { it.source == AlbumSource.OWNED }?.title, Modifier.size(side))
                 Box(Modifier.height(hint), contentAlignment = Alignment.BottomCenter) {
@@ -100,6 +107,31 @@ fun KioskScreen(
             if (!shazamOn) StatusBadge(stringResource(R.string.badge_shazam_off))
             if (!online) StatusBadge(stringResource(R.string.badge_offline))
             if (drafts > 0) StatusBadge(stringResource(R.string.badge_review, drafts), onDrafts)
+        }
+    }
+}
+
+// Primo avvio: spiega i due permessi e apre la schermata di sistema giusta; sparisce da sola a permessi concessi (stato ricalcolato in onResume)
+@Composable
+private fun SetupCard(access: Boolean, overlay: Boolean, modifier: Modifier) {
+    val ctx = LocalContext.current
+    val accent = LocalAccent.current
+    fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
+    @Composable fun row(name: Int, why: Int, ok: Boolean, i: Intent) = Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(name), color = TextMain, fontSize = 16.sp)
+            Text(stringResource(why), color = TextSoft, fontSize = 13.sp)
+        }
+        if (ok) Text("✓ " + stringResource(R.string.perm_granted), color = accent, fontSize = 14.sp) // ponytail: spunta testuale → icona dedicata
+        else Button({ open(i) }) { Text(stringResource(R.string.setup_grant)) }
+    }
+    Surface(modifier.widthIn(max = 560.dp), shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.06f)) {
+        Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(R.string.setup_title), color = accent, fontSize = 18.sp)
+            row(R.string.perm_notif_name, R.string.perm_notif_why, access, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            row(R.string.overlay_perm, R.string.perm_overlay_why, overlay, Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.packageName)))
+            Text(stringResource(R.string.setup_more), color = accent, fontSize = 14.sp,
+                modifier = Modifier.clickable { open(Intent(Intent.ACTION_VIEW, Uri.parse("https://derefdev.github.io/roomtone/permissions/"))) }.padding(vertical = 4.dp))
         }
     }
 }

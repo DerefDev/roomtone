@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageInstaller
 import android.net.Uri
@@ -18,6 +19,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,8 @@ data class Release(val tag: String, val version: String, val notes: String, val 
 // Aggiornamenti in-app: controllo su GitHub Releases, notifica, changelog, installazione via PackageInstaller.
 object Updates {
     private const val REPO = "https://api.github.com/repos/DerefDev/roomtone/releases"
+    private const val NOTIF_ID = 1
+    private const val ACTION = "dev.deref.roomtone.INSTALL_STATUS"
     private const val DAY = 24 * 3600_000L
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var sp: SharedPreferences
@@ -64,7 +68,8 @@ object Updates {
         _promptedTag.value = sp.getString("prompted_tag", "") ?: ""
         // la release in cache tiene il banner vivo offline; scartata se non più nuova (es. dopo l'aggiornamento)
         val r = sp.getString("release", null)?.let(::parse)
-        if (r != null && newer(r.version, BuildConfig.VERSION_NAME)) _available.value = r else sp.edit().remove("release").apply()
+        if (r != null && newer(r.version, BuildConfig.VERSION_NAME)) _available.value = r
+        else { sp.edit().remove("release").apply(); NotificationManagerCompat.from(ctx.applicationContext).cancel(NOTIF_ID) } // avviso ormai vecchio
     }
 
     fun setAuto(v: Boolean) { _auto.value = v; _asked.value = true; sp.edit().putBoolean("auto", v).apply() }
@@ -102,6 +107,7 @@ object Updates {
         val n = newer(r.version, BuildConfig.VERSION_NAME)
         sp.edit().putLong("last_check", System.currentTimeMillis()).apply { if (n) putString("release", body) else remove("release") }.apply()
         _available.value = if (n) r else null
+        if (!n) NotificationManagerCompat.from(ctx.applicationContext).cancel(NOTIF_ID)
         if (n && sp.getString("notified_tag", null) != r.tag) { notify(ctx.applicationContext, r); sp.edit().putString("notified_tag", r.tag).apply() }
         return true
     }
@@ -130,7 +136,7 @@ object Updates {
         val n = NotificationCompat.Builder(ctx, "updates").setSmallIcon(R.drawable.ic_update)
             .setContentTitle(ctx.getString(R.string.update_notif_title, r.version)).setContentText(ctx.getString(R.string.update_notif_text))
             .setContentIntent(tap).setAutoCancel(true).build()
-        try { nm.notify(1, n) } catch (_: SecurityException) { /* ponytail: permesso revocato → nessuna notifica */ }
+        try { nm.notify(NOTIF_ID, n) } catch (_: SecurityException) { /* ponytail: permesso revocato → nessuna notifica */ }
     }
 
     fun toast(ctx: Context, res: Int) { main.post { Toast.makeText(ctx.applicationContext, res, Toast.LENGTH_LONG).show() } }
@@ -152,19 +158,46 @@ object Updates {
                 }
                 val pi = app.packageManager.packageInstaller
                 val id = pi.createSession(PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply { setAppPackageName(app.packageName) })
+                registerStatusReceiver(app)
                 pi.openSession(id).use { s ->
                     s.openWrite("apk", 0, apk.size.toLong()).use { it.write(apk); s.fsync(it) }
                     val flags = PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0
-                    s.commit(PendingIntent.getBroadcast(app, 0, Intent(app, UpdateReceiver::class.java), flags).intentSender)
+                    s.commit(PendingIntent.getBroadcast(app, 0, Intent(ACTION).setPackage(app.packageName), flags).intentSender)
                 }
             } catch (e: Exception) {
                 Log.d("Roomtone", "Installazione fallita: ${e.javaClass.simpleName}")
-                toast(app, R.string.update_install_failed); _installing.value = false
+                toast(app, R.string.update_install_failed); _installing.value = false; unregisterStatusReceiver(app)
             }
         }
     }
 
     fun installDone() { _installing.value = false }
+
+    // Receiver a runtime (coda parallela): quello da manifest dopo un riavvio restava dietro BOOT_COMPLETED (~3 min di ritardo)
+    private var statusRx: BroadcastReceiver? = null
+    @Synchronized private fun registerStatusReceiver(app: Context) {
+        unregisterStatusReceiver(app)
+        val rx = object : BroadcastReceiver() { override fun onReceive(c: Context, i: Intent) = onInstallStatus(c, i) }
+        statusRx = rx
+        ContextCompat.registerReceiver(app, rx, IntentFilter(ACTION), ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+    @Synchronized private fun unregisterStatusReceiver(app: Context) {
+        statusRx?.let { try { app.unregisterReceiver(it) } catch (_: IllegalArgumentException) { /* già rimosso */ } }
+        statusRx = null
+    }
+
+    private fun onInstallStatus(c: Context, i: Intent) {
+        val st = i.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+        when (st) {
+            PackageInstaller.STATUS_PENDING_USER_ACTION -> { // non terminale: il receiver resta
+                IntentCompat.getParcelableExtra(i, Intent.EXTRA_INTENT, Intent::class.java)?.let { c.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                return
+            }
+            PackageInstaller.STATUS_SUCCESS, PackageInstaller.STATUS_FAILURE_ABORTED -> {} // ok / annullato dall'utente
+            else -> { Log.d("Roomtone", "Installazione: stato $st"); toast(c, R.string.update_install_failed) }
+        }
+        installDone(); unregisterStatusReceiver(c.applicationContext)
+    }
 
     // Changelog dopo un aggiornamento: seen_code salvato solo alla chiusura (offline → riprova alla prossima apertura)
     fun checkChangelog(ctx: Context) {
@@ -181,17 +214,4 @@ object Updates {
     }
 
     fun changelogSeen() { _changelog.value = null; sp.edit().putInt("seen_code", BuildConfig.VERSION_CODE).apply() }
-}
-
-class UpdateReceiver : BroadcastReceiver() {
-    override fun onReceive(c: Context, i: Intent) {
-        val st = i.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
-        when (st) {
-            PackageInstaller.STATUS_PENDING_USER_ACTION -> IntentCompat.getParcelableExtra(i, Intent.EXTRA_INTENT, Intent::class.java)
-                ?.let { c.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            PackageInstaller.STATUS_SUCCESS -> Updates.installDone()
-            PackageInstaller.STATUS_FAILURE_ABORTED -> Updates.installDone() // annullato dall'utente
-            else -> { Log.d("Roomtone", "Installazione: stato $st"); Updates.toast(c, R.string.update_install_failed); Updates.installDone() }
-        }
-    }
 }
