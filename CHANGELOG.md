@@ -2,6 +2,21 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9.4](https://github.com/DerefDev/roomtone/releases/tag/v0.9.4) - 2026-11-22
+
+#### Changed
+
+- Settings → Permissions shows whether each permission is granted, and the
+  button to grant it only when it's missing. "Display over other apps" now
+  shows its state too.
+- The link to the guide for keeping Roomtone running sits right under the
+  battery button, and links in Settings are underlined so they stand out.
+
+#### Install
+
+With Obtainium, update from Obtainium. If you installed the APK yourself,
+tap **Update** in Roomtone, or download `roomtone-v0.9.4.apk` below.
+
 ## [v0.9.3](https://github.com/DerefDev/roomtone/releases/tag/v0.9.3) - 2026-11-22
 
 #### New
