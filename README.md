@@ -6,6 +6,8 @@
 
 <p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
 
+<p align="center"><a href="https://github.com/DerefDev/roomtone/releases/latest"><img src="https://img.shields.io/github/v/release/DerefDev/roomtone" alt="release"></a> <a href="https://github.com/DerefDev/roomtone/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/DerefDev/roomtone/release.yml?label=build" alt="build"></a> <a href="https://github.com/DerefDev/roomtone/blob/main/LICENSE"><img src="https://img.shields.io/github/license/DerefDev/roomtone" alt="license"></a> <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&amp;logoColor=white" alt="Android 8.0+"></p>
+
 <p align="center"><a href="https://derefdev.github.io/roomtone/">Website</a> · <a href="https://derefdev.github.io/roomtone/docs/">Docs</a> · <a href="https://github.com/DerefDev/roomtone/releases/latest">Download</a></p>
 
 Streaming services scrobble to Last.fm on their own. The music you play on
