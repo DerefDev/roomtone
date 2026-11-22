@@ -10,6 +10,28 @@ val secrets = Properties().apply {
     rootProject.file("secrets.properties").takeIf { it.exists() }?.reader()?.use { load(it) }
 }
 
+// lingue = inglese + ogni cartella values-xx tradotta almeno all'80% ("pt-rBR" → "pt-BR", "b+sr+Latn" → "sr-Latn").
+// Valgono per il menu dell'app (BuildConfig.LANGS) e per l'elenco di sistema (locales_config); le lingue sotto soglia
+// restano nell'APK (stringhe tradotte + inglese) ma non compaiono. Crowdin esporta anche file vuoti per le lingue non tradotte.
+fun count(f: File) = Regex("<(string|plurals) name=\"[^\"]+\"(?! translatable=\"false\")").findAll(f.readText()).count()
+val total = count(file("src/main/res/values/strings.xml"))
+val appLangs = listOf("en") + (file("src/main/res").listFiles() ?: emptyArray())
+    .filter { it.name.startsWith("values-") && File(it, "strings.xml").let { f -> f.exists() && count(f) * 5 >= total * 4 } }
+    .map { it.name.removePrefix("values-").removePrefix("b+").replace("-r", "-").replace('+', '-') }.sorted()
+
+abstract class LocaleConfigTask : DefaultTask() {
+    @get:Input abstract val langs: ListProperty<String>
+    @get:OutputDirectory abstract val outDir: DirectoryProperty
+    @TaskAction fun write() {
+        val f = outDir.file("xml/locales_config.xml").get().asFile
+        f.parentFile.mkdirs()
+        f.writeText(langs.get().joinToString("\n", "<locale-config xmlns:android=\"http://schemas.android.com/apk/res/android\">\n", "\n</locale-config>\n") {
+            "    <locale android:name=\"$it\"/>"
+        })
+    }
+}
+val localeConfig = tasks.register<LocaleConfigTask>("localeConfig") { langs.set(appLangs) }
+
 android {
     namespace = "dev.deref.roomtone"
     compileSdk = 37
@@ -25,18 +47,8 @@ android {
         buildConfigField("String", "LASTFM_API_SECRET", "\"${secrets.getProperty("LASTFM_API_SECRET", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_KEY", "\"${secrets.getProperty("DISCOGS_CONSUMER_KEY", "").trim()}\"")
         buildConfigField("String", "DISCOGS_CONSUMER_SECRET", "\"${secrets.getProperty("DISCOGS_CONSUMER_SECRET", "").trim()}\"")
-        // lingue = inglese + ogni cartella values-xx tradotta almeno all'80% ("pt-rBR" → "pt-BR", "b+sr+Latn" → "sr-Latn");
-        // le lingue sotto soglia restano nell'APK (stringhe tradotte + inglese) ma non nel menu
-        fun count(f: File) = Regex("<(string|plurals) name=\"[^\"]+\"(?! translatable=\"false\")").findAll(f.readText()).count()
-        val total = count(file("src/main/res/values/strings.xml"))
-        val langs = listOf("en") + (file("src/main/res").listFiles() ?: emptyArray())
-            .filter { it.name.startsWith("values-") && File(it, "strings.xml").let { f -> f.exists() && count(f) * 5 >= total * 4 } }
-            .map { it.name.removePrefix("values-").removePrefix("b+").replace("-r", "-").replace('+', '-') }.sorted()
-        buildConfigField("String", "LANGS", "\"${langs.joinToString(",")}\"")
+        buildConfigField("String", "LANGS", "\"${appLangs.joinToString(",")}\"")
         buildConfigField("String", "GENIUS_ACCESS_TOKEN", "\"${secrets.getProperty("GENIUS_ACCESS_TOKEN", "").trim()}\"")
-    }
-    androidResources {
-        generateLocaleConfig = true // locales_config dalle cartelle values-*
     }
     // firma release: keystore da env (CI) o secrets.properties (locale), stessa password per store e chiave (PKCS12).
     // ponytail: senza keystore la release si firma con la chiave debug, solo per provare R8 in locale; il workflow controlla che ci sia.
@@ -57,6 +69,10 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+androidComponents {
+    onVariants { it.sources.res?.addGeneratedSourceDirectory(localeConfig, LocaleConfigTask::outDir) }
 }
 
 dependencies {
