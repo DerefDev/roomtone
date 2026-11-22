@@ -49,8 +49,6 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".UpdateReceiver" android:exported="false" />
-
         <!-- salva la lingua per-app su API < 33 -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

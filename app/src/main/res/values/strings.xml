@@ -82,7 +82,15 @@
     <string name="battery_opt">Battery optimization</string>
     <string name="battery_help">Roomtone stops after a while? How to keep it running</string>
     <string name="overlay_perm">Display over other apps</string>
-    <string name="overlay_hint">Needed to turn on Auto Shazam and come back to Roomtone automatically.</string>
+    <string name="setup_title">Roomtone needs two permissions to work</string>
+    <string name="setup_more">Why these permissions?</string>
+    <string name="setup_grant">Grant</string>
+    <string name="perm_granted">Granted</string>
+    <string name="perm_notif_name">Notification access</string>
+    <string name="perm_notif_why">To read what Shazam recognizes. Roomtone ignores every other notification.</string>
+    <string name="perm_overlay_why">To start Auto Shazam for you from the background.</string>
+    <string name="perm_post_why">To tell you when a new version is out.</string>
+    <string name="perm_battery_why">Keeps Android from stopping Roomtone in the background.</string>
     <string name="sec_standby">Standby</string>
     <string name="standby_auto">Automatic standby</string>
     <string name="standby_after">Standby after</string>

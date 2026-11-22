@@ -35,6 +35,7 @@ enum class Screen { KIOSK, SCROBBLE, SETTINGS, COVERS, CREDITS, STANDBY }
 class MainActivity : AppCompatActivity() {
 
     private var accessGranted by mutableStateOf(false)
+    private var overlayGranted by mutableStateOf(false)
     private var loginError by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()
         DiscogsCollection.startIfStale()
-        setContent { Root(accessGranted, loginError) }
+        setContent { Root(accessGranted, overlayGranted, loginError) }
     }
 
     // modalità immersiva: barre nascoste, swipe per mostrarle temporaneamente
@@ -109,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         ShazamControl.consumeRestart(this)
         ShazamControl.onForeground(this)
         accessGranted = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+        overlayGranted = android.provider.Settings.canDrawOverlays(this)
         // Dopo un aggiornamento o se EMUI chiude il processo, il sistema può non ricollegare il listener:
         // con accesso concesso ma listener scollegato, chiedi esplicitamente il ricollegamento.
         if (accessGranted && !ShazamControl.listenerUp) {
@@ -147,7 +149,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-private fun Root(accessGranted: Boolean, loginError: String?) {
+private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: String?) {
     val np by EventStore.nowPlaying.collectAsStateWithLifecycle()
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val scrobbling by Prefs.scrobbling.collectAsStateWithLifecycle()
@@ -201,12 +203,12 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
             else if (up != null && up.tag != promptedTag) UpdateDialog(up, { Updates.prompted(up.tag); Updates.install(ctx) }, { Updates.prompted(up.tag) })
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
-                Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
+                Screen.SETTINGS -> SettingsScreen(accessGranted, overlayGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
                 Screen.COVERS -> CoversScreen { screen = Screen.SETTINGS }
                 Screen.CREDITS -> CreditsScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn,
+                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn, accessGranted, overlayGranted,
                         onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
                     )
                     Drawer(

@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -76,6 +77,9 @@ private fun LangMenu() {
 private fun Link(res: Int, url: String, open: (Intent) -> Unit) =
     Text(stringResource(res), color = LocalAccent.current, fontSize = 14.sp, modifier = Modifier.clickable { open(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.padding(vertical = 4.dp))
 
+@Composable
+private fun Why(res: Int) = Text(stringResource(res), fontSize = 12.sp, color = TextSoft)
+
 // Dialogo minuti personalizzati (1..240); OK attivo solo se valido
 @Composable
 private fun CustomMinDialog(cur: Int, onDismiss: () -> Unit) {
@@ -121,7 +125,7 @@ private fun VersionsArea() {
 }
 
 @Composable
-fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> Unit, onCredits: () -> Unit, onBack: () -> Unit) {
+fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: String?, onCovers: () -> Unit, onCredits: () -> Unit, onBack: () -> Unit) {
     val ctx = LocalContext.current
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val connected by EventStore.connected.collectAsStateWithLifecycle()
@@ -145,9 +149,36 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
     fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
 
+    val missing = !accessGranted || !overlayGranted // permessi mancanti → area Permessi in cima
+    val permissions: LazyListScope.() -> Unit = {
+        item {
+            Area(R.string.sec_permissions) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.notif_access, stringResource(if (accessGranted) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
+                    Button({ open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) { Text(stringResource(R.string.grant_access)) }
+                }
+                Why(R.string.perm_notif_why)
+                if (Build.VERSION.SDK_INT >= 33) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val ok = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+                    Text(stringResource(R.string.notif_perm, stringResource(if (ok) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
+                    Button({ open(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)) }) { Text(stringResource(R.string.grant_access)) }
+                }
+                if (Build.VERSION.SDK_INT >= 33) Why(R.string.perm_post_why)
+                Button({ open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { Text(stringResource(R.string.battery_opt)) }
+                Why(R.string.perm_battery_why)
+                // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
+                Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) }
+                Why(R.string.perm_overlay_why)
+                // istruzioni per marca (Huawei, Xiaomi…) sul sito: cambiano spesso, lì si aggiornano senza release
+                Link(R.string.battery_help, "https://derefdev.github.io/roomtone/troubleshooting/#roomtone-stops-working-after-a-while", ::open)
+            }
+        }
+    }
+
     if (customDlg) CustomMinDialog(mins, { customDlg = false })
     Page(stringResource(R.string.settings_title), onBack) {
         LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (missing) permissions()
             item {
                 Area(R.string.sec_account) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -261,25 +292,7 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
             }
             item { VersionsArea() }
             item { Area(R.string.sec_general) { LangMenu() } }
-            item {
-                Area(R.string.sec_permissions) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(stringResource(R.string.notif_access, stringResource(if (accessGranted) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
-                        Button({ open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) { Text(stringResource(R.string.grant_access)) }
-                    }
-                    if (Build.VERSION.SDK_INT >= 33) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        val ok = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
-                        Text(stringResource(R.string.notif_perm, stringResource(if (ok) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
-                        Button({ open(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)) }) { Text(stringResource(R.string.grant_access)) }
-                    }
-                    Button({ open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { Text(stringResource(R.string.battery_opt)) }
-                    // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
-                    Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) }
-                    Text(stringResource(R.string.overlay_hint), style = MaterialTheme.typography.bodySmall, color = TextMain.copy(alpha = 0.6f))
-                    // istruzioni per marca (Huawei, Xiaomi…) sul sito: cambiano spesso, lì si aggiornano senza release
-                    Link(R.string.battery_help, "https://derefdev.github.io/roomtone/troubleshooting/#roomtone-stops-working-after-a-while", ::open)
-                }
-            }
+            if (!missing) permissions()
             if (diag) {
                 item {
                     Area(R.string.sec_diag) {

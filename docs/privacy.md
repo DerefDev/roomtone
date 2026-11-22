@@ -14,7 +14,8 @@ requests described below.
 The other permissions are internet access, network state (to know when to
 send queued scrobbles), display over other apps (to start Auto Shazam),
 notifications (to tell you about a new version) and installing apps (to
-install an update you asked for).
+install an update you asked for). [Permissions](permissions.md) explains
+each one.
 
 ## What leaves the phone
 

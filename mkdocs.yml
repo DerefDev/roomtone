@@ -60,6 +60,7 @@ nav:
           - Scrobbling: scrobbling.md
           - Lyrics and covers: lyrics-and-covers.md
       - Help:
+          - Permissions: permissions.md
           - Troubleshooting: troubleshooting.md
           - Privacy: privacy.md
       - Contribute:
