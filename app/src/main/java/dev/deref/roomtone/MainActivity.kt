@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
@@ -186,6 +188,15 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
             screen = Screen.STANDBY
         }
     }
+    // schermate secondarie dimenticate aperte (Impostazioni, Scrobble…): dopo gli stessi minuti senza tocchi
+    // si torna alla principale, da cui parte il normale timer dello standby. Ogni tocco fa ripartire il conto.
+    var lastTouch by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(screen, lastTouch, autoOn, mins) {
+        if (autoOn && screen != Screen.KIOSK && screen != Screen.STANDBY) {
+            delay(mins * 60_000L)
+            screen = Screen.KIOSK
+        }
+    }
     // uscita dallo standby (tap o back) → riaccende Shazam se era acceso
     fun leave() {
         if (screen == Screen.STANDBY && standbyWasOn) ShazamControl.start(ctx, user = true)
@@ -196,7 +207,10 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
 
     RoomtoneTheme(cover) {
         if (screen == Screen.STANDBY) StandbyScreen { leave() }
-        else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+        else Box(Modifier.fillMaxSize()
+            // osserva ogni tocco senza consumarlo (passaggio Initial): serve solo a far ripartire il conto qui sopra
+            .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent(PointerEventPass.Initial); lastTouch = System.currentTimeMillis() } } }
+            .windowInsetsPadding(WindowInsets.safeDrawing)) {
             val cl = changelog; val up = update
             if (cl != null) ChangelogDialog(cl, Updates::changelogSeen)
             else if (!asked) AutoCheckDialog { Updates.setAuto(it); if (it) Updates.checkIfStale(ctx) }
