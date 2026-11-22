@@ -69,7 +69,7 @@ def page():
 
 
 def changelog():
-    rels = [r for r in (api("releases?per_page=100") or []) if not r["draft"]]
+    rels = [r for r in (api("releases?per_page=100") or []) if not r["draft"] and not r["prerelease"]]  # betas stay out
     out = ["# Changelog\n", "Generated from the [releases on GitHub]"
            f"({WEB}/releases) after each release. Edit the notes there, not here.\n"]
     for r in rels:
