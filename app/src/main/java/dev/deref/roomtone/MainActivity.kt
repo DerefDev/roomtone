@@ -159,6 +159,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     val update by Updates.available.collectAsStateWithLifecycle()
     val changelog by Updates.changelog.collectAsStateWithLifecycle()
     val promptedTag by Updates.promptedTag.collectAsStateWithLifecycle()
+    val asked by Updates.asked.collectAsStateWithLifecycle()
     var standbyWasOn by remember { mutableStateOf(false) } // Auto Shazam acceso prima dello standby manuale
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -196,6 +197,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
         else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             val cl = changelog; val up = update
             if (cl != null) ChangelogDialog(cl, Updates::changelogSeen)
+            else if (!asked) AutoCheckDialog { Updates.setAuto(it); if (it) Updates.checkIfStale(ctx) }
             else if (up != null && up.tag != promptedTag) UpdateDialog(up, { Updates.prompted(up.tag); Updates.install(ctx) }, { Updates.prompted(up.tag) })
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }

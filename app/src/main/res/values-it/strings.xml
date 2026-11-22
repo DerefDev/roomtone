@@ -81,7 +81,6 @@
     <string name="battery_opt">Ottimizzazione batteria</string>
     <string name="overlay_perm">Mostra sopra altre app</string>
     <string name="overlay_hint">Serve per accendere Auto Shazam e tornare a Roomtone in automatico.</string>
-    <string name="huawei_note">Su Huawei (EMUI) consenti anche l\'avvio automatico di Roomtone: Impostazioni → Batteria → Avvio app → Roomtone → gestisci manualmente.</string>
     <string name="sec_standby">Standby</string>
     <string name="standby_auto">Standby automatico</string>
     <string name="standby_after">Standby dopo</string>

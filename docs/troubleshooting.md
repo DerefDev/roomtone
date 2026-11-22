@@ -1,5 +1,21 @@
 # Troubleshooting
 
+## Play Protect blocks the installation
+
+Roomtone needs notification access to read what Shazam recognizes. Google
+Play Protect blocks apps that ask for it when they are installed from a
+browser or a file manager, and shows "App blocked to protect your device"
+with only an OK button. To install Roomtone anyway:
+
+1. Open the Play Store, tap your profile picture, then **Play Protect**.
+2. Tap the gear icon and turn off **Scan apps with Play Protect**.
+3. Install the Roomtone APK.
+4. Turn **Scan apps with Play Protect** back on.
+
+Installing from [Obtainium](https://github.com/ImranR98/Obtainium) or
+[IzzyOnDroid](https://apt.izzysoft.de/fdroid/), once Roomtone is listed
+there, may avoid the block.
+
 ## Nothing shows up on screen
 
 1. Check that Auto Shazam is on: the menu shows its switch, and Shazam shows

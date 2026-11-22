@@ -1,0 +1,1 @@
+New: on first start Roomtone asks whether it may check GitHub once a day for a new version; nothing is checked until you say yes. Settings → Permissions links to the guide for keeping Roomtone running on phones that close apps in the background.
