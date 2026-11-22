@@ -1,0 +1,1 @@
+New: the main screen and Settings explain the two required permissions, with a button to grant each. Screens left open go back to the main screen after the standby time, so standby still starts. Fixed: the update notice goes away after updating; the install confirmation appears at once right after a restart.
