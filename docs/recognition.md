@@ -18,8 +18,8 @@ Auto Shazam is turned off:
 - when you leave Roomtone or close it
 
 and turned back on when the screen comes back on, when you leave standby or
-when you return to the app, if it was on before. You can also switch it on
-and off from the menu.
+when you return to the app, if it was on before. If it doesn't start, you can
+switch it on from Settings.
 
 To start Shazam from the background, Android needs the "display over other
 apps" permission. To read what Shazam recognizes, Roomtone needs notification

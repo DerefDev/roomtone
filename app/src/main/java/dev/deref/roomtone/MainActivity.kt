@@ -5,7 +5,10 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
@@ -49,6 +52,13 @@ class MainActivity : AppCompatActivity() {
         EventStore.init(filesDir)
         VersionChoices.init(filesDir)
         ScrobbleQueue.init(this)
+        Updates.init(this)
+        Updates.checkChangelog(this)
+        // una sola volta: permesso notifiche (API 33+) per l'avviso di nuove versioni
+        if (savedInstanceState == null && Build.VERSION.SDK_INT >= 33 && !Updates.notifAsked) {
+            Updates.notifAsked = true
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
         HistorySync.startIfStale()
         DiscogsCollection.startIfStale()
@@ -93,6 +103,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ShazamControl.visible = true
+        Updates.checkIfStale(this)
         ShazamControl.maybeAutoStart(this)
         ShazamControl.onScreenOn(this) // USER_PRESENT non sempre arriva (es. sblocco senza PIN): ricontrolla qui
         ShazamControl.consumeRestart(this)
@@ -145,6 +156,9 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
     val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
+    val update by Updates.available.collectAsStateWithLifecycle()
+    val changelog by Updates.changelog.collectAsStateWithLifecycle()
+    val promptedTag by Updates.promptedTag.collectAsStateWithLifecycle()
     var standbyWasOn by remember { mutableStateOf(false) } // Auto Shazam acceso prima dello standby manuale
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -180,6 +194,9 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
     RoomtoneTheme(cover) {
         if (screen == Screen.STANDBY) StandbyScreen { leave() }
         else Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            val cl = changelog; val up = update
+            if (cl != null) ChangelogDialog(cl, Updates::changelogSeen)
+            else if (up != null && up.tag != promptedTag) UpdateDialog(up, { Updates.prompted(up.tag); Updates.install(ctx) }, { Updates.prompted(up.tag) })
             when (screen) {
                 Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
                 Screen.SETTINGS -> SettingsScreen(accessGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
@@ -192,7 +209,7 @@ private fun Root(accessGranted: Boolean, loginError: String?) {
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
-                        shazamOn = shazamOn, onShazam = { if (it) ShazamControl.start(ctx, user = true) else ShazamControl.stop() },
+                        update = update, onUpdate = { Updates.install(ctx) },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
                         onStandby = {

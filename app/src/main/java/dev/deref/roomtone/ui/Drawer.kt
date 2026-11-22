@@ -24,13 +24,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.deref.roomtone.R
+import dev.deref.roomtone.Release
+import dev.deref.roomtone.Updates
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
 
 // Pannello da destra su overlay scuro; chiusura con tap fuori o back.
 @Composable
 fun Drawer(
     open: Boolean, onClose: () -> Unit, scrobbling: Boolean, onScrobbling: (Boolean) -> Unit,
-    shazamOn: Boolean, onShazam: (Boolean) -> Unit,
     onSettings: () -> Unit, onScrobble: () -> Unit, onStandby: () -> Unit,
+    update: Release? = null, onUpdate: () -> Unit = {},
 ) {
     val accent = LocalAccent.current
     BackHandler(open, onClose)
@@ -47,11 +53,19 @@ fun Drawer(
                     .clickable(remember { MutableInteractionSource() }, null) {} // tap sul pannello non chiude
                     .padding(vertical = 16.dp),
             ) {
+                if (update != null) {
+                    val busy by Updates.installing.collectAsState()
+                    Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(accent.copy(alpha = 0.18f))
+                        .clickable(enabled = !busy, onClick = onUpdate).padding(12.dp)) {
+                        Text(stringResource(R.string.update_banner, update.version), color = accent, fontSize = 16.sp)
+                        if (busy) CircularProgressIndicator(Modifier.padding(top = 4.dp).size(16.dp), color = accent, strokeWidth = 2.dp)
+                        else Text(stringResource(R.string.update_banner_hint), color = accent, fontSize = 12.sp)
+                    }
+                }
                 Item(R.drawable.ic_settings, stringResource(R.string.menu_settings), onSettings)
                 Item(R.drawable.ic_scrobble, stringResource(R.string.menu_scrobble), onScrobble)
                 Item(R.drawable.ic_power, stringResource(R.string.menu_standby), onStandby)
                 HorizontalDivider(Modifier.padding(vertical = 8.dp), color = accent.copy(alpha = 0.3f))
-                SwitchRow(stringResource(R.string.menu_shazam), shazamOn, onShazam) // solo Shazam, indipendente dallo standby
                 SwitchRow(stringResource(R.string.menu_scrobbling), scrobbling, onScrobbling)
             }
         }
