@@ -83,3 +83,13 @@ fun ChangelogDialog(r: Release, onDismiss: () -> Unit) {
             }
         })
 }
+
+// Domanda al primo avvio: il controllo automatico parte solo con un sì esplicito
+@Composable
+fun AutoCheckDialog(onAnswer: (Boolean) -> Unit) {
+    AlertDialog({ onAnswer(false) },
+        title = { Text(stringResource(R.string.update_ask_title)) },
+        text = { Text(stringResource(R.string.update_ask_body)) },
+        confirmButton = { TextButton({ onAnswer(true) }) { Text(stringResource(R.string.update_ask_yes)) } },
+        dismissButton = { TextButton({ onAnswer(false) }) { Text(stringResource(R.string.update_ask_no)) } })
+}

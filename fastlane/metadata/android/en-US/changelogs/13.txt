@@ -1,0 +1,2 @@
+New: Roomtone can check GitHub for a new version, tell you about it and install it when you tap Update; Check for updates in Settings. Translations on Crowdin; languages appear once 80% translated.
+Changed: the Auto Shazam switch left the menu (Standby already turns Shazam off and on).

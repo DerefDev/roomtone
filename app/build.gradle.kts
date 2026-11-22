@@ -33,6 +33,8 @@ abstract class LocaleConfigTask : DefaultTask() {
 val localeConfig = tasks.register<LocaleConfigTask>("localeConfig") { langs.set(appLangs) }
 
 android {
+    // niente blocco cifrato delle dipendenze nell'APK: richiesto da IzzyOnDroid/F-Droid, illeggibile per chi non è Google
+    dependenciesInfo { includeInApk = false; includeInBundle = false }
     namespace = "dev.deref.roomtone"
     compileSdk = 37
 

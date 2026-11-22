@@ -38,8 +38,12 @@ written the way you already have it there.
 4. Log in to Last.fm and, if you like, to Discogs.
 5. Play a record, tape or CD.
 
-When a new version comes out, Roomtone tells you and can update itself: tap
-the banner in the menu or "Check for updates" in Settings. The first time,
+If Google Play Protect says "App blocked to protect your device", see
+[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation).
+
+On first start Roomtone asks whether it may check GitHub once a day for a new
+version. If you say yes, it tells you when one is out and can update itself:
+tap the banner in the menu or "Check for updates" in Settings. The first time,
 Android asks you to allow Roomtone to install apps.
 
 Roomtone needs Android 8.0 or later.

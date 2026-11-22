@@ -46,8 +46,11 @@ object Updates {
     val status: StateFlow<Int?> = _status
     private val _installing = MutableStateFlow(false)
     val installing: StateFlow<Boolean> = _installing
-    private val _auto = MutableStateFlow(true)
+    // opt-in (regola IzzyOnDroid): nessun controllo automatico finché l'utente non risponde alla domanda al primo avvio
+    private val _auto = MutableStateFlow(false)
     val auto: StateFlow<Boolean> = _auto
+    private val _asked = MutableStateFlow(true)
+    val asked: StateFlow<Boolean> = _asked
     private val _changelog = MutableStateFlow<Release?>(null)
     val changelog: StateFlow<Release?> = _changelog
     private val _promptedTag = MutableStateFlow("")
@@ -56,14 +59,15 @@ object Updates {
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::sp.isInitialized) return
         sp = ctx.applicationContext.getSharedPreferences("updates", Context.MODE_PRIVATE)
-        _auto.value = sp.getBoolean("auto", true)
+        _auto.value = sp.getBoolean("auto", false)
+        _asked.value = sp.contains("auto")
         _promptedTag.value = sp.getString("prompted_tag", "") ?: ""
         // la release in cache tiene il banner vivo offline; scartata se non più nuova (es. dopo l'aggiornamento)
         val r = sp.getString("release", null)?.let(::parse)
         if (r != null && newer(r.version, BuildConfig.VERSION_NAME)) _available.value = r else sp.edit().remove("release").apply()
     }
 
-    fun setAuto(v: Boolean) { _auto.value = v; sp.edit().putBoolean("auto", v).apply() }
+    fun setAuto(v: Boolean) { _auto.value = v; _asked.value = true; sp.edit().putBoolean("auto", v).apply() }
     fun prompted(tag: String) { _promptedTag.value = tag; sp.edit().putString("prompted_tag", tag).apply() }
     var notifAsked: Boolean
         get() = sp.getBoolean("notif_asked", false)

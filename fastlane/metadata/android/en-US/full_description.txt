@@ -1,0 +1,28 @@
+<p>Streaming services scrobble to Last.fm on their own. The music you play on your hi-fi doesn't. Put a spare Android phone next to your speakers, and Roomtone adds every record, CD or tape you play to your Last.fm profile, written the way you already have it there.</p>
+
+<p>Roomtone needs the <a href="https://www.shazam.com">Shazam</a> app: Shazam listens, Roomtone reads what it recognizes. Roomtone itself never uses the microphone.</p>
+
+<p><b>Features</b></p>
+<ul>
+<li>Shows the cover, title, artist, album and next track of what's playing, with colors taken from the cover</li>
+<li>Scrobbles only what you really listened to, and counts a track twice if you played it twice</li>
+<li>Scrobbles each song the way it already appears in your Last.fm history, so plays don't get split between two entries</li>
+<li>Asks which one to use when a song has several versions in your history, and remembers your choice</li>
+<li>Uses your Discogs collection for covers, album names and track titles</li>
+<li>Keeps listens that need a check as drafts you can fix, confirm or discard</li>
+<li>Saves listens on the phone and sends them when you're back online</li>
+<li>Turns Auto Shazam on and off for you</li>
+<li>Shows a QR code to the lyrics on Genius when you swipe the cover</li>
+<li>Switches to a dim clock and stops listening when no music is playing</li>
+<li>Optional cleanups for titles and albums, such as removing "Remastered"</li>
+<li>No ads, no account other than your own, no server of its own</li>
+</ul>
+
+<p><b>Permissions</b></p>
+<ul>
+<li>Notification access: to read what Shazam recognizes. Roomtone ignores every other notification.</li>
+<li>Display over other apps: to start Auto Shazam from the background.</li>
+<li>Install apps: only for the optional update check, which is off until you turn it on. Updates come from the Roomtone releases on GitHub and are installed only when you tap Update.</li>
+</ul>
+
+<p>Docs and troubleshooting: <a href="https://derefdev.github.io/roomtone/">derefdev.github.io/roomtone</a></p>

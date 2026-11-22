@@ -1,0 +1,1 @@
+Ambient scrobbler for vinyl records, CDs and tapes: Shazam listens, Last.fm logs
