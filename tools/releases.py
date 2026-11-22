@@ -12,6 +12,8 @@ import json, os, re, subprocess, sys, urllib.request
 
 REPO = "DerefDev/roomtone"
 WEB = f"https://github.com/{REPO}"
+# apre Obtainium sul telefono con Roomtone già inserito
+OBTAINIUM = f"https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/{WEB}"
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 
@@ -59,7 +61,8 @@ def page():
     if rel:
         out += [f"# Roomtone {rel['tag_name'].lstrip('v')}\n",
                 f"Released on {rel['published_at'][:10]}\n",
-                f"[Download the APK]({rel['html_url']}){{ .md-button .md-button--primary }}",
+                f"[Install with Obtainium]({OBTAINIUM}){{ .md-button .md-button--primary }}",
+                f"[Download the APK]({rel['html_url']}){{ .md-button }}",
                 f"[All releases]({WEB}/releases){{ .md-button }}\n", "</div>\n", notes(rel)]
     else:
         out += ["# Roomtone\n", "The first release is on its way.\n",

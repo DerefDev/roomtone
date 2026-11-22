@@ -20,4 +20,6 @@
 .release-head .md-button { margin: 0.2rem; }
 
 /* badge "Get it on Obtainium": il tema allarga le immagini, qui resta alto come un pulsante */
-img[alt="Get it on Obtainium"] { height: 54px; width: auto; }
+img[alt="Get it on Obtainium"] { height: 64px; width: auto; }
+/* badge Crowdin (shields.io, 20 px di serie): più leggibile */
+img[alt="Crowdin"] { height: 28px; width: auto; }
