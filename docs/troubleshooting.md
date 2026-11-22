@@ -21,8 +21,9 @@ Or, to install the APK from a file:
 
 ## Nothing shows up on screen
 
-1. Check that Auto Shazam is on: the menu shows its switch, and Shazam shows
-   a notification while it listens.
+1. Check that Auto Shazam is on: Shazam shows a notification while it
+   listens, and the main screen shows "Shazam off" when it isn't. Settings →
+   Shazam has a button to turn it on.
 2. Check that Roomtone has notification access. Without it, Roomtone can't
    read what Shazam recognizes. Open Settings in Roomtone: the Permissions
    section shows what's missing.

@@ -56,7 +56,8 @@ to protect your device", see
 Updates: with Obtainium, Obtainium tells you about new versions and installs
 them. If you installed the APK yourself, Roomtone asks on first start whether
 it may check GitHub once a day; if you say yes, it tells you when a new
-version is out and can update itself.
+version is out and can update itself. See
+[Install and updates](https://derefdev.github.io/roomtone/updates/).
 
 Roomtone needs Android 8.0 or later.
 

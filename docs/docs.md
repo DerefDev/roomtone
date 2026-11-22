@@ -14,6 +14,10 @@ Everything about how Roomtone works and how to get the most out of it.
 
 ## Help
 
+- [Install and updates](updates.md): installing with Obtainium or from the
+  APK, and how updates reach you.
+- [Permissions](permissions.md): what each permission is for and what
+  happens without it.
 - [Troubleshooting](troubleshooting.md): common problems, phones that close
   apps in the background, and how to report a problem.
 - [Privacy](privacy.md): what Roomtone stores on the phone and what it sends.
