@@ -1,0 +1,1 @@
+New: when Roomtone was installed by Obtainium or an F-Droid client, updates are left to that app; Settings shows a button to open it. The docs now recommend installing with Obtainium.
