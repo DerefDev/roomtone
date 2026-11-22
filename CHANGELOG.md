@@ -2,6 +2,36 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9](https://github.com/DerefDev/roomtone/releases/tag/v0.9) - 2026-11-22
+
+#### New
+
+- **Updates inside the app.** Roomtone checks GitHub once a day and tells
+  you when a new version is out, with a notification, a message when you
+  open the app and a banner in the menu. Tap Update and Roomtone downloads
+  and installs it; the first time, Android asks you to allow Roomtone to
+  install apps. After updating, you see what's new.
+- **Check for updates** in Settings, and a switch to turn off the daily
+  check.
+- Roomtone can now be translated on [Crowdin](https://crowdin.com/project/roomtone):
+  help bring it to your language. See [Translations](https://derefdev.github.io/roomtone/translations/)
+  for how it works.
+- Languages appear in the app's language menu and in the phone's language
+  settings once they are at least 80% translated.
+
+#### Changed
+
+- The Auto Shazam switch is no longer in the menu: Standby already turns
+  Shazam off and back on. If Shazam doesn't start, turn it on from Settings.
+- Roomtone now asks for permission to show notifications (Android 13 and
+  later), used only for update notices.
+
+#### Install
+
+This is the last version you need to install by hand: from now on Roomtone
+updates itself. Download `roomtone-v0.9.apk` below and install it over the
+version you have.
+
 ## [v0.8](https://github.com/DerefDev/roomtone/releases/tag/v0.8) - 2026-11-21
 
 The first public release of Roomtone, the ambient scrobbler for your records,
