@@ -276,7 +276,8 @@ fun SettingsScreen(accessGranted: Boolean, loginError: String?, onCovers: () -> 
                     // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
                     Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) }
                     Text(stringResource(R.string.overlay_hint), style = MaterialTheme.typography.bodySmall, color = TextMain.copy(alpha = 0.6f))
-                    Text(stringResource(R.string.huawei_note), fontSize = 12.sp, color = TextSoft)
+                    // istruzioni per marca (Huawei, Xiaomi…) sul sito: cambiano spesso, lì si aggiornano senza release
+                    Link(R.string.battery_help, "https://derefdev.github.io/roomtone/troubleshooting/#roomtone-stops-working-after-a-while", ::open)
                 }
             }
             if (diag) {
