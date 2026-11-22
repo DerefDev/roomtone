@@ -2,6 +2,32 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9.2](https://github.com/DerefDev/roomtone/releases/tag/v0.9.2) - 2026-11-22
+
+#### New
+
+- **Permissions explained.** If Roomtone is missing notification access or
+  "display over other apps", the main screen shows what each one is for and
+  a button to grant it. Settings shows the same explanations, and the new
+  [Permissions](https://derefdev.github.io/roomtone/permissions/) page has
+  the full list.
+- Settings, the Scrobble list and the other screens go back to the main
+  screen after your standby time without touches, so Roomtone goes to
+  standby even if you leave Settings open.
+- Italian translation of everything added in 0.9 and 0.9.1.
+
+#### Fixed
+
+- The "new version available" notification goes away after you update.
+- Right after the phone restarts, the update confirmation now appears at
+  once instead of after a few minutes.
+
+#### Install
+
+If you have Roomtone 0.9 or later, tap **Update** in the app. Otherwise
+download `roomtone-v0.9.2.apk` below; if Google Play Protect blocks it, see
+[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation).
+
 ## [v0.9.1](https://github.com/DerefDev/roomtone/releases/tag/v0.9.1) - 2026-11-22
 
 #### New
