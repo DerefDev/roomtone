@@ -1,5 +1,5 @@
 site_name: Roomtone
-site_description: Ambient scrobbler for your records, CDs and tapes.
+site_description: Roomtone is a free, open-source Android app that scrobbles the vinyl records, CDs and tapes you play to Last.fm, using Shazam to recognize them.
 site_url: https://derefdev.github.io/roomtone/
 repo_url: https://github.com/DerefDev/roomtone
 repo_name: DerefDev/roomtone
@@ -7,6 +7,7 @@ copyright: Roomtone is released under the GNU General Public License v3.0 or lat
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/icon.svg
   favicon: assets/icon.svg
   icon:

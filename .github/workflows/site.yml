@@ -7,7 +7,7 @@ name: Site
 on:
   push:
     branches: [main]
-    paths: [README.md, docs/**, mkdocs.yml, tools/site-index.sh, tools/releases.py, .github/workflows/site.yml]
+    paths: [README.md, docs/**, overrides/**, mkdocs.yml, tools/site-index.sh, tools/releases.py, .github/workflows/site.yml]
   # after a release, via the changelog workflow: it runs on main, the only ref allowed to deploy to Pages
   workflow_run:
     workflows: [Changelog]

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block extrahead %}
+  {#- Nome del sito per Google (al posto di "GitHub Pages documentation") e anteprime social.
+      Zensical usa minijinja: niente is_homepage né meta opzionali, la home si riconosce dall'URL. -#}
+  {% set home = page.canonical_url == config.site_url %}
+  <meta property="og:site_name" content="Roomtone">
+  <meta property="og:title" content="{% if home %}Roomtone{% else %}{{ page.title }} - Roomtone{% endif %}">
+  <meta property="og:description" content="{{ config.site_description }}">
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  <meta property="og:image" content="{{ config.site_url }}assets/screenshots/now-playing.png">
+  {% if home %}
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "WebSite", "name": "Roomtone", "alternateName": "Roomtone scrobbler", "url": "{{ config.site_url }}"}
+  </script>
+  {% endif %}
+{% endblock %}
