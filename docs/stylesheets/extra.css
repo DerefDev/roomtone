@@ -18,6 +18,15 @@
 .release-head { text-align: center; margin-bottom: 1.5rem; }
 .release-head h1 { margin: 0.4rem 0 1rem; }
 .release-head .md-button { margin: 0.2rem; }
+.release-buttons { display: flex; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 0.4rem; }
+.release-rec { display: inline-flex; flex-direction: column; align-items: center; }
+.release-rec small { margin-top: 0.15rem; opacity: 0.7; }
+/* viola del logo di Obtainium */
+.md-typeset .md-button.btn-obtainium { background: #7b3fe4; border-color: #7b3fe4; color: #fff; }
+.md-typeset .md-button.btn-obtainium:hover { background: #6230c4; border-color: #6230c4; }
+.md-typeset .md-button.btn-grey { background: #e0e0e0; border-color: #e0e0e0; color: #333; }
+.md-typeset .md-button.btn-grey:hover { background: #cfcfcf; border-color: #cfcfcf; }
+[data-md-color-scheme="slate"] .md-typeset .md-button.btn-grey { background: #3a3a3a; border-color: #3a3a3a; color: #ddd; }
 
 /* badge "Get it on Obtainium": il tema allarga le immagini, qui resta alto come un pulsante */
 img[alt="Get it on Obtainium"] { height: 64px; width: auto; }

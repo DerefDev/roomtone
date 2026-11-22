@@ -61,9 +61,13 @@ def page():
     if rel:
         out += [f"# Roomtone {rel['tag_name'].lstrip('v')}\n",
                 f"Released on {rel['published_at'][:10]}\n",
-                f"[Install with Obtainium]({OBTAINIUM}){{ .md-button .md-button--primary }}",
-                f"[Download the APK]({rel['html_url']}){{ .md-button }}",
-                f"[All releases]({WEB}/releases){{ .md-button }}\n", "</div>\n", notes(rel)]
+                # Obtainium viola con "Recommended" sotto, APK rosso del sito, tutte le release grigio
+                '<div class="release-buttons">',
+                f'<span class="release-rec"><a class="md-button btn-obtainium" href="{OBTAINIUM}">Install with Obtainium</a>'
+                '<small>Recommended</small></span>',
+                f'<a class="md-button md-button--primary" href="{rel["html_url"]}">Download the APK</a>',
+                f'<a class="md-button btn-grey" href="{WEB}/releases">All releases</a>',
+                "</div>\n", "</div>\n", notes(rel)]
     else:
         out += ["# Roomtone\n", "The first release is on its way.\n",
                 f"[All releases]({WEB}/releases){{ .md-button }}\n", "</div>\n"]
