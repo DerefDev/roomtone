@@ -82,7 +82,10 @@ Also on the [website](https://derefdev.github.io/roomtone/docs/).
 
 ## Translate
 
-Help bring Roomtone to your language: see [Translations](docs/translations.md).
+[![Crowdin](https://img.shields.io/badge/Crowdin-translate-2E3340?logo=crowdin)](https://crowdin.com/project/roomtone)
+
+Help bring Roomtone to your language on [Crowdin](https://crowdin.com/project/roomtone).
+See [Translations](docs/translations.md) for how it works.
 
 ## Credits
 
