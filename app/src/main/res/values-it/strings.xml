@@ -79,7 +79,7 @@
     <string name="sec_language">Lingua</string>
     <string name="sec_permissions">Permessi</string>
     <string name="battery_opt">Ottimizzazione batteria</string>
-    <string name="battery_help">Roomtone viene arrestato dopo un po\'? Scopri come mantenerlo in esecuzione</string>
+    <string name="battery_help">Roomtone si ferma dopo un po\'? Ecco come tenerlo attivo</string>
     <string name="overlay_perm">Mostra sopra altre app</string>
     <string name="setup_title">Roomtone necessita di due permessi per funzionare</string>
     <string name="setup_more">Perché richiede questi permessi?</string>
@@ -89,7 +89,7 @@
     <string name="perm_notif_why">Per leggere ciò che Shazam riconosce. Roomtone ignora ogni altra notifica.</string>
     <string name="perm_overlay_why">Per avviare Auto Shazam automaticamente in background.</string>
     <string name="perm_post_why">Per dirti quando viene rilasciata una nuova versione.</string>
-    <string name="perm_battery_why">Impedisci ad Android di arrestare Roomtone in background.</string>
+    <string name="perm_battery_why">Impedisci ad Android di chiudere Roomtone in background.</string>
     <string name="sec_standby">Standby</string>
     <string name="standby_auto">Standby automatico</string>
     <string name="standby_after">Standby dopo</string>
@@ -207,7 +207,7 @@
         <item quantity="other">%1$d giorni</item>
     </plurals>
     <string name="update_title">Aggiorna a %1$s</string>
-    <string name="update_body">Una nuova versione di Roomtone è disponibile su GitHub. La versione installata è la %1$s, l\'ultima versione disponibile è la %2$s. L\'aggiornamento mantiene le tue impostazioni e gli scrobbles.</string>
+    <string name="update_body">Una nuova versione di Roomtone è disponibile su GitHub. La versione installata è la %1$s, l\'ultima versione disponibile è la %2$s. L\'aggiornamento mantiene le tue impostazioni e gli scrobble.</string>
     <string name="update_install">Aggiorna</string>
     <string name="update_later">Più tardi</string>
     <string name="update_banner">Aggiornamento disponibile: %1$s</string>
@@ -219,9 +219,9 @@
     <string name="update_available">La versione %1$s è disponibile</string>
     <string name="update_allow_install">Consenti a Roomtone d\'installare applicazioni, quindi tocca di nuovo Aggiorna</string>
     <string name="update_auto">Controlla automaticamente</string>
-    <string name="update_auto_hint">Una volta al giorno Roomtone chiede a GitHub l\'ultima versione. Gli aggiornamenti provengono dalle release di Roomtone su GitHub e sono installati solo quando si tocca Aggiorna.</string>
+    <string name="update_auto_hint">Una volta al giorno Roomtone chiede a GitHub l\'ultima versione. Gli aggiornamenti provengono dalle release di Roomtone su GitHub e si installano solo quando tocchi Aggiorna.</string>
     <string name="update_ask_title">Controlla aggiornamenti?</string>
-    <string name="update_ask_body">Roomtone può controllare GitHub una volta al giorno e dirvi quando una nuova versione viene rilasciata. Gli aggiornamenti sono scaricati dalle release Roomtone su GitHub (github.com/DerefDev/roomtone) e installato solo quando si tocca Aggiorna, dopo che Android ti ha chiesto di confermare. È possibile modificare questo in qualsiasi momento nelle Impostazioni.</string>
+    <string name="update_ask_body">Roomtone può controllare GitHub una volta al giorno e avvisarti quando una nuova versione viene rilasciata. Gli aggiornamenti sono scaricati dalle release di Roomtone su GitHub (github.com/DerefDev/roomtone) e installati solo quando tocchi Aggiorna, dopo aver confermato nella finestra di Android. Puoi cambiare questa scelta in qualsiasi momento nelle Impostazioni.</string>
     <string name="update_ask_yes">Controlla giornalmente</string>
     <string name="update_ask_no">No grazie</string>
     <string name="update_notif_title">Roomtone %1$s è disponibile</string>
