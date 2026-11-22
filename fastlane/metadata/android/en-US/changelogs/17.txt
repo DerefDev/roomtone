@@ -1,0 +1,1 @@
+Changed: Settings → Permissions shows whether each permission is granted and the button only when it's missing; the battery guide link sits under the battery button; links in Settings are underlined.

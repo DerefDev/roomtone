@@ -7,7 +7,6 @@
     <string name="listener_connected">connesso</string>
     <string name="listener_disconnected">non connesso</string>
     <string name="log_path">Log: %1$s</string>
-    <string name="grant_access">Concedi accesso notifiche</string>
     <string name="clear">Svuota</string>
     <string name="listening">In ascolto…</string>
     <string name="track_duration">brano %1$s</string>
