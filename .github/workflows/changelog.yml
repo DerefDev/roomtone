@@ -21,14 +21,15 @@ jobs:
         with:
           ref: main
           fetch-depth: 0 # serve la storia completa per unire main in staging
-      - run: tools/releases.py changelog
+      - run: tools/releases.py changelog && tools/releases.py fastlane
         env:
           GH_TOKEN: ${{ github.token }}
       - run: |
-          git diff --quiet CHANGELOG.md && exit 0
+          git add CHANGELOG.md fastlane
+          git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898900+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update the changelog from the release notes" CHANGELOG.md
+          git commit -m "Update the changelog from the release notes"
           git push
       # staging riceve lo stesso commit, così i due branch restano allineati senza passaggi a mano
       - run: |
