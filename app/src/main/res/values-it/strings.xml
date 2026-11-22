@@ -89,7 +89,7 @@
     <string name="perm_notif_why">Per leggere ciò che Shazam riconosce. Roomtone ignora ogni altra notifica.</string>
     <string name="perm_overlay_why">Per avviare Auto Shazam automaticamente in background.</string>
     <string name="perm_post_why">Per dirti quando viene rilasciata una nuova versione.</string>
-    <string name="perm_battery_why">Impedisci ad Android di chiudere Roomtone in background.</string>
+    <string name="perm_battery_why">Impedisce ad Android di chiudere Roomtone in background.</string>
     <string name="sec_standby">Standby</string>
     <string name="standby_auto">Standby automatico</string>
     <string name="standby_after">Standby dopo</string>
