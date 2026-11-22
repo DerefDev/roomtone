@@ -75,7 +75,8 @@ private fun LangMenu() {
 
 @Composable
 private fun Link(res: Int, url: String, open: (Intent) -> Unit) =
-    Text(stringResource(res), color = LocalAccent.current, fontSize = 14.sp, modifier = Modifier.clickable { open(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.padding(vertical = 4.dp))
+    // sottolineato: senza copertina l'accento è chiaro come il testo e il link non si distinguerebbe
+    Text(stringResource(res), color = LocalAccent.current, fontSize = 14.sp, textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline, modifier = Modifier.clickable { open(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.padding(vertical = 4.dp))
 
 @Composable
 private fun Why(res: Int) = Text(stringResource(res), fontSize = 12.sp, color = TextSoft)
@@ -153,22 +154,23 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val permissions: LazyListScope.() -> Unit = {
         item {
             Area(R.string.sec_permissions) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.notif_access, stringResource(if (accessGranted) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
-                    Button({ open(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) { Text(stringResource(R.string.grant_access)) }
+                // stato + pulsante solo se manca (concesso → niente pulsante: si revoca dalle impostazioni di sistema)
+                @Composable fun st(ok: Boolean) = stringResource(if (ok) R.string.access_ok else R.string.access_missing)
+                @Composable fun perm(label: String, ok: Boolean, why: Int, i: Intent) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(label, Modifier.weight(1f, fill = false))
+                        if (!ok) Button({ open(i) }) { Text(stringResource(R.string.setup_grant)) }
+                    }
+                    Why(why)
                 }
-                Why(R.string.perm_notif_why)
-                if (Build.VERSION.SDK_INT >= 33) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val ok = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
-                    Text(stringResource(R.string.notif_perm, stringResource(if (ok) R.string.access_ok else R.string.access_missing)), Modifier.weight(1f, fill = false))
-                    Button({ open(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)) }) { Text(stringResource(R.string.grant_access)) }
-                }
-                if (Build.VERSION.SDK_INT >= 33) Why(R.string.perm_post_why)
+                perm(stringResource(R.string.notif_access, st(accessGranted)), accessGranted, R.string.perm_notif_why, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
+                perm(stringResource(R.string.overlay_perm) + ": " + st(overlayGranted), overlayGranted, R.string.perm_overlay_why,
+                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName)))
+                if (Build.VERSION.SDK_INT >= 33) androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled().let { ok -> perm(stringResource(R.string.notif_perm, st(ok)), ok,
+                    R.string.perm_post_why, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)) }
                 Button({ open(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }) { Text(stringResource(R.string.battery_opt)) }
                 Why(R.string.perm_battery_why)
-                // necessario per avviare Auto Shazam e tornare a Roomtone (limite di Android 10+)
-                Button({ open(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:" + ctx.packageName))) }) { Text(stringResource(R.string.overlay_perm)) }
-                Why(R.string.perm_overlay_why)
                 // istruzioni per marca (Huawei, Xiaomi…) sul sito: cambiano spesso, lì si aggiornano senza release
                 Link(R.string.battery_help, "https://derefdev.github.io/roomtone/troubleshooting/#roomtone-stops-working-after-a-while", ::open)
             }
