@@ -9,14 +9,15 @@ code.
 Translations are managed on Crowdin, a website where you translate one
 sentence at a time, with the English text and its context next to it.
 
-1. Open the Roomtone project on Crowdin (link coming soon).
+1. Open the [Roomtone project on Crowdin](https://crowdin.com/project/roomtone).
 2. Sign in and pick your language. If it isn't listed, ask for it in an
    [issue](https://github.com/DerefDev/roomtone/issues).
 3. Translate, or vote on the translations already suggested.
 
 New translations reach the repository automatically and ship with the next
-release. Your language appears in Roomtone's language menu as soon as it's
-included.
+release. Your language appears in Roomtone's language menu once at least 80%
+of it is translated; until then, the translated parts are used when the phone
+is set to that language.
 
 ## A few tips
 
@@ -30,8 +31,7 @@ included.
 
 ## Without Crowdin
 
-You can also open a pull request: copy
-`app/src/main/res/values/strings.xml` to `values-xx/strings.xml`, where `xx`
-is the language code (for example `de`, or `pt-rBR` for Brazilian Portuguese),
-and translate the text between the tags. The language menu picks the new
-folder up by itself.
+Please translate on Crowdin rather than with a pull request: translation files
+in the repository are written by Crowdin, so changes made there would be
+overwritten. If something can't be done on Crowdin, open an
+[issue](https://github.com/DerefDev/roomtone/issues).
