@@ -2,6 +2,24 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9.1](https://github.com/DerefDev/roomtone/releases/tag/v0.9.1) - 2026-11-22
+
+#### New
+
+- On first start Roomtone asks whether it may check GitHub once a day for a
+  new version. Nothing is checked until you say yes, and you can change it
+  anytime in Settings.
+- Settings → Permissions links to the guide for keeping Roomtone running on
+  phones that close apps in the background, with steps for each brand.
+
+#### Install
+
+If you have Roomtone 0.9, tap **Update**: Roomtone downloads and installs
+this version for you.
+
+If Google Play Protect blocks the installation from a file, see
+[Play Protect blocks the installation](https://derefdev.github.io/roomtone/troubleshooting/#play-protect-blocks-the-installation).
+
 ## [v0.9](https://github.com/DerefDev/roomtone/releases/tag/v0.9) - 2026-11-22
 
 #### New
