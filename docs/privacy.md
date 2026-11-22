@@ -24,7 +24,7 @@ each one.
 | [Last.fm](https://www.last.fm/legal/privacy) | your scrobbles (artist, title, album, time, length); requests for your history and for track and album details | scrobbling, matching with your history, covers, lengths |
 | [Discogs](https://support.discogs.com/hc/articles/360009334513) | requests for your collection, releases and artists | your records, tracklists, covers |
 | [Genius](https://genius.com) | artist and title of the track | lyrics link |
-| [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement) | a request for the latest Roomtone version: once a day only if you said yes on first start (changeable in Settings), and when you check or update | update notice and download |
+| [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement) | a request for the latest Roomtone version: once a day only if you said yes on first start (changeable in Settings), and when you check or update; never when Obtainium or an F-Droid client installed Roomtone | update notice and download |
 | [Deezer](https://www.deezer.com/legal/personal-datas), [MusicBrainz](https://metabrainz.org/privacy), [Cover Art Archive](https://coverartarchive.org), [iTunes](https://www.apple.com/legal/privacy/) | artist, title or album names | lengths, albums, covers |
 
 These requests contain the names of the tracks you play, not your name or

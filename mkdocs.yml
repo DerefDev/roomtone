@@ -61,6 +61,7 @@ nav:
           - Scrobbling: scrobbling.md
           - Lyrics and covers: lyrics-and-covers.md
       - Help:
+          - Install and updates: updates.md
           - Permissions: permissions.md
           - Troubleshooting: troubleshooting.md
           - Privacy: privacy.md

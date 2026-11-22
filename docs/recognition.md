@@ -95,3 +95,6 @@ track.
 After a while with no music (10 minutes by default, configurable) Roomtone
 switches to a dim clock and turns Auto Shazam off. Touch the screen to wake
 it up. You can also enter standby from the menu.
+
+If you leave Settings or another screen open, Roomtone goes back to the main
+screen after the same time without touches, and standby starts from there.
