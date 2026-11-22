@@ -66,6 +66,8 @@ Roomtone needs Android 8.0 or later.
   played it twice
 - Scrobbles each song the way it already appears in your Last.fm history, so
   plays don't get split between two entries
+- Or, in "Actual record" mode, scrobbles artist, title and album as they are
+  on the record you own in your Discogs collection
 - Asks which one to use when a song has several versions in your history, and
   remembers your choice
 - Uses your Discogs collection for covers, album names and track titles

@@ -7,6 +7,7 @@
 <li>Shows the cover, title, artist, album and next track of what's playing, with colors taken from the cover</li>
 <li>Scrobbles only what you really listened to, and counts a track twice if you played it twice</li>
 <li>Scrobbles each song the way it already appears in your Last.fm history, so plays don't get split between two entries</li>
+<li>Or, in "Actual record" mode, scrobbles artist, title and album as they are on the record you own in your Discogs collection</li>
 <li>Asks which one to use when a song has several versions in your history, and remembers your choice</li>
 <li>Uses your Discogs collection for covers, album names and track titles</li>
 <li>Keeps listens that need a check as drafts you can fix, confirm or discard</li>
