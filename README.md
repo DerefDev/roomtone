@@ -29,22 +29,23 @@ written the way you already have it there.
 
 ## Getting started
 
-1. Install Roomtone with [Obtainium](https://github.com/ImranR98/Obtainium),
-   which installs apps from GitHub and keeps them up to date: install
-   Obtainium, then tap the button below on the phone. The first time, Play
-   Protect may ask to scan Roomtone: let it scan, then install.
+Install Roomtone with [Obtainium](https://github.com/ImranR98/Obtainium),
+which installs apps from GitHub and keeps them up to date: install
+Obtainium, then tap this button on the phone. The first time, Play Protect
+may ask to scan Roomtone: let it scan, then install.
 
-   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/DerefDev/roomtone"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
+<p><a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/DerefDev/roomtone"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a></p>
 
-   Or download the APK of the
-   [latest release](https://github.com/DerefDev/roomtone/releases/latest) and
-   install it yourself.
-2. Install [Shazam](https://www.shazam.com) on the same phone.
-3. Open Roomtone and allow notification access and display over other apps,
+Or download the APK of the
+[latest release](https://github.com/DerefDev/roomtone/releases/latest) and
+install it yourself. Then:
+
+1. Install [Shazam](https://www.shazam.com) on the same phone.
+2. Open Roomtone and allow notification access and display over other apps,
    so it can read what Shazam recognizes and turn Auto Shazam on for you
    ([why](https://derefdev.github.io/roomtone/permissions/)).
-4. Log in to Last.fm and, if you like, to Discogs.
-5. Play a record, tape or CD.
+3. Log in to Last.fm and, if you like, to Discogs.
+4. Play a record, tape or CD.
 
 If you install the APK from a file and Google Play Protect says "App blocked
 to protect your device", see
