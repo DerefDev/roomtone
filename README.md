@@ -6,7 +6,7 @@
 
 <p align="center">Ambient scrobbler for your records, CDs and tapes.</p>
 
-<p align="center"><a href="https://github.com/DerefDev/roomtone/releases/latest"><img src="https://img.shields.io/github/v/release/DerefDev/roomtone" alt="release"></a> <a href="https://github.com/DerefDev/roomtone/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/DerefDev/roomtone/release.yml?label=build" alt="build"></a> <a href="https://github.com/DerefDev/roomtone/blob/main/LICENSE"><img src="https://img.shields.io/github/license/DerefDev/roomtone" alt="license"></a> <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&amp;logoColor=white" alt="Android 8.0+"></p>
+<p align="center"><a href="https://github.com/DerefDev/roomtone/releases/latest"><img src="https://img.shields.io/github/v/release/DerefDev/roomtone" alt="release"></a> <a href="https://github.com/DerefDev/roomtone/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/DerefDev/roomtone/release.yml?label=build" alt="build"></a> <a href="https://github.com/DerefDev/roomtone/blob/main/LICENSE"><img src="https://img.shields.io/github/license/DerefDev/roomtone" alt="license"></a> <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&amp;logoColor=white" alt="Android 8.0+"> <a href="https://derefdev.github.io/roomtone/docs/"><img src="https://img.shields.io/badge/Read%20the%20docs-1E88E5" alt="Read the docs"></a></p>
 
 <p align="center"><a href="https://derefdev.github.io/roomtone/">Website</a> · <a href="https://derefdev.github.io/roomtone/docs/">Docs</a> · <a href="https://github.com/DerefDev/roomtone/releases/latest">Download</a></p>
 
