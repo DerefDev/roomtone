@@ -14,6 +14,10 @@ object Prefs {
     val standbyAuto: StateFlow<Boolean> = _standbyAuto
     private val _standbyMin = MutableStateFlow(10)
     val standbyMin: StateFlow<Int> = _standbyMin
+    private val _screenOffAuto = MutableStateFlow(false) // in standby lascia spegnere lo schermo dopo N minuti
+    val screenOffAuto: StateFlow<Boolean> = _screenOffAuto
+    private val _screenOffMin = MutableStateFlow(10)
+    val screenOffMin: StateFlow<Int> = _screenOffMin
 
     private val _autoStartShazam = MutableStateFlow(true)
     val autoStartShazam: StateFlow<Boolean> = _autoStartShazam
@@ -38,6 +42,8 @@ object Prefs {
         _scrobbling.value = sp.getBoolean("scrobbling", true)
         _standbyAuto.value = sp.getBoolean("standby_auto", true)
         _standbyMin.value = sp.getInt("standby_min", 10)
+        _screenOffAuto.value = sp.getBoolean("screen_off_auto", false)
+        _screenOffMin.value = sp.getInt("screen_off_min", 10)
         _autoStartShazam.value = sp.getBoolean("autoStartShazam", true)
         _restartShazamOnScreenOn.value = sp.getBoolean("restartShazamOnScreenOn", true)
         _diagnostics.value = sp.getBoolean("diagnostics", false)
@@ -68,4 +74,6 @@ object Prefs {
     fun setDiagnostics(v: Boolean) { _diagnostics.value = v; sp.edit().putBoolean("diagnostics", v).apply() }
     fun setAlbumMode(v: String) { _albumMode.value = v; sp.edit().putString("albumMode", v).apply() }
     fun setStandbyMin(v: Int) { _standbyMin.value = v; sp.edit().putInt("standby_min", v).apply() }
+    fun setScreenOffAuto(v: Boolean) { _screenOffAuto.value = v; sp.edit().putBoolean("screen_off_auto", v).apply() }
+    fun setScreenOffMin(v: Int) { _screenOffMin.value = v; sp.edit().putInt("screen_off_min", v).apply() }
 }

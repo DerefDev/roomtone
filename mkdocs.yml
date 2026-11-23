@@ -47,7 +47,8 @@ markdown_extensions:
   - github-callouts
   - tables
   - toc:
-      permalink: true
+      permalink: ""
+      permalink_class: headerlink
   - pymdownx.highlight
   - pymdownx.superfences
 

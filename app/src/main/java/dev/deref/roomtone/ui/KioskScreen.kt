@@ -60,7 +60,8 @@ fun KioskScreen(
     onMenu: () -> Unit, onDrafts: () -> Unit,
 ) {
     val accent = LocalAccent.current
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    // anti burn-in anche sulla schermata principale: tutto si sposta di pochi dp ogni minuto
+    BoxWithConstraints(Modifier.fillMaxSize().then(pixelShift(6, 6))) {
         val h = maxHeight
         val margin = h * 0.07f
         val hint = 28.dp // spazio per "scorri per il testo" sotto la copertina

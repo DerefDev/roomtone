@@ -19,9 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.deref.roomtone.EventStore
+import dev.deref.roomtone.Prefs
 import dev.deref.roomtone.R
 import dev.deref.roomtone.Status
 import java.util.Calendar
+import kotlinx.coroutines.delay
 
 private tailrec fun Context.activity(): Activity? = this as? Activity ?: (this as? ContextWrapper)?.baseContext?.activity()
 
@@ -39,16 +41,23 @@ fun StandbyScreen(onExit: () -> Unit) {
     val midnight = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
     val today = list.count { it.listen.start >= midnight && (it.eval?.status == Status.VALID || it.eval?.status == Status.DRAFT) }
     val review = list.count { it.eval?.status == Status.DRAFT }
-    val minute by rememberNow(60_000)
-    // anti burn-in: sposta l'orologio di pochi dp a ogni minuto
-    val m = minute / 60_000
-    val dx = ((m * 37) % 41 - 20).toInt().dp
-    val dy = ((m * 53) % 31 - 15).toInt().dp
+    // dopo N minuti di standby toglie il "tieni acceso": lo schermo si spegne col timeout di sistema.
+    // All'uscita dallo standby torna sempre acceso. Spegnere il telefono vero richiede permessi di sistema (root).
+    val offAuto by Prefs.screenOffAuto.collectAsStateWithLifecycle()
+    val offMin by Prefs.screenOffMin.collectAsStateWithLifecycle()
+    LaunchedEffect(offAuto, offMin) {
+        val w = ctx.activity()?.window ?: return@LaunchedEffect
+        w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (!offAuto) return@LaunchedEffect
+        delay(offMin * 60_000L)
+        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+    DisposableEffect(Unit) { onDispose { ctx.activity()?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) } }
     Box(
         Modifier.fillMaxSize().background(Color.Black).clickable(remember { MutableInteractionSource() }, null, onClick = onExit),
         contentAlignment = Alignment.Center,
     ) {
-        Column(Modifier.offset(dx, dy), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(pixelShift(20, 15), horizontalAlignment = Alignment.CenterHorizontally) {
             Clock(Modifier, 96.sp, accent.copy(alpha = 0.6f))
             Spacer(Modifier.height(12.dp))
             Text(stringResource(R.string.standby_today, today), color = TextMain.copy(alpha = 0.4f), fontSize = 18.sp)

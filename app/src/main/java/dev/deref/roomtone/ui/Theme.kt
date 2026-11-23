@@ -72,6 +72,13 @@ fun rememberNow(periodMs: Long): State<Long> = produceState(System.currentTimeMi
     }
 }
 
+// Anti burn-in: spostamento di pochi dp (entro ±rx, ±ry) che cambia ogni minuto
+@Composable
+fun pixelShift(rx: Int, ry: Int): Modifier {
+    val m = rememberNow(60_000).value / 60_000
+    return Modifier.offset(((m * 37) % (2 * rx + 1) - rx).toInt().dp, ((m * 53) % (2 * ry + 1) - ry).toInt().dp)
+}
+
 // Pagina secondaria: freccia indietro + titolo.
 @Composable
 fun Page(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
