@@ -148,6 +148,9 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
     val offAuto by Prefs.screenOffAuto.collectAsStateWithLifecycle()
     val offMins by Prefs.screenOffMin.collectAsStateWithLifecycle()
+    // ricalcolato a ogni ritorno nella schermata (dopo la finestra di sistema del permesso)
+    val life by androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+    val lockOk = remember(life) { ScreenLock.active(ctx) }
     val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
     val notInstalled by ShazamControl.notInstalled.collectAsStateWithLifecycle()
     val startWith by Prefs.autoStartShazam.collectAsStateWithLifecycle()
@@ -272,9 +275,17 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                     MinChips(R.string.standby_after, mins, auto, Prefs::setStandbyMin) { customDlg = true }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(stringResource(R.string.screen_off_auto), Modifier.weight(1f))
-                        Switch(offAuto, Prefs::setScreenOffAuto)
+                        Switch(offAuto, { on ->
+                            Prefs.setScreenOffAuto(on)
+                            if (!on) ScreenLock.release(ctx) else if (!lockOk) open(ScreenLock.request(ctx))
+                        })
                     }
                     MinChips(R.string.screen_off_after, offMins, offAuto, Prefs::setScreenOffMin) { customDlg = false }
+                    // opzione accesa ma permesso negato/revocato: si spegne lo stesso, ma col timeout di sistema
+                    if (offAuto && !lockOk) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.screen_lock_missing), Modifier.weight(1f, fill = false), fontSize = 12.sp, color = TextSoft)
+                        Button({ open(ScreenLock.request(ctx)) }) { Text(stringResource(R.string.setup_grant)) }
+                    }
                     Why(R.string.screen_off_why)
                 }
             }

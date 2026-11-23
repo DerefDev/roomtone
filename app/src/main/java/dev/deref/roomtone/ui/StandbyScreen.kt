@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.deref.roomtone.EventStore
 import dev.deref.roomtone.Prefs
+import dev.deref.roomtone.ScreenLock
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.deref.roomtone.R
 import dev.deref.roomtone.Status
 import java.util.Calendar
@@ -41,16 +44,19 @@ fun StandbyScreen(onExit: () -> Unit) {
     val midnight = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
     val today = list.count { it.listen.start >= midnight && (it.eval?.status == Status.VALID || it.eval?.status == Status.DRAFT) }
     val review = list.count { it.eval?.status == Status.DRAFT }
-    // dopo N minuti di standby toglie il "tieni acceso": lo schermo si spegne col timeout di sistema.
-    // All'uscita dallo standby torna sempre acceso. Spegnere il telefono vero richiede permessi di sistema (root).
+    // dopo N minuti di standby blocca il telefono come il tasto di accensione (serve il permesso "blocca schermo").
+    // Il conto riparte a ogni ritorno nell'app (es. sblocco dopo il blocco). Senza permesso: toglie il "tieni acceso"
+    // e lo schermo si spegne col timeout di sistema. All'uscita dallo standby torna sempre acceso.
     val offAuto by Prefs.screenOffAuto.collectAsStateWithLifecycle()
     val offMin by Prefs.screenOffMin.collectAsStateWithLifecycle()
-    LaunchedEffect(offAuto, offMin) {
+    val life by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+    val resumed = life.isAtLeast(Lifecycle.State.RESUMED)
+    LaunchedEffect(offAuto, offMin, resumed) {
         val w = ctx.activity()?.window ?: return@LaunchedEffect
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        if (!offAuto) return@LaunchedEffect
+        if (!offAuto || !resumed) return@LaunchedEffect
         delay(offMin * 60_000L)
-        w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (!ScreenLock.lock(ctx)) w.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     DisposableEffect(Unit) { onDispose { ctx.activity()?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) } }
     Box(
