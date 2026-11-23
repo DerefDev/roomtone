@@ -95,7 +95,9 @@
     <string name="standby_after">Standby after</string>
     <string name="screen_off_auto">Turn off the screen in standby</string>
     <string name="screen_off_after">Turn off after</string>
-    <string name="screen_off_why">The screen turns off with your phone\'s screen timeout. Press the power button to wake it up.</string>
+    <string name="screen_off_why">After this time in standby the phone locks, as if you pressed the power button. Press it to wake the phone up. Needs the permission to lock the screen, and nothing else.</string>
+    <string name="screen_lock_missing">Permission to lock the screen missing: the screen turns off with your phone\'s screen timeout instead.</string>
+    <string name="screen_lock_explain">Roomtone only uses this to lock the screen after the standby time you chose. Turning the option off in Roomtone removes the permission.</string>
     <string name="minutes">%1$d min</string>
     <string name="sec_diag">Diagnostics</string>
     <string name="sec_about">About</string>

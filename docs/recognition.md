@@ -102,8 +102,13 @@ screen after the same time without touches, and standby starts from there.
 To protect the display from burn-in, the main screen and the standby clock
 move by a few pixels every minute.
 
-In Settings > Standby you can also let the screen turn off after some time
-in standby (off by default). Roomtone stops keeping the screen on, so it
-turns off with your phone's screen timeout. Press the power button to wake
-it up. Roomtone can't power off the phone itself: Android only allows that
-to system apps.
+In Settings > Standby you can also let the phone lock after some time in
+standby (off by default), as if you pressed the power button. Press it again
+to wake the phone up. Both times, before standby and before locking, can be
+changed.
+
+To lock the phone, Roomtone needs to be a device admin with one permission
+only: lock the screen. Android asks for it when you turn the option on.
+Turning the option off removes the permission. Without it, Roomtone just stops
+keeping the screen on, and the screen turns off with your phone's screen
+timeout.
