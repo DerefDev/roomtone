@@ -131,6 +131,7 @@
         <item quantity="one">Lettura collezione… %1$d disco</item>
         <item quantity="other">Lettura collezione… %1$d dischi</item>
     </plurals>
+    <string name="discogs_refresh">Aggiorna collezione</string>
     <string name="discogs_details">Dettagli dischi: %1$d / %2$d</string>
     <string name="discogs_covers">Copertine: %1$d / %2$d</string>
     <plurals name="discogs_up_to_date">
