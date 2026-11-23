@@ -77,8 +77,13 @@ object DiscogsCollection {
         }
     }
 
+    // ogni 6 h dall'ultima sync riuscita; dopo un tentativo fallito (es. offline) si riprova al massimo ogni 30 min
+    @Volatile private var lastTry = 0L
     fun startIfStale() {
-        if (_user.value != null && System.currentTimeMillis() - state.getLong("lastSync", 0) > 6 * 3_600_000L) start()
+        val now = System.currentTimeMillis()
+        if (_user.value == null || now - state.getLong("lastSync", 0) < 6 * 3_600_000L || now - lastTry < 30 * 60_000L) return
+        lastTry = now
+        start()
     }
 
     fun start() {

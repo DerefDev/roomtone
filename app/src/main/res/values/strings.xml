@@ -135,6 +135,7 @@
         <item quantity="one">Reading collection… %1$d release</item>
         <item quantity="other">Reading collection… %1$d releases</item>
     </plurals>
+    <string name="discogs_refresh">Update collection</string>
     <string name="discogs_details">Release details: %1$d / %2$d</string>
     <string name="discogs_covers">Covers: %1$d / %2$d</string>
     <plurals name="discogs_up_to_date">

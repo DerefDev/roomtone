@@ -239,7 +239,10 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                         }
                     }
                     (dgError ?: dg.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
-                    if (dgUser != null) Button(onCovers) { Text(stringResource(R.string.covers_button)) }
+                    if (dgUser != null) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button({ DiscogsCollection.start() }, enabled = !dg.running) { Text(stringResource(R.string.discogs_refresh)) }
+                        Button(onCovers) { Text(stringResource(R.string.covers_button)) }
+                    }
                 }
             }
             item {
