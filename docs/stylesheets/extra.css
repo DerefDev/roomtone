@@ -32,3 +32,5 @@
 img[alt="Get it on Obtainium"] { height: 64px; width: auto; }
 /* badge Crowdin (shields.io, 20 px di serie): più leggibile */
 img[alt="Crowdin"] { height: 28px; width: auto; }
+/* Heading anchors: the symbol comes from CSS, not the page text, so Google snippets don't show it */
+.md-typeset .headerlink::after { content: "#"; }

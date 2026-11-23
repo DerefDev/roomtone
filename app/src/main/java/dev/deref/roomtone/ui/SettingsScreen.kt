@@ -81,15 +81,25 @@ private fun Link(res: Int, url: String, open: (Intent) -> Unit) =
 @Composable
 private fun Why(res: Int) = Text(stringResource(res), fontSize = 12.sp, color = TextSoft)
 
+// Etichetta + minuti preimpostati + "personalizzato" (apre il dialogo)
+@Composable
+private fun MinChips(label: Int, cur: Int, enabled: Boolean, set: (Int) -> Unit, onCustom: () -> Unit) =
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(label))
+        presets.forEach { m -> FilterChip(cur == m, { set(m) }, { Text(stringResource(R.string.minutes, m)) }, enabled = enabled) }
+        val custom = cur !in presets
+        FilterChip(custom, onCustom, { Text(if (custom) stringResource(R.string.custom_min, cur) else stringResource(R.string.custom)) }, enabled = enabled)
+    }
+
 // Dialogo minuti personalizzati (1..240); OK attivo solo se valido
 @Composable
-private fun CustomMinDialog(cur: Int, onDismiss: () -> Unit) {
+private fun CustomMinDialog(cur: Int, onSet: (Int) -> Unit, onDismiss: () -> Unit) {
     var t by remember { mutableStateOf(cur.toString()) }
     val v = t.toIntOrNull()?.takeIf { it in 1..240 }
     AlertDialog(onDismiss,
         title = { Text(stringResource(R.string.custom_title)) },
         text = { OutlinedTextField(t, { t = it.filter(Char::isDigit).take(3) }, singleLine = true, isError = v == null, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)) },
-        confirmButton = { TextButton({ Prefs.setStandbyMin(v!!); onDismiss() }, enabled = v != null) { Text(stringResource(R.string.ok)) } },
+        confirmButton = { TextButton({ onSet(v!!); onDismiss() }, enabled = v != null) { Text(stringResource(R.string.ok)) } },
         dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } })
 }
 
@@ -136,6 +146,8 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val sync by HistorySync.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
+    val offAuto by Prefs.screenOffAuto.collectAsStateWithLifecycle()
+    val offMins by Prefs.screenOffMin.collectAsStateWithLifecycle()
     val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
     val notInstalled by ShazamControl.notInstalled.collectAsStateWithLifecycle()
     val startWith by Prefs.autoStartShazam.collectAsStateWithLifecycle()
@@ -146,7 +158,7 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val edit by Prefs.editOptions.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var dgError by remember { mutableStateOf<String?>(null) }
-    var customDlg by remember { mutableStateOf(false) }
+    var customDlg by remember { mutableStateOf<Boolean?>(null) } // true = minuti dello standby, false = spegnimento schermo
     val logPath = ctx.getExternalFilesDir(null)?.let { "$it/shazam_raw.jsonl" } ?: "n/d"
     fun open(i: Intent) { try { ctx.startActivity(i) } catch (_: Exception) { /* ponytail: schermata assente su alcuni OEM → nessuna azione */ } }
 
@@ -177,7 +189,7 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
         }
     }
 
-    if (customDlg) CustomMinDialog(mins, { customDlg = false })
+    customDlg?.let { sb -> if (sb) CustomMinDialog(mins, Prefs::setStandbyMin) { customDlg = null } else CustomMinDialog(offMins, Prefs::setScreenOffMin) { customDlg = null } }
     Page(stringResource(R.string.settings_title), onBack) {
         LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (missing) permissions()
@@ -254,14 +266,13 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                         Text(stringResource(R.string.standby_auto), Modifier.weight(1f))
                         Switch(auto, Prefs::setStandbyAuto)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(stringResource(R.string.standby_after))
-                        presets.forEach { m ->
-                            FilterChip(mins == m, { Prefs.setStandbyMin(m) }, { Text(stringResource(R.string.minutes, m)) }, enabled = auto)
-                        }
-                        val custom = mins !in presets
-                        FilterChip(custom, { customDlg = true }, { Text(if (custom) stringResource(R.string.custom_min, mins) else stringResource(R.string.custom)) }, enabled = auto)
+                    MinChips(R.string.standby_after, mins, auto, Prefs::setStandbyMin) { customDlg = true }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.screen_off_auto), Modifier.weight(1f))
+                        Switch(offAuto, Prefs::setScreenOffAuto)
                     }
+                    MinChips(R.string.screen_off_after, offMins, offAuto, Prefs::setScreenOffMin) { customDlg = false }
+                    Why(R.string.screen_off_why)
                 }
             }
             item {
