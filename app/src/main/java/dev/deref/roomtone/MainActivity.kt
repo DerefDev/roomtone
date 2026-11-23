@@ -107,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         ShazamControl.visible = true
         Updates.checkIfStale(this)
+        DiscogsCollection.startIfStale()
         ShazamControl.maybeAutoStart(this)
         ShazamControl.onScreenOn(this) // USER_PRESENT non sempre arriva (es. sblocco senza PIN): ricontrolla qui
         ShazamControl.consumeRestart(this)

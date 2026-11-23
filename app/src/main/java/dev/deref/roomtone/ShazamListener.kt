@@ -27,6 +27,7 @@ class ShazamListener : NotificationListenerService() {
         override fun run() {
             EventStore.tick(System.currentTimeMillis())
             Updates.checkIfStale(applicationContext) // controllo giornaliero anche con app in background
+            DiscogsCollection.startIfStale() // collezione ogni 6 h anche con app sempre aperta
             handler.postDelayed(this, 15_000)
         }
     }

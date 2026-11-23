@@ -52,7 +52,9 @@ text from Shazam and with the title from the record you own. Then:
 ## The record you own
 
 If you connect Discogs, Roomtone downloads your collection and uses it to
-find the record you're playing:
+find the record you're playing. The collection is updated every 6 hours,
+even while the app stays open; to pick up a record you just added, tap
+**Update collection** in Settings.
 
 1. **The record in play.** After a track is found on one of your records,
    Roomtone assumes you're playing that record for the next 30 minutes and
