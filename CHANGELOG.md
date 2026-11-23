@@ -2,6 +2,22 @@
 
 Generated from the [releases on GitHub](https://github.com/DerefDev/roomtone/releases) after each release. Edit the notes there, not here.
 
+## [v0.9.5](https://github.com/DerefDev/roomtone/releases/tag/v0.9.5) - 2026-11-23
+
+#### Added
+
+- **Update collection** button in Settings, to pick up a record you just added
+  on Discogs right away.
+- The Discogs collection now also updates by itself every 6 hours while
+  Roomtone stays open.
+- To protect the display from burn-in, the main screen moves by a few pixels
+  every minute, like the standby clock.
+
+#### Install
+
+With Obtainium, update from Obtainium. If you installed the APK yourself,
+tap **Update** in Roomtone, or download `roomtone-v0.9.5.apk` below.
+
 ## [v0.9.4](https://github.com/DerefDev/roomtone/releases/tag/v0.9.4) - 2026-11-22
 
 #### Changed
