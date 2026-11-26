@@ -170,8 +170,9 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
     val lbUser by Services.listenbrainz.history.user.collectAsStateWithLifecycle()
     val lfUser by Services.lastfm.history.user.collectAsStateWithLifecycle()
     // Last.fm sempre attivo (come prima); ListenBrainz solo se connesso. Nessuno connesso → solo la voce Last.fm.
-    val lfDrafts = if (lfUser != null || lbUser == null) list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT } else 0 // pannello Last.fm visibile
-    val lbDrafts = if (lbUser != null) list.count { it.of(Service.LISTENBRAINZ)?.eval?.status == Status.DRAFT } else 0
+    val shown = visibleServices(lfUser != null, lbUser != null)
+    val lfDrafts = if (Service.LASTFM in shown) list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT } else 0
+    val lbDrafts = if (Service.LISTENBRAINZ in shown) list.count { it.of(Service.LISTENBRAINZ)?.eval?.status == Status.DRAFT } else 0
     fun openScrobble(s: Service, t: Int) { svcName = s.name; tab = t; screen = Screen.SCROBBLE }
     var menu by remember { mutableStateOf(false) }
 
@@ -236,8 +237,8 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
                         update = update, onUpdate = { Updates.install(ctx) },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
                         scrobbleEntries = buildList {
-                            if (lfUser != null || lbUser == null) add(ScrobbleEntry(R.string.menu_scrobble_lastfm, lfDrafts) { menu = false; openScrobble(Service.LASTFM, 0) })
-                            if (lbUser != null) add(ScrobbleEntry(R.string.menu_scrobble_lb, lbDrafts) { menu = false; openScrobble(Service.LISTENBRAINZ, 0) })
+                            if (Service.LASTFM in shown) add(ScrobbleEntry(R.string.menu_scrobble_lastfm, lfDrafts) { menu = false; openScrobble(Service.LASTFM, 0) })
+                            if (Service.LISTENBRAINZ in shown) add(ScrobbleEntry(R.string.menu_scrobble_lb, lbDrafts) { menu = false; openScrobble(Service.LISTENBRAINZ, 0) })
                         },
                         onStandby = {
                             menu = false

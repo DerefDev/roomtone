@@ -110,9 +110,9 @@ class HistorySync(val service: Service, private val backend: HistoryBackend, pri
         // indice prima, stato dopo → su crash al massimo si rifà qualche pagina senza duplicati
         fun persist() {
             try {
-                val tmp = File(dir, "history_index.tmp")
+                val tmp = File(indexFile.path + ".tmp") // per servizio: le sync di Last.fm e ListenBrainz girano in parallelo
                 tmp.writeText(index.toTsv())
-                tmp.renameTo(indexFile)
+                if (!tmp.renameTo(indexFile)) return
             } catch (_: Exception) { return } // ponytail: scrittura fallita → stato invariato, si rifà
             state.edit().putLong("newestUts", newest).putLong("oldestUts", oldest)
                 .putBoolean("complete", complete).putInt("total", index.size).apply()

@@ -327,7 +327,7 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                     }
                 }
                 items(list.asReversed()) { x -> // più recente in alto
-                    val r = x.listen; val ev = x.of(Service.LASTFM)?.eval; val meta = x.of(Service.LASTFM)?.meta
+                    val r = x.listen; val sl = x.of(Service.LASTFM) ?: x.of(Service.LISTENBRAINZ); val ev = sl?.eval; val meta = sl?.meta
                     Column {
                         Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(timeFmt.format(Date(r.start)))

@@ -55,6 +55,12 @@ class Svc(val service: Service, val history: HistorySync, val choices: VersionCh
     val active get() = history.user.value != null || (service == Service.LASTFM && Services.listenbrainz.history.user.value == null)
 }
 
+// Servizi con pannello visibile: Last.fm se connesso o se ListenBrainz non lo è; ListenBrainz se connesso
+fun visibleServices(lastfmConnected: Boolean, lbConnected: Boolean) = buildList {
+    if (lastfmConnected || !lbConnected) add(Service.LASTFM)
+    if (lbConnected) add(Service.LISTENBRAINZ)
+}
+
 object Services {
     val lastfm: Svc
     val listenbrainz: Svc
@@ -73,6 +79,8 @@ object Services {
         val t = token.trim()
         listenbrainz.history.connect(ListenBrainzApi.validate(t), t)
     }
+
+    fun visible() = visibleServices(lastfm.history.user.value != null, listenbrainz.history.user.value != null)
 
     fun of(s: Service) = if (s == Service.LASTFM) lastfm else listenbrainz
 

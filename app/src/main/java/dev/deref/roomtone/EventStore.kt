@@ -64,7 +64,7 @@ fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
         ref != null -> ref.title to ref.source
         else -> null to null
     }
-    return m.copy(album = a, albumSource = src, mbids = m.mbids.takeIf { a == m.album }) // album diverso dalla cronologia → il release MBID non vale
+    return m.copy(album = a, albumSource = src, mbids = if (a == m.album) m.mbids else m.mbids?.copy(release = null)) // album diverso dalla cronologia → il release MBID non vale
 }
 
 // Formato listens.json: [{title, artist, firstBeat, lastBeat, beats, svc: {LASTFM: {status, reason, plays, timestamps, durationMs, meta, options}, …}}].
@@ -142,9 +142,10 @@ object EventStore {
     private fun seen(own: Pair<OwnedRelease, OwnedTrack>?, now: Long) { if (own != null) { currentRecord = own.first; recordSeenAt = now } }
 
     // Esito di un ascolto per un servizio: stesso valutatore di base, poi le regole che dipendono dalla sua cronologia.
-    private suspend fun judge(sv: Svc, l: Listen, own: Pair<OwnedRelease, OwnedTrack>?, ctx: OwnedRelease?, base: Evaluation): SvcListen {
+    private suspend fun judge(sv: Svc, l: Listen, own: Pair<OwnedRelease, OwnedTrack>?, ctx: OwnedRelease?, base: Evaluation, refs: MutableMap<String?, AlbumRef?>): SvcListen {
         val (m0, p, noHist) = metaFor(sv, l.track, own)
-        val m = withAlbum(m0, Albums.resolve(l.track, m0.album, own), l.track)
+        if (m0.album !in refs) refs[m0.album] = Albums.resolve(l.track, m0.album, own) // una sola ricerca per album di cronologia (di solito uguale tra servizi)
+        val m = withAlbum(m0, refs[m0.album], l.track)
         var e = base
         if (ctx != null && own == null && noHist && e.status == Status.VALID) e = e.copy(status = Status.DRAFT, reason = Reason.NOT_ON_RECORD)
         val ask = p is Pick.Ask && m.source != MetaSource.OWNED // "disco reale": titolo/artista/album dal disco, la versione non conta
@@ -160,7 +161,8 @@ object EventStore {
             val own = DiscogsCollection.findOwned(l.track, ctx)
             seen(own, l.lastBeat)
             val base = evaluate(l, Durations.duration(l.track, own?.second?.durationMs)) // durata e valutazione base: una volta sola
-            val states = Services.all.filter { it.active }.associate { it.service to judge(it, l, own, ctx, base) }
+            val refs = HashMap<String?, AlbumRef?>()
+            val states = Services.all.filter { it.active }.associate { it.service to judge(it, l, own, ctx, base, refs) }
             _listens.update { list -> list.map { if (it.listen === l) it.copy(svc = states) else it } }
             save()
             states.forEach { (s, sl) ->
@@ -192,7 +194,7 @@ object EventStore {
         val min = System.currentTimeMillis() - 7 * 86_400_000L
         val a = JSONArray()
         _listens.value.filter { x -> x.svc.values.any { it.eval != null && it.meta != null } &&
-            (x.svc.values.any { it.eval?.status == Status.DRAFT } || x.listen.start >= min) } // bozza anche su un solo servizio → resta
+            (Services.visible().any { s -> x.of(s)?.eval?.status == Status.DRAFT } || x.listen.start >= min) } // bozza su un servizio visibile → resta; le altre: 7 giorni
             .forEach { a.put(listenToJson(it)) }
         try {
             val tmp = File(f.parentFile, "listens.tmp")

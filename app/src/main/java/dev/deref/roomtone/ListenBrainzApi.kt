@@ -92,7 +92,7 @@ object ListenBrainzApi : HistoryBackend {
             }
             if (code == 429) { if (attempt == 0) return@repeat; throw IOException("HTTP 429") } // dopo l'attesa del reset, un solo nuovo tentativo
             if (code >= 500) throw IOException("HTTP $code")
-            if (code == 200) return try { JSONObject(text) } catch (_: Exception) { throw IOException("HTTP $code") }
+            if (code in 200..299) return try { JSONObject(text.ifBlank { "{}" }) } catch (_: Exception) { JSONObject() }
             val msg = try { JSONObject(text).optString("error") } catch (_: Exception) { "" }.ifEmpty { "HTTP $code" }
             throw ListenBrainzException(code, msg.take(120))
         }
@@ -125,14 +125,26 @@ object ListenBrainzApi : HistoryBackend {
     }
 }
 
-// Un 400 respinge l'intero blocco: si reinviano gli elementi uno alla volta e solo quelli che danno 400 da soli sono ignorati.
-internal suspend fun sendSplitting(items: List<QItem>, submit: suspend (List<QItem>) -> Unit): List<SendResult> = try {
-    submit(items)
-    items.map { SendResult.Ok }
-} catch (e: ListenBrainzException) {
-    if (e.code != 400) throw e
-    if (items.size == 1) listOf(SendResult.Ignored(e.message.orEmpty()))
-    else items.flatMap { sendSplitting(listOf(it), submit) }
+// Un 400 respinge l'intero blocco: si divide a metà ricorsivamente e solo gli elementi che danno 400 da soli sono ignorati.
+// Altro errore a metà: se qualcosa è già stato accettato non si perde (i restanti → Retry, l'errore riemerge al giro dopo);
+// se niente è stato accettato l'errore si propaga com'è (la coda lo gestisce: sessione scaduta, backoff, recover).
+internal suspend fun sendSplitting(items: List<QItem>, submit: suspend (List<QItem>) -> Unit): List<SendResult> {
+    val out = ArrayList<SendResult>()
+    suspend fun go(b: List<QItem>) {
+        try {
+            submit(b)
+            b.forEach { _ -> out += SendResult.Ok }
+        } catch (e: ListenBrainzException) {
+            if (e.code != 400) throw e
+            if (b.size == 1) out += SendResult.Ignored(e.message.orEmpty())
+            else { go(b.take(b.size / 2)); go(b.drop(b.size / 2)) }
+        }
+    }
+    try { go(items) } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) {
+        if (out.none { it == SendResult.Ok }) throw e
+        while (out.size < items.size) out += SendResult.Retry
+    }
+    return out
 }
 
 object ListenBrainzScrobbler : Scrobbler {
@@ -141,5 +153,17 @@ object ListenBrainzScrobbler : Scrobbler {
         sendSplitting(items) { ListenBrainzApi.submit(submitPayload(it), secret) }
     override fun sessionExpired(e: Exception) = (e as? ListenBrainzException)?.code == 401
     // min_ts/max_ts sono esclusi: la finestra ±1 s di recover() li rende di fatto inclusivi
-    override suspend fun seen(user: String, from: Long, to: Long) = ListenBrainzApi.listens(user, from, to).mapTo(HashSet()) { it.uts }
+    // pagina all'indietro finché non copre la finestra; ponytail: più di 1000 listen nello stesso secondo → il resto si perde
+    override suspend fun seen(user: String, from: Long, to: Long): Set<Long> {
+        val seen = HashSet<Long>()
+        var max = to
+        while (true) {
+            val page = ListenBrainzApi.listens(user, from, max)
+            page.mapTo(seen) { it.uts }
+            if (page.size < LB_COUNT) return seen
+            val min = page.minOf { it.uts }
+            if (min >= max) return seen
+            max = min
+        }
+    }
 }

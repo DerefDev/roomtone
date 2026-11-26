@@ -89,7 +89,17 @@ class SendSplittingTest {
             }
         }
         assertEquals(listOf(SendResult.Ok, SendResult.Ok, SendResult.Ignored("bad item"), SendResult.Ok), r)
-        assertEquals(listOf(4, 1, 1, 1, 1), calls) // blocco intero, poi uno alla volta
+        assertEquals(listOf(4, 2, 2, 1, 1), calls) // blocco intero, poi bisezione
+    }
+
+    @Test fun partialFailureKeepsAccepted() {
+        val r = kotlinx.coroutines.runBlocking {
+            sendSplitting((1..4).map(::q)) { b ->
+                if (b.size == 4) throw ListenBrainzException(400, "bad")
+                if (b.any { it.id == "3" }) throw ListenBrainzException(401, "token")
+            }
+        }
+        assertEquals(listOf(SendResult.Ok, SendResult.Ok, SendResult.Retry, SendResult.Retry), r)
     }
 
     @Test fun otherErrorsPropagate() {
