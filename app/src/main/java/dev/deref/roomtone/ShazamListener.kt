@@ -51,15 +51,13 @@ class ShazamListener : NotificationListenerService() {
         Updates.init(this)
         Connectivity.init(this)
         Durations.init(getExternalFilesDir(null))
-        HistorySync.init(this)
+        Services.init(this)
         DiscogsCollection.init(this)
         EventStore.init(filesDir)
-        VersionChoices.init(filesDir)
-        ScrobbleQueue.init(this)
         Albums.init(cacheDir)
         Artists.init(cacheDir)
-        EventStore.onEvaluated = { l, e, m -> saveListen(l, e, m, "listen") }
-        EventStore.onEdited = { l, e, m -> saveListen(l, e, m, "edit") } // riga di modifica: "start" identifica l'ascolto // agganciato subito, non solo a listener connesso
+        EventStore.onEvaluated = { l, e, m, s -> saveListen(l, e, m, "listen", s) }
+        EventStore.onEdited = { l, e, m, s -> saveListen(l, e, m, "edit", s) } // riga di modifica: "start" identifica l'ascolto // agganciato subito, non solo a listener connesso
     }
 
     override fun onListenerConnected() {
@@ -96,9 +94,9 @@ class ShazamListener : NotificationListenerService() {
         File(dir, name).appendText(line + "\n")
     }
 
-    private fun saveListen(l: Listen, e: Evaluation, m: ScrobbleMeta, event: String) {
+    private fun saveListen(l: Listen, e: Evaluation, m: ScrobbleMeta, event: String, s: Service) {
         val line = JSONObject().apply {
-            put("event", event)
+            put("event", event); put("service", s.name)
             put("title", l.track.title); put("artist", l.track.artist)
             put("start", l.start); put("firstBeat", l.firstBeat); put("lastBeat", l.lastBeat)
             put("beats", l.beats); put("playedMs", l.playedMs)
@@ -127,8 +125,8 @@ class ShazamListener : NotificationListenerService() {
 
     override fun onDestroy() {
         // gli hook puntano a questa istanza: dopo shutdown di io andrebbero in errore
-        EventStore.onEvaluated = { _, _, _ -> }
-        EventStore.onEdited = { _, _, _ -> }
+        EventStore.onEvaluated = { _, _, _, _ -> }
+        EventStore.onEdited = { _, _, _, _ -> }
         unregisterScreenRx()
         handler.removeCallbacks(ticker)
         io.shutdown()

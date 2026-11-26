@@ -32,9 +32,9 @@ fun ignoredNote(code: Int) = when (code) {
     else -> "code $code"
 }
 
-// Coda persistente degli scrobble (scrobble_queue.json) + invio a Last.fm. Un solo worker alla volta.
+// Coda persistente degli scrobble di un servizio (es. scrobble_queue.json) + invio. Un solo worker alla volta.
 // ponytail: file JSON unico riscritto a ogni cambio → Room se cresce
-object ScrobbleQueue {
+class ScrobbleQueue(private val name: String, private val history: HistorySync, private val scrobbler: Scrobbler) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var file: File? = null
     private var again = false // trigger arrivato mentre il worker girava
@@ -46,7 +46,7 @@ object ScrobbleQueue {
 
     @Synchronized fun init(ctx: Context) { // idempotente
         if (file != null) return
-        val f = File(ctx.applicationContext.filesDir, "scrobble_queue.json")
+        val f = File(ctx.applicationContext.filesDir, name)
         file = f
         try {
             val a = JSONArray(f.readText())
@@ -58,7 +58,7 @@ object ScrobbleQueue {
             }
         } catch (_: Exception) { /* assente o corrotto → vuota */ }
         scope.launch { Connectivity.online.filter { it }.collect { flush() } }
-        scope.launch { HistorySync.user.filter { it != null }.collect { flush() } }
+        scope.launch { history.user.filter { it != null }.collect { flush() } }
         flush()
     }
 
@@ -93,7 +93,7 @@ object ScrobbleQueue {
                 .put("note", it.note ?: JSONObject.NULL).put("sentAt", it.sentAt ?: JSONObject.NULL))
         }
         try {
-            val tmp = File(f.parentFile, "scrobble_queue.tmp")
+            val tmp = File(f.parentFile, name.substringBeforeLast('.') + ".tmp")
             tmp.writeText(a.toString())
             tmp.renameTo(f)
         } catch (_: Exception) { /* ponytail: scrittura fallita → si riprova al prossimo cambio di stato */ }
@@ -115,20 +115,20 @@ object ScrobbleQueue {
         }
     }
 
-    private fun ready() = HistorySync.user.value != null && HistorySync.sessionKey() != null && Connectivity.online.value
+    private fun ready() = history.user.value != null && history.secret() != null && Connectivity.online.value
 
     private suspend fun run() {
         var backoff = 0L
         while (true) {
             if (!ready()) return // riparte da un trigger (rete / login)
             if (!recover()) { backoff = next(backoff); if (!pause(backoff)) return; continue }
-            val batch = _items.value.filter { it.state == QState.PENDING }.take(50)
+            val batch = _items.value.filter { it.state == QState.PENDING }.take(scrobbler.batchSize)
             if (batch.isEmpty()) return
             val ids = batch.map { it.id }.toSet()
-            val sk = HistorySync.sessionKey() ?: return
+            val sk = history.secret() ?: return
             setState(ids, QState.SENDING) // salvato prima della chiamata: se l'app muore si ricontrolla su Last.fm
             try {
-                val codes = LastFmApi.scrobble(batch, sk)
+                val codes = scrobbler.send(batch, sk)
                 _error.value = null
                 backoff = 0
                 var daily = false
@@ -137,7 +137,7 @@ object ScrobbleQueue {
                     when (val c = codes[i]) {
                         0 -> setState(setOf(q.id), QState.SENT, sentAt = now)
                         5 -> { setState(setOf(q.id), QState.PENDING); daily = true }
-                        else -> setState(setOf(q.id), QState.IGNORED, ignoredNote(c), now)
+                        else -> setState(setOf(q.id), QState.IGNORED, scrobbler.note(c), now)
                     }
                 }
                 if (daily) return // limite giornaliero: si riprova al prossimo trigger
@@ -149,11 +149,8 @@ object ScrobbleQueue {
                 if (!pause(backoff)) return
             } catch (e: Exception) {
                 setState(ids, QState.PENDING) // errore Last.fm esplicito → non registrati
-                val c = (e as? LastFmException)?.code
-                when {
-                    c == 9 -> { _error.value = "session"; return }
-                    else -> _error.value = e.message ?: e.javaClass.simpleName
-                }
+                if (scrobbler.sessionExpired(e)) { _error.value = "session"; return }
+                _error.value = e.message ?: e.javaClass.simpleName
                 backoff = next(backoff)
                 if (!pause(backoff)) return
             }
@@ -178,17 +175,9 @@ object ScrobbleQueue {
     private suspend fun recover(): Boolean {
         val sending = _items.value.filter { it.state == QState.SENDING }
         if (sending.isEmpty()) return true
-        val user = HistorySync.user.value ?: return false
-        val seen = HashSet<Long>()
-        try {
-            var page = 1
-            while (true) {
-                val (found, pages) = LastFmApi.recentTracksPage(user, page, sending.minOf { it.ts } - 1, sending.maxOf { it.ts } + 1)
-                found.mapTo(seen) { it.uts }
-                if (found.isEmpty() || page >= pages) break
-                page++
-                delay(250)
-            }
+        val user = history.user.value ?: return false
+        val seen = try {
+            scrobbler.seen(user, sending.minOf { it.ts } - 1, sending.maxOf { it.ts } + 1)
         } catch (e: kotlinx.coroutines.CancellationException) { throw e
         } catch (_: Exception) { return false }
         // ponytail: confronto solo sull'uts (stesso secondo di un altro scrobble dell'utente: caso trascurato)

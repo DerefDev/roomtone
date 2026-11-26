@@ -20,13 +20,16 @@ data class SyncProgress(
     val total: Int = 0, val complete: Boolean = false, val error: String? = null,
 )
 
-// Account Last.fm + sincronizzazione cronologia (incrementale, riprendibile). Indice in filesDir interno.
-object HistorySync {
+// Nomi di prefs/file/chiave per servizio (Last.fm: quelli storici → nessuna perdita di login/cronologia agli aggiornamenti)
+class HistoryFiles(val state: String, val account: String, val userKey: String, val index: String, val secure: String)
+
+// Account + sincronizzazione cronologia di un servizio (incrementale, riprendibile). Indice in filesDir interno.
+class HistorySync(val service: Service, private val backend: HistoryBackend, private val files: HistoryFiles) {
     val index = HistoryIndex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var dir: File
     private lateinit var state: SharedPreferences // newestUts, oldestUts, complete, total, lastSync
-    private lateinit var account: SharedPreferences // lastfm_user in chiaro
+    private lateinit var account: SharedPreferences // nome utente in chiaro
     private lateinit var secure: SecureStore
     private var job: Job? = null
 
@@ -35,16 +38,16 @@ object HistorySync {
     private val _progress = MutableStateFlow(SyncProgress())
     val progress: StateFlow<SyncProgress> = _progress
 
-    private val indexFile get() = File(dir, "history_index_v2.tsv")
+    private val indexFile get() = File(dir, files.index)
 
     @Synchronized fun init(ctx: Context) { // idempotente
         if (::dir.isInitialized) return
         val app = ctx.applicationContext
         dir = app.filesDir
-        state = app.getSharedPreferences("history", Context.MODE_PRIVATE)
-        account = app.getSharedPreferences("lastfm", Context.MODE_PRIVATE)
+        state = app.getSharedPreferences(files.state, Context.MODE_PRIVATE)
+        account = app.getSharedPreferences(files.account, Context.MODE_PRIVATE)
         secure = SecureStore(app)
-        _user.value = account.getString("lastfm_user", null)
+        _user.value = account.getString(files.userKey, null)
         if (state.getInt("indexVersion", 0) != 2) { // formato v2 → risincronizzazione completa
             File(dir, "history_index.tsv").delete()
             state.edit().remove("newestUts").remove("oldestUts").remove("complete").remove("total").remove("lastSync").putInt("indexVersion", 2).apply()
@@ -54,12 +57,12 @@ object HistorySync {
         _progress.value = SyncProgress(total = state.getInt("total", 0), complete = state.getBoolean("complete", false))
     }
 
-    fun sessionKey(): String? = secure.get("lastfm_session_key")
+    fun secret(): String? = secure.get(files.secure) // session key (Last.fm) / token (ListenBrainz)
 
-    suspend fun login(token: String) {
-        val (name, key) = LastFmApi.getSession(token)
-        secure.put("lastfm_session_key", key)
-        account.edit().putString("lastfm_user", name).apply()
+    // Il login vero (token → sessione) lo fa il chiamante; qui si salva l'account e parte la sync
+    fun connect(name: String, secret: String) {
+        secure.put(files.secure, secret)
+        account.edit().putString(files.userKey, name).apply()
         _user.value = name
         start()
     }
@@ -68,7 +71,7 @@ object HistorySync {
         val j = job
         scope.launch {
             j?.cancelAndJoin()
-            secure.remove("lastfm_session_key")
+            secure.remove(files.secure)
             account.edit().clear().apply()
             state.edit().clear().putInt("indexVersion", 2).apply()
             index.clear()
@@ -119,7 +122,7 @@ object HistorySync {
         var page = 1
         try {
             while (true) {
-                val (items, pages) = retry3 { LastFmApi.recentTracksPage(user, page, from, to) }
+                val (items, pages) = retry3 { backend.page(user, page, from, to) }
                 if (from != null) pending += items else {
                     items.forEach(index::add)
                     items.forEach { newest = maxOf(newest, it.uts); oldest = if (oldest == 0L) it.uts else minOf(oldest, it.uts) }

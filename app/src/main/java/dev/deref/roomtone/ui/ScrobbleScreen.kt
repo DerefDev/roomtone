@@ -37,13 +37,14 @@ private val SoftRed = Color(0xFFE57373)
 @Composable
 fun ScrobbleScreen(tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
     val list by EventStore.listens.collectAsStateWithLifecycle()
-    val queue by ScrobbleQueue.items.collectAsStateWithLifecycle()
+    val sv = Services.lastfm // ponytail: pannello fisso su Last.fm → per servizio nel passo UI
+    val queue by sv.queue.items.collectAsStateWithLifecycle()
     Page(stringResource(R.string.scrobble_title), onBack) {
         TabRow(tab, containerColor = Color.Transparent, contentColor = LocalAccent.current) {
             Tab(tab == 0, { onTab(0) }, text = { Text(stringResource(R.string.tab_sent)) })
             Tab(tab == 1, { onTab(1) }, text = { Text(stringResource(R.string.tab_drafts)) })
         }
-        val rows = list.asReversed().filter { it.eval?.status == Status.DRAFT } // più recente in alto
+        val rows = list.asReversed().filter { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT } // più recente in alto
         LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (tab == 0) {
                 item { QueueHeader(queue.count { it.state == QState.PENDING || it.state == QState.SENDING }) }
@@ -61,8 +62,8 @@ fun ScrobbleScreen(tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
 private fun QueueHeader(pending: Int) {
     if (pending == 0) return
     val online by Connectivity.online.collectAsStateWithLifecycle()
-    val user by HistorySync.user.collectAsStateWithLifecycle()
-    val err by ScrobbleQueue.error.collectAsStateWithLifecycle()
+    val user by Services.lastfm.history.user.collectAsStateWithLifecycle()
+    val err by Services.lastfm.queue.error.collectAsStateWithLifecycle()
     val why = when {
         err == "session" -> R.string.queue_session
         user == null -> R.string.queue_login
@@ -74,7 +75,7 @@ private fun QueueHeader(pending: Int) {
             Text(pluralStringResource(R.plurals.queue_pending, pending, pending), fontSize = 14.sp)
             why?.let { Text(stringResource(it), color = TextSoft, fontSize = 13.sp) }
         }
-        TextButton({ ScrobbleQueue.retry() }) { Text(stringResource(R.string.queue_retry)) }
+        TextButton({ Services.lastfm.queue.retry() }) { Text(stringResource(R.string.queue_retry)) }
     }
 }
 
@@ -99,8 +100,10 @@ private fun QueueRow(q: QItem) {
 }
 
 @Composable
-private fun DraftCard(it: EvaluatedListen) {
-    val l = it.listen
+private fun DraftCard(x: EvaluatedListen) {
+    val s = Service.LASTFM
+    val it = x.of(s)!!
+    val l = x.listen
     val e = it.eval!!
     val m = it.meta ?: scrobbleMeta(l.track, null)
     val choose = e.reason == Reason.CHOOSE_VERSION
@@ -117,7 +120,7 @@ private fun DraftCard(it: EvaluatedListen) {
         Text("${stringResource(e.reason.res)} · ${dateFmt.format(Date(l.start))}", color = TextSoft, fontSize = 13.sp)
         if (it.options.isNotEmpty()) VersionPicker(it.options, sel) { v ->
             sel = v
-            if (!choose) EventStore.chooseVersion(l, v) // altre cause: aggiorna solo i metadati, conferma a mano
+            if (!choose) EventStore.chooseVersion(l, s, v) // altre cause: aggiorna solo i metadati, conferma a mano
         }
         if (!choose) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Field(title, { title = it }, R.string.field_title, Modifier.weight(1f))
@@ -131,9 +134,9 @@ private fun DraftCard(it: EvaluatedListen) {
                 OutlinedButton({ plays++ }, enabled = plays < e.plays + 1) { Text("+") }
             }
             Spacer(Modifier.weight(1f))
-            TextButton({ EventStore.resolve(l, Status.DISCARDED) }) { Text(stringResource(R.string.draft_discard)) }
+            TextButton({ EventStore.resolve(l, s, Status.DISCARDED) }) { Text(stringResource(R.string.draft_discard)) }
             Button(
-                { if (choose) EventStore.chooseVersion(l, sel!!) else EventStore.resolve(l, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source), plays) },
+                { if (choose) EventStore.chooseVersion(l, s, sel!!) else EventStore.resolve(l, s, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source), plays) },
                 enabled = if (choose) sel != null else title.isNotBlank() && artist.isNotBlank(), // titolo e artista obbligatori
             ) { Text(stringResource(R.string.draft_confirm)) }
         }

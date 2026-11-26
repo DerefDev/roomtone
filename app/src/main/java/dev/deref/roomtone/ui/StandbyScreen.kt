@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.deref.roomtone.EventStore
 import dev.deref.roomtone.R
+import dev.deref.roomtone.Service
 import dev.deref.roomtone.Status
 import java.util.Calendar
 
@@ -37,8 +38,8 @@ fun StandbyScreen(onExit: () -> Unit) {
     }
     val list by EventStore.listens.collectAsStateWithLifecycle()
     val midnight = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
-    val today = list.count { it.listen.start >= midnight && (it.eval?.status == Status.VALID || it.eval?.status == Status.DRAFT) }
-    val review = list.count { it.eval?.status == Status.DRAFT }
+    val today = list.count { it.listen.start >= midnight && (it.of(Service.LASTFM)?.eval?.status.let { s -> s == Status.VALID || s == Status.DRAFT }) }
+    val review = list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT }
     Box(
         Modifier.fillMaxSize().background(Color.Black).clickable(remember { MutableInteractionSource() }, null, onClick = onExit),
         contentAlignment = Alignment.Center,

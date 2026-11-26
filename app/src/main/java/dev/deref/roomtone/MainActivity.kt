@@ -50,11 +50,9 @@ class MainActivity : AppCompatActivity() {
         Artwork.init(cacheDir, filesDir)
         Albums.init(cacheDir)
         Artists.init(cacheDir)
-        HistorySync.init(this)
+        Services.init(this)
         DiscogsCollection.init(this)
         EventStore.init(filesDir)
-        VersionChoices.init(filesDir)
-        ScrobbleQueue.init(this)
         Updates.init(this)
         Updates.checkChangelog(this)
         // una sola volta: permesso notifiche (API 33+) per l'avviso di nuove versioni
@@ -63,7 +61,7 @@ class MainActivity : AppCompatActivity() {
             registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
         if (savedInstanceState == null) handleAuth(intent) // su ricreazione il token sarebbe già usato
-        HistorySync.startIfStale()
+        Services.all.forEach { it.history.startIfStale() }
         DiscogsCollection.startIfStale()
         setContent { Root(accessGranted, overlayGranted, loginError) }
     }
@@ -99,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         }
         val token = d.getQueryParameter("token") ?: return
         lifecycleScope.launch {
-            try { HistorySync.login(token); loginError = null } catch (e: Exception) { loginError = e.message ?: "error" }
+            try { val (name, key) = LastFmApi.getSession(token); Services.lastfm.history.connect(name, key); loginError = null } catch (e: Exception) { loginError = e.message ?: "error" }
         }
     }
 
@@ -223,7 +221,7 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
                 Screen.CREDITS -> CreditsScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.eval?.status == Status.DRAFT }, shazamOn, accessGranted, overlayGranted,
+                        n, cover, scrobbling, online, list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT }, shazamOn, accessGranted, overlayGranted,
                         onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
                     )
                     Drawer(

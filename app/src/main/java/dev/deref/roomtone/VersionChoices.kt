@@ -9,15 +9,15 @@ import java.io.File
 // Versione scelta dall'utente + brano Shazam di riferimento (per mostrarlo nelle impostazioni).
 data class Choice(val song: Track, val key: VersionKey)
 
-// Scelte salvate: histKey → versione. File version_choices.json (scrittura atomica tmp+rename).
-object VersionChoices {
+// Scelte salvate: histKey → versione. File per servizio (es. version_choices.json; scrittura atomica tmp+rename).
+class VersionChoices(private val name: String) {
     private val _choices = MutableStateFlow<Map<String, Choice>>(emptyMap())
     val choices: StateFlow<Map<String, Choice>> = _choices
     private var file: File? = null
 
     @Synchronized fun init(dir: File) { // idempotente
         if (file != null) return
-        file = File(dir, "version_choices.json")
+        file = File(dir, name)
         try {
             val a = JSONArray(file!!.readText())
             _choices.value = (0 until a.length()).associate {
@@ -43,7 +43,7 @@ object VersionChoices {
                 .put("vArtist", c.key.artist).put("vTitle", c.key.title).put("vAlbum", c.key.album ?: ""))
         }
         try {
-            val tmp = File(dir, "version_choices.tmp")
+            val tmp = File(dir, name.substringBeforeLast('.') + ".tmp")
             tmp.writeText(a.toString())
             tmp.renameTo(file!!)
         } catch (_: Exception) { /* ponytail: scrittura fallita → si riprova al prossimo salvataggio */ }

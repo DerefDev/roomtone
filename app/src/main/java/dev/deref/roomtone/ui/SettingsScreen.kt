@@ -106,7 +106,7 @@ private fun CustomMinDialog(cur: Int, onSet: (Int) -> Unit, onDismiss: () -> Uni
 // Versioni scelte: brano → "titolo · album"; tocco → dialogo per cambiare o rimuovere la scelta
 @Composable
 private fun VersionsArea() {
-    val all by VersionChoices.choices.collectAsStateWithLifecycle()
+    val all by Services.lastfm.choices.choices.collectAsStateWithLifecycle()
     var edit by remember { mutableStateOf<String?>(null) }
     Area(R.string.sec_versions) {
         if (all.isEmpty()) Text(stringResource(R.string.versions_hint), fontSize = 12.sp, color = TextSoft)
@@ -120,15 +120,15 @@ private fun VersionsArea() {
     val c = edit?.let { all[it] }
     if (c != null) {
         // ponytail: scelta non più in cronologia → compare solo come voce salvata (plays 0)
-        val opts = HistorySync.index.versions(c.song).let { vs -> if (vs.any { it.key == c.key }) vs else listOf(Version(c.key.artist, c.key.title, c.key.album, 0, emptyList())) + vs }
+        val opts = Services.lastfm.history.index.versions(c.song).let { vs -> if (vs.any { it.key == c.key }) vs else listOf(Version(c.key.artist, c.key.title, c.key.album, 0, emptyList())) + vs }
         var sel by remember(c) { mutableStateOf(opts.first { it.key == c.key }) }
         AlertDialog({ edit = null },
             title = { Text("${c.song.title} – ${c.song.artist}", fontSize = 16.sp) },
             text = { LazyColumn { item { VersionPicker(opts, sel) { sel = it } } } },
-            confirmButton = { TextButton({ VersionChoices.set(c.song, sel.key); edit = null }) { Text(stringResource(R.string.version_save)) } },
+            confirmButton = { TextButton({ Services.lastfm.choices.set(c.song, sel.key); edit = null }) { Text(stringResource(R.string.version_save)) } },
             dismissButton = {
                 Row {
-                    TextButton({ VersionChoices.remove(edit!!); edit = null }) { Text(stringResource(R.string.version_remove)) }
+                    TextButton({ Services.lastfm.choices.remove(edit!!); edit = null }) { Text(stringResource(R.string.version_remove)) }
                     TextButton({ edit = null }) { Text(stringResource(R.string.cancel)) }
                 }
             })
@@ -142,8 +142,8 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val connected by EventStore.connected.collectAsStateWithLifecycle()
     val diag by Prefs.diagnostics.collectAsStateWithLifecycle()
     val logDays by Prefs.logDays.collectAsStateWithLifecycle()
-    val user by HistorySync.user.collectAsStateWithLifecycle()
-    val sync by HistorySync.progress.collectAsStateWithLifecycle()
+    val user by Services.lastfm.history.user.collectAsStateWithLifecycle()
+    val sync by Services.lastfm.history.progress.collectAsStateWithLifecycle()
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
     val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
@@ -208,7 +208,7 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                                     else -> stringResource(R.string.history_paused, n)
                                 }, fontSize = 12.sp)
                             }
-                            Button({ HistorySync.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
+                            Button({ Services.lastfm.history.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
                         }
                     }
                     (loginError ?: sync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
@@ -317,7 +317,8 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                         }
                     }
                 }
-                items(list.asReversed()) { (r, ev, meta) -> // più recente in alto
+                items(list.asReversed()) { x -> // più recente in alto
+                    val r = x.listen; val ev = x.of(Service.LASTFM)?.eval; val meta = x.of(Service.LASTFM)?.meta
                     Column {
                         Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(timeFmt.format(Date(r.start)))

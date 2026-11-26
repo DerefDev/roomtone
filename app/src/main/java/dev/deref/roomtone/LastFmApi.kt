@@ -12,7 +12,7 @@ data class HistoryScrobble(val artist: String, val title: String, val album: Str
 class LastFmException(val code: Int, message: String) : Exception(message)
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
-object LastFmApi {
+object LastFmApi : HistoryBackend {
     private const val UA = "Roomtone/0.8 ( https://github.com/DerefDev/roomtone )"
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
 
@@ -63,6 +63,8 @@ object LastFmApi {
         if (objs.size != items.size) throw IOException("incomplete scrobble response") // esito incerto → verifica in cronologia
         return objs.map { it.optJSONObject("ignoredMessage")?.optString("code")?.toIntOrNull() ?: 0 }
     }
+
+    override suspend fun page(user: String, page: Int, from: Long?, to: Long?) = recentTracksPage(user, page, from, to)
 
     suspend fun recentTracksPage(user: String, page: Int, from: Long?, to: Long?): Pair<List<HistoryScrobble>, Int> {
         val p = mutableMapOf(

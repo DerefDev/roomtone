@@ -88,4 +88,5 @@ dependencies {
     implementation(libs.androidx.palette)
     implementation(libs.zxing.core)
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303") // org.json reale per i test (android.jar ha solo stub)
 }
