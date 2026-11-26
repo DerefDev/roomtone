@@ -92,7 +92,8 @@ object ListenBrainzApi : HistoryBackend {
             }
             if (code == 429) { if (attempt == 0) return@repeat; throw IOException("HTTP 429") } // dopo l'attesa del reset, un solo nuovo tentativo
             if (code >= 500) throw IOException("HTTP $code")
-            if (code in 200..299) return try { JSONObject(text.ifBlank { "{}" }) } catch (_: Exception) { JSONObject() }
+            // 2xx non JSON = pagina anti-bot HTML (succede alle richieste anonime): errore temporaneo, mai successo
+            if (code in 200..299) return try { JSONObject(text.ifBlank { "{}" }) } catch (_: Exception) { throw IOException("non-JSON response") }
             val msg = try { JSONObject(text).optString("error") } catch (_: Exception) { "" }.ifEmpty { "HTTP $code" }
             throw ListenBrainzException(code, msg.take(120))
         }
@@ -108,13 +109,16 @@ object ListenBrainzApi : HistoryBackend {
 
     suspend fun submit(payload: String, token: String) { call("submit-listens", token, payload) }
 
+    // letture col token anche se pubbliche: alle richieste anonime ListenBrainz può rispondere con la verifica anti-bot
+    private fun token() = Services.listenbrainz.history.secret()
+
     suspend fun listens(user: String, minTs: Long, maxTs: Long): List<HistoryScrobble> =
-        parseListens(call("user/${enc(user)}/listens?min_ts=$minTs&max_ts=$maxTs&count=$LB_COUNT"))
+        parseListens(call("user/${enc(user)}/listens?min_ts=$minTs&max_ts=$maxTs&count=$LB_COUNT", token()))
 
     // Cursore = max_ts (escluso), nullo → fino a `to`. Si pagina sempre all'indietro; `from` = stop dell'incrementale.
     override suspend fun page(user: String, cursor: Long?, from: Long?, to: Long?): HistoryPage {
         val maxTs = cursor ?: ((to ?: (System.currentTimeMillis() / 1000)) + 1)
-        val all = parseListens(call("user/${enc(user)}/listens?max_ts=$maxTs&count=$LB_COUNT"))
+        val all = parseListens(call("user/${enc(user)}/listens?max_ts=$maxTs&count=$LB_COUNT", token()))
         val items = if (from != null) all.filter { it.uts >= from } else all
         if (items.size < all.size || all.size < LB_COUNT) return HistoryPage(items, null, null) // raggiunto `from` / ultima pagina (ponytail: meno di 1000 = fine, niente pagina vuota in più)
         val min = all.minOf { it.uts }
