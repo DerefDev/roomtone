@@ -39,6 +39,7 @@
     <string name="lastfm_disconnect">Disconnect</string>
     <string name="lastfm_connected">Last.fm: connected as %1$s</string>
     <string name="lastfm_not_connected">Last.fm: not connected</string>
+    <string name="history_syncing_open">History: %1$s scrobbles · syncing…</string>
     <string name="history_syncing">History: %1$s scrobbles · syncing page %2$d/%3$d</string>
     <string name="history_up_to_date">History: %1$s scrobbles · up to date</string>
     <string name="history_paused">History: %1$s scrobbles · incomplete</string>

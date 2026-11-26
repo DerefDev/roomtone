@@ -136,7 +136,8 @@ private fun DraftCard(x: EvaluatedListen) {
             Spacer(Modifier.weight(1f))
             TextButton({ EventStore.resolve(l, s, Status.DISCARDED) }) { Text(stringResource(R.string.draft_discard)) }
             Button(
-                { if (choose) EventStore.chooseVersion(l, s, sel!!) else EventStore.resolve(l, s, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source), plays) },
+                { if (choose) EventStore.chooseVersion(l, s, sel!!) else EventStore.resolve(l, s, Status.VALID, ScrobbleMeta(artist.trim(), title.trim(), album.trim().ifEmpty { null }, m.source, null,
+                    m.mbids.takeIf { artist.trim() == m.artist && title.trim() == m.title && album.trim().ifEmpty { null } == m.album }), plays) }, // modificato a mano → niente MBID
                 enabled = if (choose) sel != null else title.isNotBlank() && artist.isNotBlank(), // titolo e artista obbligatori
             ) { Text(stringResource(R.string.draft_confirm)) }
         }

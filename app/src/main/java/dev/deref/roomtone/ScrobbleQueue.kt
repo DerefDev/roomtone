@@ -20,7 +20,7 @@ enum class QState { PENDING, SENDING, SENT, IGNORED }
 
 data class QItem(
     val id: String, val artist: String, val title: String, val album: String?, val ts: Long, val durationSec: Long?,
-    val state: QState, val note: String? = null, val sentAt: Long? = null,
+    val state: QState, val note: String? = null, val sentAt: Long? = null, val mbids: Mbids? = null,
 )
 
 // id = "primoBattito-indice": rientrare lo stesso ascolto non crea doppioni. Kotlin puro → testabile.
@@ -54,7 +54,7 @@ class ScrobbleQueue(private val name: String, private val history: HistorySync, 
                 val o = a.getJSONObject(it)
                 QItem(o.getString("id"), o.getString("artist"), o.getString("title"), o.optStr("album"),
                     o.getLong("ts"), if (o.isNull("durationSec")) null else o.getLong("durationSec"), QState.valueOf(o.getString("state")),
-                    o.optStr("note"), if (o.isNull("sentAt")) null else o.getLong("sentAt"))
+                    o.optStr("note"), if (o.isNull("sentAt")) null else o.getLong("sentAt"), mbidsFromJson(o.optJSONObject("mbids")))
             }
         } catch (_: Exception) { /* assente o corrotto → vuota */ }
         scope.launch { Connectivity.online.filter { it }.collect { flush() } }
@@ -69,7 +69,7 @@ class ScrobbleQueue(private val name: String, private val history: HistorySync, 
         val add = queueIds(l, e)
         synchronized(this) {
             val have = _items.value.mapTo(HashSet()) { it.id }
-            val new = add.filter { it.first !in have }.map { (id, ts) -> QItem(id, m.artist, m.title, m.album, ts, dur, QState.PENDING) }
+            val new = add.filter { it.first !in have }.map { (id, ts) -> QItem(id, m.artist, m.title, m.album, ts, dur, QState.PENDING, mbids = m.mbids) }
             if (new.isEmpty()) return
             _items.update { (it + new).sortedBy { x -> x.ts } }
             save()
@@ -90,7 +90,7 @@ class ScrobbleQueue(private val name: String, private val history: HistorySync, 
         _items.value.forEach {
             a.put(JSONObject().put("id", it.id).put("artist", it.artist).put("title", it.title).put("album", it.album ?: JSONObject.NULL)
                 .put("ts", it.ts).put("durationSec", it.durationSec ?: JSONObject.NULL).put("state", it.state.name)
-                .put("note", it.note ?: JSONObject.NULL).put("sentAt", it.sentAt ?: JSONObject.NULL))
+                .put("note", it.note ?: JSONObject.NULL).put("sentAt", it.sentAt ?: JSONObject.NULL).also { o -> it.mbids?.let { m -> o.put("mbids", mbidsToJson(m)) } })
         }
         try {
             val tmp = File(f.parentFile, name.substringBeforeLast('.') + ".tmp")
@@ -134,10 +134,10 @@ class ScrobbleQueue(private val name: String, private val history: HistorySync, 
                 var daily = false
                 val now = System.currentTimeMillis()
                 batch.forEachIndexed { i, q ->
-                    when (val c = codes[i]) {
-                        0 -> setState(setOf(q.id), QState.SENT, sentAt = now)
-                        5 -> { setState(setOf(q.id), QState.PENDING); daily = true }
-                        else -> setState(setOf(q.id), QState.IGNORED, scrobbler.note(c), now)
+                    when (val r = codes[i]) {
+                        SendResult.Ok -> setState(setOf(q.id), QState.SENT, sentAt = now)
+                        SendResult.Retry -> { setState(setOf(q.id), QState.PENDING); daily = true }
+                        is SendResult.Ignored -> setState(setOf(q.id), QState.IGNORED, r.note, now)
                     }
                 }
                 if (daily) return // limite giornaliero: si riprova al prossimo trigger

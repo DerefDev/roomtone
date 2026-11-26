@@ -120,19 +120,21 @@ class HistorySync(val service: Service, private val backend: HistoryBackend, pri
 
         _progress.value = SyncProgress(running = true, total = index.size, complete = complete)
         var page = 1
+        var cursor: Long? = null
         try {
             while (true) {
-                val (items, pages) = retry3 { backend.page(user, page, from, to) }
+                val pg = retry3 { backend.page(user, cursor, from, to) }
+                val items = pg.items
                 if (from != null) pending += items else {
                     items.forEach(index::add)
                     items.forEach { newest = maxOf(newest, it.uts); oldest = if (oldest == 0L) it.uts else minOf(oldest, it.uts) }
                 }
-                _progress.value = SyncProgress(true, page, pages, index.size + pending.size, complete)
-                val last = items.isEmpty() || page >= pages
+                _progress.value = SyncProgress(true, page, pg.pages ?: 0, index.size + pending.size, complete)
+                val last = pg.next == null
                 // ponytail: indice salvato ogni 10 pagine, non a ogni pagina (file grande)
                 if (from == null && (last || page % 10 == 0)) { complete = last; persist() }
                 if (last) break
-                page++
+                page++; cursor = pg.next
                 delay(250)
             }
             if (from != null) {

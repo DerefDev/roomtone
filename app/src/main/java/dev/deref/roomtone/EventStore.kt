@@ -64,11 +64,18 @@ fun withAlbum(m: ScrobbleMeta, ref: AlbumRef?, t: Track): ScrobbleMeta {
         ref != null -> ref.title to ref.source
         else -> null to null
     }
-    return m.copy(album = a, albumSource = src)
+    return m.copy(album = a, albumSource = src, mbids = m.mbids.takeIf { a == m.album }) // album diverso dalla cronologia → il release MBID non vale
 }
 
 // Formato listens.json: [{title, artist, firstBeat, lastBeat, beats, svc: {LASTFM: {status, reason, plays, timestamps, durationMs, meta, options}, …}}].
 // Formato vecchio (status/meta/options alla radice, senza "svc") → letto come stato LASTFM.
+// MBID: oggetto JSON opzionale, assente per Last.fm (formati invariati)
+internal fun mbidsToJson(m: Mbids) = JSONObject().put("recording", m.recording ?: JSONObject.NULL).put("release", m.release ?: JSONObject.NULL)
+    .put("artists", JSONArray(m.artists))
+internal fun mbidsFromJson(o: JSONObject?): Mbids? = o?.let { j ->
+    Mbids(j.optStr("recording"), j.optStr("release"), j.optJSONArray("artists")?.let { a -> List(a.length()) { a.getString(it) } }.orEmpty())
+}?.takeIf { !it.empty }
+
 internal fun listenToJson(x: EvaluatedListen): JSONObject {
     val l = x.listen
     val svc = JSONObject()
@@ -77,9 +84,11 @@ internal fun listenToJson(x: EvaluatedListen): JSONObject {
         svc.put(s.name, JSONObject().put("status", e.status.name).put("reason", e.reason.name)
             .put("plays", e.plays).put("timestamps", JSONArray(e.timestamps)).put("durationMs", e.durationMs ?: JSONObject.NULL)
             .put("meta", JSONObject().put("artist", m.artist).put("title", m.title).put("album", m.album ?: JSONObject.NULL)
-                .put("source", m.source.name).put("albumSource", m.albumSource?.name ?: JSONObject.NULL))
+                .put("source", m.source.name).put("albumSource", m.albumSource?.name ?: JSONObject.NULL)
+                .also { j -> m.mbids?.let { j.put("mbids", mbidsToJson(it)) } })
             .put("options", JSONArray().also { a -> sl.options.forEach { v ->
-                a.put(JSONObject().put("artist", v.artist).put("title", v.title).put("album", v.album ?: "").put("plays", v.plays).put("recent", JSONArray(v.recent)))
+                a.put(JSONObject().put("artist", v.artist).put("title", v.title).put("album", v.album ?: "").put("plays", v.plays).put("recent", JSONArray(v.recent))
+                    .also { j -> v.mbids?.let { j.put("mbids", mbidsToJson(it)) } })
             } }))
     }
     return JSONObject().put("title", l.track.title).put("artist", l.track.artist).put("firstBeat", l.firstBeat)
@@ -93,10 +102,10 @@ private fun svcFromJson(o: JSONObject): SvcListen {
         Evaluation(Status.valueOf(o.getString("status")), Reason.valueOf(o.getString("reason")), o.getInt("plays"),
             List(ts.length()) { ts.getLong(it) }, if (o.isNull("durationMs")) null else o.getLong("durationMs")),
         ScrobbleMeta(m.getString("artist"), m.getString("title"), m.optStr("album"),
-            MetaSource.valueOf(m.getString("source")), m.optStr("albumSource")?.let { AlbumSource.valueOf(it) }),
+            MetaSource.valueOf(m.getString("source")), m.optStr("albumSource")?.let { AlbumSource.valueOf(it) }, mbidsFromJson(m.optJSONObject("mbids"))),
         o.optJSONArray("options")?.let { a -> List(a.length()) { i -> a.getJSONObject(i).let { v ->
             val r = v.getJSONArray("recent")
-            Version(v.getString("artist"), v.getString("title"), v.optStr("album"), v.getInt("plays"), List(r.length()) { r.getLong(it) })
+            Version(v.getString("artist"), v.getString("title"), v.optStr("album"), v.getInt("plays"), List(r.length()) { r.getLong(it) }, mbidsFromJson(v.optJSONObject("mbids")))
         } } }.orEmpty(),
     )
 }

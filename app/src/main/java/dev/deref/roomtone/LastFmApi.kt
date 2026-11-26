@@ -8,7 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-data class HistoryScrobble(val artist: String, val title: String, val album: String?, val uts: Long)
+data class HistoryScrobble(val artist: String, val title: String, val album: String?, val uts: Long, val mbids: Mbids? = null)
 class LastFmException(val code: Int, message: String) : Exception(message)
 
 // Errori HTTP/JSON → eccezione (decide il chiamante). Mai loggare URL/parametri (token, session key).
@@ -64,7 +64,12 @@ object LastFmApi : HistoryBackend {
         return objs.map { it.optJSONObject("ignoredMessage")?.optString("code")?.toIntOrNull() ?: 0 }
     }
 
-    override suspend fun page(user: String, page: Int, from: Long?, to: Long?) = recentTracksPage(user, page, from, to)
+    // cursore = numero di pagina (da 1)
+    override suspend fun page(user: String, cursor: Long?, from: Long?, to: Long?): HistoryPage {
+        val p = cursor?.toInt() ?: 1
+        val (items, pages) = recentTracksPage(user, p, from, to)
+        return HistoryPage(items, if (items.isEmpty() || p >= pages) null else (p + 1).toLong(), pages)
+    }
 
     suspend fun recentTracksPage(user: String, page: Int, from: Long?, to: Long?): Pair<List<HistoryScrobble>, Int> {
         val p = mutableMapOf(

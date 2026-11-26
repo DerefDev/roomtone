@@ -203,6 +203,7 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                                 Text(stringResource(R.string.lastfm_connected, u))
                                 val n = NumberFormat.getInstance().format(sync.total)
                                 Text(when {
+                                    sync.running && sync.pages == 0 -> stringResource(R.string.history_syncing_open, n)
                                     sync.running -> stringResource(R.string.history_syncing, n, sync.page, sync.pages)
                                     sync.complete -> stringResource(R.string.history_up_to_date, n)
                                     else -> stringResource(R.string.history_paused, n)
