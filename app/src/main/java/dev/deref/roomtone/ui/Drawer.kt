@@ -30,12 +30,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+
+// Voce "Scrobble <servizio>": drafts > 0 → pallino accento
+class ScrobbleEntry(val label: Int, val drafts: Int, val onClick: () -> Unit)
 
 // Pannello da destra su overlay scuro; chiusura con tap fuori o back.
 @Composable
 fun Drawer(
     open: Boolean, onClose: () -> Unit, scrobbling: Boolean, onScrobbling: (Boolean) -> Unit,
-    onSettings: () -> Unit, onScrobble: () -> Unit, onStandby: () -> Unit,
+    onSettings: () -> Unit, scrobbleEntries: List<ScrobbleEntry>, onStandby: () -> Unit,
     update: Release? = null, onUpdate: () -> Unit = {},
 ) {
     val accent = LocalAccent.current
@@ -63,7 +67,7 @@ fun Drawer(
                     }
                 }
                 Item(R.drawable.ic_settings, stringResource(R.string.menu_settings), onSettings)
-                Item(R.drawable.ic_scrobble, stringResource(R.string.menu_scrobble), onScrobble)
+                scrobbleEntries.forEach { Item(R.drawable.ic_scrobble, stringResource(it.label), it.onClick, it.drafts > 0) }
                 Item(R.drawable.ic_power, stringResource(R.string.menu_standby), onStandby)
                 HorizontalDivider(Modifier.padding(vertical = 8.dp), color = accent.copy(alpha = 0.3f))
                 SwitchRow(stringResource(R.string.menu_scrobbling), scrobbling, onScrobbling)
@@ -73,11 +77,12 @@ fun Drawer(
 }
 
 @Composable
-private fun Item(icon: Int, label: String, onClick: () -> Unit) {
+private fun Item(icon: Int, label: String, onClick: () -> Unit, dot: Boolean = false) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(painterResource(icon), null, tint = LocalAccent.current)
         Spacer(Modifier.width(16.dp))
         Text(label, fontSize = 18.sp)
+        if (dot) { Spacer(Modifier.width(8.dp)); Box(Modifier.size(8.dp).clip(CircleShape).background(LocalAccent.current)) }
     }
 }
 

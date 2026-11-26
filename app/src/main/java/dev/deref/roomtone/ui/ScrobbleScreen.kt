@@ -1,6 +1,7 @@
 package dev.deref.roomtone.ui
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,38 +36,71 @@ private val dateFmt = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateForma
 private val SoftRed = Color(0xFFE57373)
 
 @Composable
-fun ScrobbleScreen(tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
+fun ScrobbleScreen(service: Service, tab: Int, onTab: (Int) -> Unit, onBack: () -> Unit) {
     val list by EventStore.listens.collectAsStateWithLifecycle()
-    val sv = Services.lastfm // ponytail: pannello fisso su Last.fm → per servizio nel passo UI
+    val sv = Services.of(service)
     val queue by sv.queue.items.collectAsStateWithLifecycle()
-    Page(stringResource(R.string.scrobble_title), onBack) {
+    Page(stringResource(if (service == Service.LASTFM) R.string.scrobble_title_lastfm else R.string.scrobble_title_lb), onBack) {
         TabRow(tab, containerColor = Color.Transparent, contentColor = LocalAccent.current) {
             Tab(tab == 0, { onTab(0) }, text = { Text(stringResource(R.string.tab_sent)) })
             Tab(tab == 1, { onTab(1) }, text = { Text(stringResource(R.string.tab_drafts)) })
+            Tab(tab == 2, { onTab(2) }, text = { Text(stringResource(R.string.tab_versions)) })
         }
-        val rows = list.asReversed().filter { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT } // più recente in alto
-        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val rows = list.asReversed().filter { it.of(service)?.eval?.status == Status.DRAFT } // più recente in alto
+        if (tab == 2) VersionsTab(sv) else LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (tab == 0) {
-                item { QueueHeader(queue.count { it.state == QState.PENDING || it.state == QState.SENDING }) }
+                item { QueueHeader(service, queue.count { it.state == QState.PENDING || it.state == QState.SENDING }) }
                 if (queue.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
                 items(queue.asReversed(), key = { it.id }) { QueueRow(it) }
             } else {
                 if (rows.isEmpty()) item { Text(stringResource(R.string.list_empty), color = TextSoft) }
-                items(rows, key = { it.listen.start }) { DraftCard(it) }
+                items(rows, key = { it.listen.start }) { DraftCard(service, it) }
             }
         }
     }
 }
 
+// Versioni scelte del servizio: brano → "titolo · album"; tocco → dialogo per cambiare o rimuovere la scelta
 @Composable
-private fun QueueHeader(pending: Int) {
+private fun ColumnScope.VersionsTab(sv: Svc) {
+    val all by sv.choices.choices.collectAsStateWithLifecycle()
+    var edit by remember { mutableStateOf<String?>(null) }
+    LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (all.isEmpty()) item { Text(stringResource(R.string.versions_hint), color = TextSoft) }
+        items(all.entries.toList(), key = { it.key }) { (hk, c) ->
+            Column(Modifier.fillMaxWidth().clickable { edit = hk }.padding(vertical = 4.dp)) {
+                Text("${c.song.title} – ${c.song.artist}", fontSize = 16.sp)
+                Text(listOfNotNull(c.key.title, c.key.album).joinToString(" · "), fontSize = 13.sp, color = TextSoft)
+            }
+        }
+    }
+    val c = edit?.let { all[it] }
+    if (c != null) {
+        // ponytail: scelta non più in cronologia → compare solo come voce salvata (plays 0)
+        val opts = sv.history.index.versions(c.song).let { vs -> if (vs.any { it.key == c.key }) vs else listOf(Version(c.key.artist, c.key.title, c.key.album, 0, emptyList())) + vs }
+        var sel by remember(c) { mutableStateOf(opts.first { it.key == c.key }) }
+        AlertDialog({ edit = null },
+            title = { Text("${c.song.title} – ${c.song.artist}", fontSize = 16.sp) },
+            text = { LazyColumn { item { VersionPicker(opts, sel) { sel = it } } } },
+            confirmButton = { TextButton({ sv.choices.set(c.song, sel.key); edit = null }) { Text(stringResource(R.string.version_save)) } },
+            dismissButton = {
+                Row {
+                    TextButton({ sv.choices.remove(edit!!); edit = null }) { Text(stringResource(R.string.version_remove)) }
+                    TextButton({ edit = null }) { Text(stringResource(R.string.cancel)) }
+                }
+            })
+    }
+}
+
+@Composable
+private fun QueueHeader(service: Service, pending: Int) {
     if (pending == 0) return
     val online by Connectivity.online.collectAsStateWithLifecycle()
-    val user by Services.lastfm.history.user.collectAsStateWithLifecycle()
-    val err by Services.lastfm.queue.error.collectAsStateWithLifecycle()
+    val user by Services.of(service).history.user.collectAsStateWithLifecycle()
+    val err by Services.of(service).queue.error.collectAsStateWithLifecycle()
     val why = when {
-        err == "session" -> R.string.queue_session
-        user == null -> R.string.queue_login
+        err == "session" -> if (service == Service.LASTFM) R.string.queue_session else R.string.queue_session_lb
+        user == null -> if (service == Service.LASTFM) R.string.queue_login else R.string.queue_login_lb
         !online -> R.string.queue_offline
         else -> null
     }
@@ -75,7 +109,7 @@ private fun QueueHeader(pending: Int) {
             Text(pluralStringResource(R.plurals.queue_pending, pending, pending), fontSize = 14.sp)
             why?.let { Text(stringResource(it), color = TextSoft, fontSize = 13.sp) }
         }
-        TextButton({ Services.lastfm.queue.retry() }) { Text(stringResource(R.string.queue_retry)) }
+        TextButton({ Services.of(service).queue.retry() }) { Text(stringResource(R.string.queue_retry)) }
     }
 }
 
@@ -100,8 +134,7 @@ private fun QueueRow(q: QItem) {
 }
 
 @Composable
-private fun DraftCard(x: EvaluatedListen) {
-    val s = Service.LASTFM
+private fun DraftCard(s: Service, x: EvaluatedListen) {
     val it = x.of(s)!!
     val l = x.listen
     val e = it.eval!!

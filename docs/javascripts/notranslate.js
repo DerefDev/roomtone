@@ -3,7 +3,7 @@
 (function () {
   const terms = [
     // names
-    "Roomtone", "Auto Shazam", "Shazam", "Last.fm Pro", "Last.fm", "Discogs", "Genius",
+    "Roomtone", "Auto Shazam", "Shazam", "Last.fm Pro", "Last.fm", "ListenBrainz", "Discogs", "Genius",
     "MusicBrainz", "Cover Art Archive", "Deezer", "iTunes", "Crowdin",
     // app labels quoted in the docs
     "Consistent with history", "Actual record", "Retry now",

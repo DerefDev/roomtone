@@ -31,6 +31,20 @@ scrobbles, at most once an hour. For each way a song is written in your
 history (artist, title and album exactly as they appear) it keeps the number
 of plays and the dates of the last five.
 
+## Your ListenBrainz history
+
+If you connect ListenBrainz, Roomtone does the same with your ListenBrainz
+history: it downloads it once, then only the new listens, at most once an
+hour, and keeps for each way a song is written the number of plays and the
+dates of the last five. When your history has them, it also keeps the
+MusicBrainz IDs of the most recent listen of each version.
+
+Last.fm and ListenBrainz are independent. Each has its own history, its own
+chosen versions, its own drafts and its own queue, so a listen can be valid
+on one and a draft on the other, and a change you make to a draft counts only
+for that service. A listen is judged for the services you are connected to at
+that moment; connecting a second service later doesn't send past listens.
+
 ## Choosing how to write a track
 
 For each listen Roomtone looks for the song in your history, both with the
@@ -105,5 +119,23 @@ not queued.
 - Scrobbles that Last.fm refuses, for example because they are older than
   two weeks, stay in the list marked as ignored, with the reason.
 
-The Scrobble page shows what was sent, what's waiting and the drafts.
-Sent and ignored scrobbles are kept for 30 days, drafts until you handle them.
+Each service has its own Scrobble page, with three tabs: what was sent and
+what's waiting, the drafts, and the versions you chose. Sent and ignored
+scrobbles are kept for 30 days, drafts until you handle them.
+
+## Sending to ListenBrainz
+
+To connect, paste your user token from
+[ListenBrainz settings](https://listenbrainz.org/settings/) in Roomtone's
+settings. The token is stored encrypted on the phone.
+
+It works like Last.fm, with these differences:
+
+- The queue is sent in batches of up to 100. Roomtone makes at most one
+  request per second and waits when ListenBrainz asks it to.
+- Each listen carries artist, title, album, time and length. If the version
+  comes from your ListenBrainz history and you didn't edit it by hand, the
+  MusicBrainz IDs of that version are sent too.
+- If ListenBrainz refuses a batch, Roomtone sends its listens one at a time,
+  so only the ones it refuses stay marked as ignored, with the reason.
+- If the token is rejected, Roomtone stops and asks you to connect again.

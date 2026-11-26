@@ -69,9 +69,9 @@ itself if the system dropped it.
 
 ## A track is scrobbled with the wrong name
 
-- Check the Drafts tab: tracks Roomtone isn't sure about wait there.
+- Check the Drafts tab of the service: tracks Roomtone isn't sure about wait there.
 - If a song has several versions in your Last.fm history, your pick is saved
-  in Settings, under the chosen versions. You can change it there.
+  in the Versions tab of that service. You can change it there.
 - In Settings you can choose whether albums and titles follow your Last.fm
   history or the record you own.
 
@@ -79,8 +79,8 @@ See [Scrobbling](scrobbling.md) for how Roomtone picks a name.
 
 ## Scrobbles stay waiting
 
-The Sent tab shows why: no connection, not logged in, or a Last.fm session
-that has expired. Use "Retry now" once the problem is solved. If you changed
+The Sent tab shows why: no connection, not logged in, a Last.fm session
+that has expired or a ListenBrainz token that was rejected. Use "Retry now" once the problem is solved. If you changed
 the Last.fm API key in your own build, log out and back in.
 
 ## Reporting a problem

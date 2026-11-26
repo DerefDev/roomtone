@@ -125,15 +125,20 @@ object ListenBrainzApi : HistoryBackend {
     }
 }
 
+// Un 400 respinge l'intero blocco: si reinviano gli elementi uno alla volta e solo quelli che danno 400 da soli sono ignorati.
+internal suspend fun sendSplitting(items: List<QItem>, submit: suspend (List<QItem>) -> Unit): List<SendResult> = try {
+    submit(items)
+    items.map { SendResult.Ok }
+} catch (e: ListenBrainzException) {
+    if (e.code != 400) throw e
+    if (items.size == 1) listOf(SendResult.Ignored(e.message.orEmpty()))
+    else items.flatMap { sendSplitting(listOf(it), submit) }
+}
+
 object ListenBrainzScrobbler : Scrobbler {
     override val batchSize = 100
-    override suspend fun send(items: List<QItem>, secret: String): List<SendResult> = try {
-        ListenBrainzApi.submit(submitPayload(items), secret)
-        items.map { SendResult.Ok }
-    } catch (e: ListenBrainzException) {
-        if (e.code != 400) throw e
-        items.map { SendResult.Ignored(e.message.orEmpty()) } // ponytail: un 400 respinge tutto il blocco → tutti ignorati col messaggio del server
-    }
+    override suspend fun send(items: List<QItem>, secret: String) =
+        sendSplitting(items) { ListenBrainzApi.submit(submitPayload(it), secret) }
     override fun sessionExpired(e: Exception) = (e as? ListenBrainzException)?.code == 401
     // min_ts/max_ts sono esclusi: la finestra ±1 s di recover() li rende di fatto inclusivi
     override suspend fun seen(user: String, from: Long, to: Long) = ListenBrainzApi.listens(user, from, to).mapTo(HashSet()) { it.uts }

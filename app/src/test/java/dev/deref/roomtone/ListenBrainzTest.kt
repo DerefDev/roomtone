@@ -76,3 +76,26 @@ class ListenBrainzTest {
         assertNull(scrobbleMeta(Track("Song A", "Artist A"), null).mbids)
     }
 }
+
+class SendSplittingTest {
+    private fun q(n: Int) = QItem("$n", "Artist A", "Song $n", null, n.toLong(), null, QState.PENDING)
+
+    @Test fun badItemIsIsolated() {
+        val calls = ArrayList<Int>()
+        val r = kotlinx.coroutines.runBlocking {
+            sendSplitting((1..4).map(::q)) { b ->
+                calls += b.size
+                if (b.any { it.id == "3" }) throw ListenBrainzException(400, "bad item")
+            }
+        }
+        assertEquals(listOf(SendResult.Ok, SendResult.Ok, SendResult.Ignored("bad item"), SendResult.Ok), r)
+        assertEquals(listOf(4, 1, 1, 1, 1), calls) // blocco intero, poi uno alla volta
+    }
+
+    @Test fun otherErrorsPropagate() {
+        try {
+            kotlinx.coroutines.runBlocking { sendSplitting(listOf(q(1), q(2))) { throw ListenBrainzException(401, "x") } }
+            org.junit.Assert.fail()
+        } catch (e: ListenBrainzException) { assertEquals(401, e.code) }
+    }
+}

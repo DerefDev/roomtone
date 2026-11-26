@@ -76,6 +76,17 @@
     <string name="field_album">Album</string>
     <string name="draft_repeats">Repeats: %1$d</string>
     <string name="scrobble_title">Scrobble</string>
+    <string name="scrobble_title_lastfm">Scrobble Last.fm</string>
+    <string name="scrobble_title_lb">Scrobble ListenBrainz</string>
+    <string name="menu_scrobble_lastfm">Scrobble Last.fm</string>
+    <string name="menu_scrobble_lb">Scrobble ListenBrainz</string>
+    <string name="tab_versions">Versions</string>
+    <string name="queue_login_lb">connect to ListenBrainz</string>
+    <string name="queue_session_lb">ListenBrainz token rejected, connect again</string>
+    <string name="lb_connected">ListenBrainz: connected as %1$s</string>
+    <string name="lb_connect">Connect</string>
+    <string name="lb_token">ListenBrainz user token</string>
+    <string name="lb_token_help">Where do I find my token?</string>
     <string name="settings_title">Settings</string>
     <string name="sec_language">Language</string>
     <string name="sec_permissions">Permissions</string>

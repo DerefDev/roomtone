@@ -165,7 +165,14 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
     val asked by Updates.asked.collectAsStateWithLifecycle()
     var standbyWasOn by remember { mutableStateOf(false) } // Auto Shazam acceso prima dello standby manuale
     var screen by rememberSaveable { mutableStateOf(Screen.KIOSK) }
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(0) } // 0 inviati, 1 da rivedere, 2 versioni scelte
+    var svcName by rememberSaveable { mutableStateOf(Service.LASTFM.name) }
+    val lbUser by Services.listenbrainz.history.user.collectAsStateWithLifecycle()
+    val lfUser by Services.lastfm.history.user.collectAsStateWithLifecycle()
+    // Last.fm sempre attivo (come prima); ListenBrainz solo se connesso. Nessuno connesso → solo la voce Last.fm.
+    val lfDrafts = list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT }
+    val lbDrafts = if (lbUser != null) list.count { it.of(Service.LISTENBRAINZ)?.eval?.status == Status.DRAFT } else 0
+    fun openScrobble(s: Service, t: Int) { svcName = s.name; tab = t; screen = Screen.SCROBBLE }
     var menu by remember { mutableStateOf(false) }
 
     // copertina: al cambio brano subito l'icona Shazam (se c'è), poi la copertina vera appena l'album è risolto
@@ -215,20 +222,23 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
             else if (!asked) AutoCheckDialog { Updates.setAuto(it); if (it) Updates.checkIfStale(ctx) }
             else if (up != null && up.tag != promptedTag) UpdateDialog(up, { Updates.prompted(up.tag); Updates.install(ctx) }, { Updates.prompted(up.tag) })
             when (screen) {
-                Screen.SCROBBLE -> ScrobbleScreen(tab, { tab = it }) { screen = Screen.KIOSK }
+                Screen.SCROBBLE -> ScrobbleScreen(Service.valueOf(svcName), tab, { tab = it }) { screen = Screen.KIOSK }
                 Screen.SETTINGS -> SettingsScreen(accessGranted, overlayGranted, loginError, { screen = Screen.COVERS }, { screen = Screen.CREDITS }) { screen = Screen.KIOSK }
                 Screen.COVERS -> CoversScreen { screen = Screen.SETTINGS }
                 Screen.CREDITS -> CreditsScreen { screen = Screen.SETTINGS }
                 else -> {
                     KioskScreen(
-                        n, cover, scrobbling, online, list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT }, shazamOn, accessGranted, overlayGranted,
-                        onMenu = { menu = true }, onDrafts = { tab = 1; screen = Screen.SCROBBLE },
+                        n, cover, scrobbling, online, lfDrafts + lbDrafts, shazamOn, accessGranted, overlayGranted,
+                        onMenu = { menu = true }, onDrafts = { openScrobble(if (lfDrafts == 0 && lbDrafts > 0) Service.LISTENBRAINZ else Service.LASTFM, 1) },
                     )
                     Drawer(
                         menu, { menu = false }, scrobbling, Prefs::setScrobbling,
                         update = update, onUpdate = { Updates.install(ctx) },
                         onSettings = { menu = false; screen = Screen.SETTINGS },
-                        onScrobble = { menu = false; tab = 0; screen = Screen.SCROBBLE },
+                        scrobbleEntries = buildList {
+                            if (lfUser != null || lbUser == null) add(ScrobbleEntry(R.string.menu_scrobble_lastfm, lfDrafts) { menu = false; openScrobble(Service.LASTFM, 0) })
+                            if (lbUser != null) add(ScrobbleEntry(R.string.menu_scrobble_lb, lbDrafts) { menu = false; openScrobble(Service.LISTENBRAINZ, 0) })
+                        },
                         onStandby = {
                             menu = false
                             standbyWasOn = shazamOn; ShazamControl.stop() // all'uscita riacceso solo se era acceso

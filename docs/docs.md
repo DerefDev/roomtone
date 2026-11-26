@@ -7,8 +7,8 @@ Everything about how Roomtone works and how to get the most out of it.
 - [Recognition and listens](recognition.md): how Roomtone follows Shazam,
   when a track counts as a listen, repeats, drafts and standby.
 - [Scrobbling](scrobbling.md): how each listen is matched with your Last.fm
-  history and your Discogs collection, and how it reaches Last.fm, offline
-  too.
+  history and your Discogs collection, and how it reaches Last.fm and
+  ListenBrainz, offline too.
 - [Lyrics and covers](lyrics-and-covers.md): where covers and lyrics links
   come from, and how artists are shown on screen.
 

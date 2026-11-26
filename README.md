@@ -46,7 +46,7 @@ install it yourself. Then:
 2. Open Roomtone and allow notification access and display over other apps,
    so it can read what Shazam recognizes and turn Auto Shazam on for you
    ([why](https://derefdev.github.io/roomtone/permissions/)).
-3. Log in to Last.fm and, if you like, to Discogs.
+3. Log in to Last.fm or ListenBrainz (or both) and, if you like, to Discogs.
 4. Play a record, tape or CD.
 
 If you install the APK from a file and Google Play Protect says "App blocked

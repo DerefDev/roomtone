@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,38 +104,6 @@ private fun CustomMinDialog(cur: Int, onSet: (Int) -> Unit, onDismiss: () -> Uni
         dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } })
 }
 
-// Versioni scelte: brano → "titolo · album"; tocco → dialogo per cambiare o rimuovere la scelta
-@Composable
-private fun VersionsArea() {
-    val all by Services.lastfm.choices.choices.collectAsStateWithLifecycle()
-    var edit by remember { mutableStateOf<String?>(null) }
-    Area(R.string.sec_versions) {
-        if (all.isEmpty()) Text(stringResource(R.string.versions_hint), fontSize = 12.sp, color = TextSoft)
-        all.forEach { (hk, c) ->
-            Column(Modifier.fillMaxWidth().clickable { edit = hk }.padding(vertical = 4.dp)) {
-                Text("${c.song.title} – ${c.song.artist}", fontSize = 15.sp)
-                Text(listOfNotNull(c.key.title, c.key.album).joinToString(" · "), fontSize = 13.sp, color = TextSoft)
-            }
-        }
-    }
-    val c = edit?.let { all[it] }
-    if (c != null) {
-        // ponytail: scelta non più in cronologia → compare solo come voce salvata (plays 0)
-        val opts = Services.lastfm.history.index.versions(c.song).let { vs -> if (vs.any { it.key == c.key }) vs else listOf(Version(c.key.artist, c.key.title, c.key.album, 0, emptyList())) + vs }
-        var sel by remember(c) { mutableStateOf(opts.first { it.key == c.key }) }
-        AlertDialog({ edit = null },
-            title = { Text("${c.song.title} – ${c.song.artist}", fontSize = 16.sp) },
-            text = { LazyColumn { item { VersionPicker(opts, sel) { sel = it } } } },
-            confirmButton = { TextButton({ Services.lastfm.choices.set(c.song, sel.key); edit = null }) { Text(stringResource(R.string.version_save)) } },
-            dismissButton = {
-                Row {
-                    TextButton({ Services.lastfm.choices.remove(edit!!); edit = null }) { Text(stringResource(R.string.version_remove)) }
-                    TextButton({ edit = null }) { Text(stringResource(R.string.cancel)) }
-                }
-            })
-    }
-}
-
 @Composable
 fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: String?, onCovers: () -> Unit, onCredits: () -> Unit, onBack: () -> Unit) {
     val ctx = LocalContext.current
@@ -144,6 +113,11 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
     val logDays by Prefs.logDays.collectAsStateWithLifecycle()
     val user by Services.lastfm.history.user.collectAsStateWithLifecycle()
     val sync by Services.lastfm.history.progress.collectAsStateWithLifecycle()
+    val lbUser by Services.listenbrainz.history.user.collectAsStateWithLifecycle()
+    val lbSync by Services.listenbrainz.history.progress.collectAsStateWithLifecycle()
+    var lbToken by remember { mutableStateOf("") }
+    var lbBusy by remember { mutableStateOf(false) }
+    var lbError by remember { mutableStateOf<String?>(null) }
     val auto by Prefs.standbyAuto.collectAsStateWithLifecycle()
     val mins by Prefs.standbyMin.collectAsStateWithLifecycle()
     val shazamOn by ShazamControl.autoOn.collectAsStateWithLifecycle()
@@ -213,6 +187,41 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                         }
                     }
                     (loginError ?: sync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    val lbu = lbUser
+                    if (lbu == null) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            // il token non finisce mai in rememberSaveable (stato di istanza/log): resta solo in memoria
+                            OutlinedTextField(lbToken, { lbToken = it.trim() }, Modifier.weight(1f), singleLine = true, enabled = !lbBusy,
+                                label = { Text(stringResource(R.string.lb_token)) }, visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
+                            if (lbBusy) CircularProgressIndicator(Modifier.size(24.dp), color = LocalAccent.current, strokeWidth = 2.dp)
+                            else Button({
+                                lbBusy = true
+                                scope.launch {
+                                    try { Services.connectListenBrainz(lbToken); lbToken = ""; lbError = null }
+                                    catch (e: Exception) { lbError = e.message ?: "error" }
+                                    finally { lbBusy = false }
+                                }
+                            }, enabled = lbToken.isNotEmpty()) { Text(stringResource(R.string.lb_connect)) }
+                        }
+                        Link(R.string.lb_token_help, "https://listenbrainz.org/settings/", ::open)
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(Modifier.weight(1f, fill = false)) {
+                                Text(stringResource(R.string.lb_connected, lbu))
+                                val n = NumberFormat.getInstance().format(lbSync.total)
+                                Text(when {
+                                    lbSync.running && lbSync.pages == 0 -> stringResource(R.string.history_syncing_open, n)
+                                    lbSync.running -> stringResource(R.string.history_syncing, n, lbSync.page, lbSync.pages)
+                                    lbSync.complete -> stringResource(R.string.history_up_to_date, n)
+                                    else -> stringResource(R.string.history_paused, n)
+                                }, fontSize = 12.sp)
+                            }
+                            Button({ Services.listenbrainz.history.logout() }) { Text(stringResource(R.string.lastfm_disconnect)) }
+                        }
+                    }
+                    (lbError ?: lbSync.error)?.let { Text(stringResource(R.string.sync_error, it), fontSize = 12.sp) }
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         val u = dgUser
@@ -299,7 +308,6 @@ fun SettingsScreen(accessGranted: Boolean, overlayGranted: Boolean, loginError: 
                     }
                 }
             }
-            item { VersionsArea() }
             item { Area(R.string.sec_general) { LangMenu() } }
             if (!missing) permissions()
             if (diag) {
