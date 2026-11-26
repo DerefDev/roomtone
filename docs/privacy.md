@@ -21,7 +21,7 @@ each one.
 
 | Service | What Roomtone sends | Why |
 |---|---|---|
-| [Last.fm](https://www.last.fm/legal/privacy) | your scrobbles (artist, title, album, time, length); requests for your history and for track and album details | scrobbling, matching with your history, covers, lengths |
+| [Last.fm](https://www.last.fm/legal/privacy) | your scrobbles (artist, title, album, time, length); requests for your history | scrobbling, matching with your history |
 | [Discogs](https://support.discogs.com/hc/articles/360009334513) | requests for your collection, releases and artists | your records, tracklists, covers |
 | [Genius](https://genius.com) | artist and title of the track | lyrics link |
 | [GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement) | a request for the latest Roomtone version: once a day only if you said yes on first start (changeable in Settings), and when you check or update; never when Obtainium or an F-Droid client installed Roomtone | update notice and download |

@@ -84,7 +84,7 @@ fun KioskScreen(
                 np?.let {
                     val artist = remember(it.track, it.groups) { displayArtist(it.track) { n -> n in it.groups } }
                     Text(artist, color = TextMain.copy(alpha = 0.85f), fontSize = (h.value * 0.055f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    (it.album?.title ?: it.meta?.album)?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    it.album?.title?.let { a -> Text(a, color = TextSoft, fontSize = (h.value * 0.04f).sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 }
                 np?.next?.let {
                     Spacer(Modifier.height(h * 0.03f))

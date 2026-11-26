@@ -224,7 +224,8 @@ object EventStore {
                     seen(own, now)
                     val m = metaFor(t, own).first
                     upd { it.copy(meta = m) }
-                    val ref = Albums.resolve(t, m.album, own)
+                    // a schermo: album/copertina/prossimo brano senza la cronologia Last.fm (serve solo allo scrobble, via withAlbum)
+                    val ref = Albums.resolve(t, null, own)
                     // titolo esatto della traccia sul disco posseduto (nessuna pulizia)
                     upd { it.copy(meta = withAlbum(m, ref, t), album = ref, albumDone = true, ownedTitle = own?.second?.title) }
                     val nx = Tracklists.next(t, ref)
