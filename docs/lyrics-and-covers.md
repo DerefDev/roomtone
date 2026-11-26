@@ -7,16 +7,15 @@ For a record you own, Roomtone looks for the cover of your exact pressing:
 1. your own image, if you picked one in Settings (it always wins)
 2. Cover Art Archive, for the MusicBrainz release linked to your Discogs
    release
-3. Last.fm
-4. Cover Art Archive, for any edition of the album
-5. Deezer
-6. the Discogs image
+3. Cover Art Archive, for any edition of the album
+4. Deezer
+5. the Discogs image
 
 Covers of your records are downloaded when the collection syncs and kept on
 the phone. In Settings you can browse the alternatives for each record or
 use a picture of your own.
 
-For other tracks the order is Last.fm, Cover Art Archive, Deezer, iTunes and
+For other tracks the order is Cover Art Archive, Deezer, iTunes and
 the image of the Discogs master release. Until a cover arrives, Roomtone shows
 the small artwork from Shazam's notification.
 

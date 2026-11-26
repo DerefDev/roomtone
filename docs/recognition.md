@@ -75,9 +75,8 @@ The length is looked up in this order, and the first answer wins:
 
 1. the tracklist of the record you own, from Discogs
 2. the phone's cache of earlier lookups
-3. Last.fm
-4. Deezer
-5. MusicBrainz, at most one request per second; if nothing is found, it tries
+3. Deezer
+4. MusicBrainz, at most one request per second; if nothing is found, it tries
    again without featured artists and with only the main artist
 
 A length that can't be found is remembered for a day. Network errors are not

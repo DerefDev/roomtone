@@ -173,7 +173,7 @@
     <string name="cr_group_covers">Covers</string>
     <string name="cr_group_libs">Icons and libraries</string>
     <string name="cr_d_shazam">Identifies the playing music, read from its notifications</string>
-    <string name="cr_d_lastfm">Scrobbling, track info and listening history</string>
+    <string name="cr_d_lastfm">Scrobbling and listening history</string>
     <string name="cr_d_mb">Track durations and album data</string>
     <string name="cr_d_discogs">Your record collection and release details</string>
     <string name="cr_d_deezer">Track durations, albums and tracklists</string>

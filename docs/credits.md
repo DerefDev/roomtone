@@ -22,8 +22,7 @@ All under the Apache License 2.0:
 
 ## Data sources
 
-- [Last.fm API](https://www.last.fm/api): scrobbling, track info, listening
-  history. Subject to the [Last.fm API Terms](https://www.last.fm/api/tos).
+- [Last.fm API](https://www.last.fm/api): scrobbling and listening history. Subject to the [Last.fm API Terms](https://www.last.fm/api/tos).
 - [Discogs API](https://www.discogs.com/developers): your collection, release
   details, tracklists and artwork. Data provided by Discogs.
 - [MusicBrainz](https://musicbrainz.org): track durations and release data.

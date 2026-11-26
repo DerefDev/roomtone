@@ -146,7 +146,6 @@ object Artwork {
         val first = firstArtistRaw(artist)
         val l = ArrayList<Source>()
         l += "Cover Art Archive" to { listOfNotNull(mbRelease(id, c)?.let { "$CAA/release/$it/front-1200" }) }
-        l += "Last.fm" to { listOfNotNull(lastFmCover(first, title)) }
         l += "Cover Art Archive (group)" to { rgUrls(first, "", title, c) }
         l += "Deezer" to { listOfNotNull(deezerAlbum(first, title)) }
         if (picker) l += "iTunes" to { itunes(first, "", title) }
@@ -175,7 +174,6 @@ object Artwork {
 
     private fun otherSources(first: String, title: String, album: String?, discogsImage: String?, c: Ctx): List<Source> {
         val l = ArrayList<Source>()
-        if (album != null) l += "Last.fm" to { listOfNotNull(lastFmCover(first, album)) }
         l += "Cover Art Archive" to { rgUrls(first, title, album, c) }
         l += "Deezer" to { listOfNotNull(if (album != null) deezerAlbum(first, album) else deezerTrack(first, title)) }
         l += "iTunes" to { itunes(first, title, album) }
@@ -193,8 +191,10 @@ object Artwork {
         return null
     }
 
-    private suspend fun lastFmCover(first: String, album: String): String? =
-        if (BuildConfig.LASTFM_API_KEY.isEmpty()) null else LastFmApi.albumImage(first, album)
+    // Copertina per l'elenco delle versioni (Deezer). null = nessuna o errore
+    suspend fun albumCoverUrl(artist: String, album: String): String? = withContext(Dispatchers.IO) {
+        try { deezerAlbum(firstArtistRaw(artist), album) } catch (_: Exception) { null }
+    }
 
     private fun artistOk(o: JSONObject, first: String): Boolean {
         val ac = o.optJSONArray("artist-credit") ?: return false

@@ -10,7 +10,7 @@ import java.io.File
 import java.io.IOException
 import java.net.URLEncoder
 
-enum class AlbumSource { OWNED, HISTORY, DISCOGS, LASTFM, DEEZER }
+enum class AlbumSource { OWNED, HISTORY, DISCOGS, LASTFM, DEEZER } // LASTFM: solo voci vecchie (cache/eventi), non più prodotto
 
 data class AlbumRef(
     val artist: String, val title: String, val source: AlbumSource,
@@ -21,12 +21,12 @@ data class AlbumRef(
 data class DiscogsHit(val masterId: Long?, val title: String, val year: Int, val formats: List<String>, val image: String?)
 
 
-// Scelta del master: 1) il suo titolo coincide con l'album di Last.fm; poi per formato:
+// Scelta del master: 1) il suo titolo coincide con l'album suggerito (Deezer); poi per formato:
 // Album non Compilation → altri non Compilation (EP) → Single → Compilation; a parità il più vecchio.
-fun pickMaster(results: List<DiscogsHit>, lastFmAlbum: String?): DiscogsHit? {
+fun pickMaster(results: List<DiscogsHit>, hint: String?): DiscogsHit? {
     fun age(h: DiscogsHit) = h.year.takeIf { it > 0 } ?: Int.MAX_VALUE
-    if (lastFmAlbum != null) {
-        val k = titleKey(lastFmAlbum)
+    if (hint != null) {
+        val k = titleKey(hint)
         results.filter { titleKey(it.title) == k }.minByOrNull(::age)?.let { return it }
     }
     fun tier(h: DiscogsHit) = when {
@@ -38,7 +38,7 @@ fun pickMaster(results: List<DiscogsHit>, lastFmAlbum: String?): DiscogsHit? {
     return results.minWithOrNull(compareBy(::tier, ::age))
 }
 
-// Risoluzione album: collezione Discogs → cronologia → catalogo Discogs → Last.fm → Deezer.
+// Risoluzione album: collezione Discogs → cronologia → catalogo Discogs → Deezer.
 // Cache per normKey (memoria + albums.json); solo i risultati di rete. Il "no" resta 1 giorno; errori di rete → niente cache.
 // ponytail: owned/history non in cache (sono locali e dipendono dalla cronologia corrente)
 object Albums {
@@ -68,23 +68,19 @@ object Albums {
         }
         var err = false
         val title = stripFeat(t.title)
-        var lfm: LastFmAlbum? = null
-        var lfmDone = false
-        suspend fun lastFm(): LastFmAlbum? {
-            if (!lfmDone && BuildConfig.LASTFM_API_KEY.isNotEmpty()) {
-                lfmDone = true
-                try { lfm = LastFmApi.trackAlbum(first, title) } catch (_: IOException) { err = true }
-            }
-            return lfm
+        var dz: AlbumRef? = null
+        var dzDone = false
+        fun deezerRef(): AlbumRef? { // una sola richiesta: spareggio tra master Discogs e poi riserva
+            if (!dzDone) { dzDone = true; try { dz = deezer(first, title) } catch (_: IOException) { err = true } catch (_: Exception) { } }
+            return dz
         }
         var ref: AlbumRef? = null
         if (BuildConfig.DISCOGS_CONSUMER_KEY.isNotEmpty()) try {
             var hits = search("master", first, title)
             if (hits.isEmpty()) hits = search("release", first, title)
-            pickMaster(hits, if (hits.size > 1) lastFm()?.title else null)?.let { ref = AlbumRef(first, it.title, AlbumSource.DISCOGS, null, it.masterId, it.image) }
+            pickMaster(hits, if (hits.size > 1) deezerRef()?.title else null)?.let { ref = AlbumRef(first, it.title, AlbumSource.DISCOGS, null, it.masterId, it.image) }
         } catch (_: IOException) { err = true } catch (_: Exception) { /* JSON inatteso → prossima fonte */ }
-        if (ref == null) lastFm()?.let { ref = AlbumRef(first, it.title, AlbumSource.LASTFM) }
-        if (ref == null) try { ref = deezer(first, title) } catch (_: IOException) { err = true } catch (_: Exception) { }
+        if (ref == null) ref = deezerRef()
         store(key, ref, err)
         ref
     }

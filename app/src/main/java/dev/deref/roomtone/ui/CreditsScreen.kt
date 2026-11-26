@@ -33,7 +33,6 @@ private val groups = listOf(
     R.string.cr_group_covers to listOf(
         Credit(R.string.credit_caa, R.string.cr_d_caa, "https://coverartarchive.org"),
         Credit(R.string.credit_discogs, R.string.cr_d_art_discogs, DISCOGS),
-        Credit(R.string.credit_lastfm, R.string.cr_d_art, LASTFM),
         Credit(R.string.credit_deezer, R.string.cr_d_art, DEEZER),
         Credit(R.string.credit_itunes, R.string.cr_d_art, "https://www.apple.com/itunes/"),
     ),

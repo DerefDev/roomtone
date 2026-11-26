@@ -10,7 +10,7 @@ import java.io.File
 import java.io.IOException
 import java.net.URLEncoder
 
-// Durata brano: disco posseduto (Discogs) → cache (memoria + durations.json) → Last.fm → Deezer → MusicBrainz (ultima: 1 req/s).
+// Durata brano: disco posseduto (Discogs) → cache (memoria + durations.json) → Deezer → MusicBrainz (ultima: 1 req/s).
 // ponytail: errori di rete → null senza dettaglio; niente retry → WorkManager se serve
 object Durations {
     private const val DAY = 24 * 3_600_000L
@@ -38,7 +38,7 @@ object Durations {
         }
         var failed = false
         val sources = listOf<suspend (Track) -> Long?>(
-            { if (BuildConfig.LASTFM_API_KEY.isEmpty()) 0L else lastFm(it) }, { deezer(it) }, { musicBrainz(it) },
+            { deezer(it) }, { musicBrainz(it) },
         )
         for (src in sources) {
             val ms = src(t)
@@ -60,16 +60,6 @@ object Durations {
     }
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
-
-    // 0 = sconosciuta, null = errore
-    private fun lastFm(t: Track): Long? {
-        val u = "https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${enc(BuildConfig.LASTFM_API_KEY)}" +
-            "&artist=${enc(t.artist)}&track=${enc(t.title)}&autocorrect=1&format=json"
-        val body = try { httpGet(u)?.toString(Charsets.UTF_8) } catch (_: IOException) { null } ?: return null
-        return try {
-            JSONObject(body).optJSONObject("track")?.optString("duration")?.toLongOrNull() ?: 0L
-        } catch (_: Exception) { null }
-    }
 
     // 0 = non trovata, null = errore
     private fun deezer(t: Track): Long? {

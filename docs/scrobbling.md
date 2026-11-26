@@ -71,8 +71,9 @@ misheard.
 ## Album
 
 The album sent with each scrobble is, in order: the record you own, the album
-of the version picked from your history, then the Discogs catalog, Last.fm and
-Deezer.
+of the version picked from your history, then the Discogs catalog and
+Deezer. When the Discogs catalog has several albums with the track, the Deezer
+album breaks the tie.
 
 In Settings you can choose between two modes:
 

@@ -28,7 +28,7 @@ import java.util.Locale
 private val covers = LruCache<String, Bitmap>(40) // "artista|album"; ponytail: gli insuccessi non sono in cache → ritentati
 private val dayFmt = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-// Copertina dell'album della versione (Last.fm); senza album o su errore resta il segnaposto.
+// Copertina dell'album della versione (Deezer); senza album o su errore resta il segnaposto.
 @Composable
 private fun VersionCover(v: Version) {
     val key = v.album?.let { "${v.artist}|$it" }
@@ -36,7 +36,7 @@ private fun VersionCover(v: Version) {
     LaunchedEffect(key) {
         if (key == null || bmp != null) return@LaunchedEffect
         bmp = try {
-            LastFmApi.albumImage(v.artist, v.album!!)?.let { Artwork.preview(it) }?.also { covers.put(key, it) }
+            Artwork.albumCoverUrl(v.artist, v.album!!)?.let { Artwork.preview(it) }?.also { covers.put(key, it) }
         } catch (_: Exception) { null }
     }
     val m = Modifier.size(48.dp).clip(RoundedCornerShape(6.dp))
