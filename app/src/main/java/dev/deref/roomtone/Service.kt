@@ -51,8 +51,8 @@ object LastFmScrobbler : Scrobbler {
 
 // Tutto ciò che è per servizio: account+cronologia, versioni scelte, coda. Last.fm mantiene i nomi di file/prefs storici.
 class Svc(val service: Service, val history: HistorySync, val choices: VersionChoices, val queue: ScrobbleQueue) {
-    // Last.fm sempre valutato (la coda attende il login, come prima); gli altri solo se connessi
-    val active get() = service == Service.LASTFM || history.user.value != null
+    // connesso; Last.fm anche se nessun servizio è connesso (la coda attende il login, come prima)
+    val active get() = history.user.value != null || (service == Service.LASTFM && Services.listenbrainz.history.user.value == null)
 }
 
 object Services {

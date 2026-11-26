@@ -170,7 +170,7 @@ private fun Root(accessGranted: Boolean, overlayGranted: Boolean, loginError: St
     val lbUser by Services.listenbrainz.history.user.collectAsStateWithLifecycle()
     val lfUser by Services.lastfm.history.user.collectAsStateWithLifecycle()
     // Last.fm sempre attivo (come prima); ListenBrainz solo se connesso. Nessuno connesso → solo la voce Last.fm.
-    val lfDrafts = list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT }
+    val lfDrafts = if (lfUser != null || lbUser == null) list.count { it.of(Service.LASTFM)?.eval?.status == Status.DRAFT } else 0 // pannello Last.fm visibile
     val lbDrafts = if (lbUser != null) list.count { it.of(Service.LISTENBRAINZ)?.eval?.status == Status.DRAFT } else 0
     fun openScrobble(s: Service, t: Int) { svcName = s.name; tab = t; screen = Screen.SCROBBLE }
     var menu by remember { mutableStateOf(false) }
